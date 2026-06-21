@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,11 +9,122 @@ import Footer from "@/components/footer";
 
 type TabId = "rules" | "schedule" | "brackets" | "standings";
 
-export default function TournamentDetail({ params }: { params: { id: string } }) {
+interface StandingsPlayer {
+  rank: string;
+  name: string;
+  record: string;
+  points: number;
+  omw: string;
+}
+
+export default function TournamentDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  
   const [activeTab, setActiveTab] = useState<TabId>("rules");
   const [searchPlayer, setSearchPlayer] = useState("");
+  const [tournament, setTournament] = useState<any>(null);
+  const [userRegistration, setUserRegistration] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
+  const [showGatewayModal, setShowGatewayModal] = useState(false);
 
-  const standingsData = [
+  const fetchDetails = () => {
+    fetch(`/api/tournaments/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.tournament) {
+          setTournament(data.tournament);
+          setUserRegistration(data.userRegistration);
+        }
+      })
+      .catch((err) => console.log("Failed to fetch tournament detail", err))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchDetails();
+  }, [id]);
+
+  const handleRegister = async () => {
+    if (tournament?.entryFee > 0) {
+      setShowGatewayModal(true);
+    } else {
+      await processCheckout("STRIPE"); // Free, doesn't matter
+    }
+  };
+
+  const processCheckout = async (selectedGateway: "STRIPE" | "RAZORPAY") => {
+    try {
+      setPaying(true);
+      setShowGatewayModal(false);
+
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tournamentId: id,
+          gateway: selectedGateway,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      if (data.success) {
+        alert("Registered successfully!");
+        fetchDetails();
+      } else if (data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else if (data.orderId) {
+        // Launch Razorpay checkout
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Pokémon Champions",
+          description: `Entry fee for ${tournament.title}`,
+          order_id: data.orderId,
+          handler: async function (response: any) {
+            alert("Payment completed! Awaiting confirmation...");
+            fetchDetails();
+          },
+          prefill: {
+            name: "Trainer",
+          },
+          theme: {
+            color: "#2b3896",
+          },
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      }
+    } catch (err: any) {
+      alert("Checkout failed: " + err.message);
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  // Standings data mapping from tournament registrations
+  const standingsData: StandingsPlayer[] = tournament?.registrations?.map((reg: any, idx: number) => {
+    const userMatches = tournament.matches.filter(
+      (m: any) => (m.p1Id === reg.userId || m.p2Id === reg.userId) && m.status === "COMPLETED"
+    );
+    const wins = userMatches.filter((m: any) => m.winnerId === reg.userId).length;
+    const losses = userMatches.length - wins;
+
+    return {
+      rank: `#${idx + 1}`,
+      name: reg.user.name || "Trainer",
+      record: `${wins}-${losses}-0`,
+      points: wins * 3,
+      omw: "50.0%",
+    };
+  }) || [
     { rank: "#1", name: "S. Arisaka", record: "4-0-0", points: 12, omw: "78.5%" },
     { rank: "#2", name: "M. Wolf", record: "4-0-0", points: 12, omw: "72.1%" },
     { rank: "#3", name: "E. Rizzo", record: "3-1-0", points: 9, omw: "84.0%" },
@@ -28,13 +139,16 @@ export default function TournamentDetail({ params }: { params: { id: string } })
     <>
       <Navigation />
 
+      {/* Script for Razorpay */}
+      <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
+
       <main className="max-w-container-max mx-auto px-md py-lg">
         {/* Tournament Hero Banner */}
         <section className="relative rounded-xl overflow-hidden mb-xl bg-surface-container-lowest border border-outline-variant shadow-lg h-[400px]">
           <div className="absolute inset-0 z-0">
             <div className="relative w-full h-full bg-cover bg-center opacity-40">
               <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCv2pWhNKWU97uKk9zYDylNAFoYURc2PUasR4OKe0YGHIzxtQjexfWnxinQsdaYb3Wczwvt-xknZIr3_-eePNVgaNFcOU7Aw1a-EwXrJm-FHI42wIz6yc-JfG2PAkZvhe0weNIunPtr810PRThL4s2e-ZJP9t2mttk2E4VEEwHjCCPPCQ5b62Sq3JJRUqKPd-FAwMxt93tWBzkTVU9tuyeuZGkLY3bx5gHUo-5gSLwET6ltb9H0rd_71fi8hTxfYJAEBkq83Bwoks"
+                src={tournament?.banner || "https://lh3.googleusercontent.com/aida-public/AB6AXuBCv2pWhNKWU97uKk9zYDylNAFoYURc2PUasR4OKe0YGHIzxtQjexfWnxinQsdaYb3Wczwvt-xknZIr3_-eePNVgaNFcOU7Aw1a-EwXrJm-FHI42wIz6yc-JfG2PAkZvhe0weNIunPtr810PRThL4s2e-ZJP9t2mttk2E4VEEwHjCCPPCQ5b62Sq3JJRUqKPd-FAwMxt93tWBzkTVU9tuyeuZGkLY3bx5gHUo-5gSLwET6ltb9H0rd_71fi8hTxfYJAEBkq83Bwoks"}
                 alt="High-tech Pokémon tournament stadium at dusk"
                 fill
                 priority
@@ -46,35 +160,68 @@ export default function TournamentDetail({ params }: { params: { id: string } })
           <div className="absolute bottom-0 left-0 p-xl z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-md">
             <div className="space-y-xs">
               <div className="flex flex-wrap items-center gap-sm mb-xs select-none">
-                <span className="px-sm py-1 bg-tertiary text-on-tertiary text-label-lg font-label-lg rounded-full shadow-sm font-bold">
-                  REGIONAL QUALIFIER
+                <span className="px-sm py-1 bg-tertiary text-on-tertiary text-label-lg font-label-lg rounded-full shadow-sm font-bold uppercase">
+                  {tournament?.type?.replace("_", " ") || "REGIONAL QUALIFIER"}
                 </span>
                 <span className="px-sm py-1 bg-surface-container-high text-on-surface text-label-lg font-label-lg rounded-full flex items-center gap-1 font-bold border border-outline-variant/30">
                   <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
-                  LIVE NOW
+                  {tournament?.status || "LIVE NOW"}
                 </span>
               </div>
               <h1 className="font-display-lg text-display-lg text-on-surface font-bold leading-tight">
-                Lumiose City Masters: Summer 2024
+                {tournament?.title || "Lumiose City Masters: Summer 2024"}
               </h1>
               <p className="text-on-surface-variant font-body-lg max-w-2xl">
-                The premier VGC Regulation G tournament in the Kalos circuit. Top 4 finishers secure a direct invitation to the International Championships.
+                {tournament?.description || "The premier VGC Regulation G tournament in the Kalos circuit. Top 4 finishers secure a direct invitation."}
               </p>
             </div>
             
             {/* Quick stats sidebar */}
-            <div className="flex flex-col gap-xs min-w-[220px] bg-white/60 p-sm rounded-lg border border-white/50 backdrop-blur-sm shadow-sm select-none">
+            <div className="flex flex-col gap-xs min-w-[240px] bg-white/70 p-sm rounded-lg border border-white/50 backdrop-blur-sm shadow-md select-none">
               <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
                 <span>Participants</span>
-                <span className="font-bold text-on-surface">128 / 128</span>
+                <span className="font-bold text-on-surface">
+                  {tournament?.registrations?.length || 0} / {tournament?.maxPlayers || 128}
+                </span>
               </div>
               <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
-                <span>Format</span>
-                <span className="font-bold text-on-surface">VGC Reg G</span>
+                <span>Entry Fee</span>
+                <span className="font-bold text-on-surface">
+                  {tournament?.entryFee > 0 ? `$${tournament.entryFee.toFixed(2)}` : "Free"}
+                </span>
               </div>
-              <div className="flex items-center justify-between text-on-surface-variant text-body-md">
+              <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
                 <span>Prize Pool</span>
-                <span className="font-bold text-tertiary">$15,000.00</span>
+                <span className="font-bold text-tertiary">
+                  ${tournament?.prizePool?.toLocaleString() || "15,000.00"}
+                </span>
+              </div>
+
+              {/* Registration and payment action button */}
+              <div className="mt-xs">
+                {userRegistration ? (
+                  userRegistration.status === "APPROVED" ? (
+                    <button disabled className="w-full bg-green-600 text-white py-xs rounded-lg font-bold text-body-md text-center opacity-90 cursor-default">
+                      ✓ Registered & Paid
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRegister}
+                      disabled={paying}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-xs rounded-lg font-bold text-body-md text-center transition-all shadow-sm"
+                    >
+                      {paying ? "Processing..." : "Complete Payment"}
+                    </button>
+                  )
+                ) : (
+                  <button
+                    onClick={handleRegister}
+                    disabled={paying}
+                    className="w-full bg-tertiary text-on-primary hover:brightness-110 py-xs rounded-lg font-bold text-body-md text-center transition-all shadow-md"
+                  >
+                    {paying ? "Processing..." : "Register Now"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -119,42 +266,48 @@ export default function TournamentDetail({ params }: { params: { id: string } })
                       Tournament Regulations
                     </h2>
                     <div className="space-y-sm">
-                      {[
-                        {
-                          num: 1,
-                          title: "Standard Format (Regulation G)",
-                          desc: "Players must use teams consistent with the Regulation G ruleset, which allows for one restricted Legendary Pokémon per team.",
-                        },
-                        {
-                          num: 2,
-                          title: "Match Structure",
-                          desc: "All matches are Best-of-Three (Bo3). Time limits are 20 minutes for total game time and 7 minutes per player (Your Time).",
-                        },
-                        {
-                          num: 3,
-                          title: "Open Team Sheets",
-                          desc: "Participants must provide an open team sheet highlighting moves, abilities, and held items. Tera types must be explicitly listed.",
-                        },
-                        {
-                          num: 4,
-                          title: "Disconnect Policy",
-                          desc: "In the event of a disconnection, players must immediately call a judge. Intentional disconnects will result in immediate disqualification.",
-                        },
-                      ].map((rule) => (
-                        <div key={rule.num} className="flex gap-md group">
-                          <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-tertiary-fixed text-on-tertiary-fixed rounded-full font-bold shadow-sm select-none">
-                            {rule.num}
-                          </span>
-                          <div>
-                            <h3 className="font-title-lg text-title-lg text-on-surface font-semibold">
-                              {rule.title}
-                            </h3>
-                            <p className="text-on-surface-variant text-body-md mt-1">
-                              {rule.desc}
-                            </p>
+                      {tournament?.rules ? (
+                        <p className="text-on-surface-variant text-body-md whitespace-pre-wrap">
+                          {tournament.rules}
+                        </p>
+                      ) : (
+                        [
+                          {
+                            num: 1,
+                            title: "Standard Format (Regulation G)",
+                            desc: "Players must use teams consistent with the Regulation G ruleset, which allows for one restricted Legendary Pokémon per team.",
+                          },
+                          {
+                            num: 2,
+                            title: "Match Structure",
+                            desc: "All matches are Best-of-Three (Bo3). Time limits are 20 minutes for total game time and 7 minutes per player (Your Time).",
+                          },
+                          {
+                            num: 3,
+                            title: "Open Team Sheets",
+                            desc: "Participants must provide an open team sheet highlighting moves, abilities, and held items. Tera types must be explicitly listed.",
+                          },
+                          {
+                            num: 4,
+                            title: "Disconnect Policy",
+                            desc: "In the event of a disconnection, players must immediately call a judge. Intentional disconnects will result in immediate disqualification.",
+                          },
+                        ].map((rule) => (
+                          <div key={rule.num} className="flex gap-md group">
+                            <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-tertiary-fixed text-on-tertiary-fixed rounded-full font-bold shadow-sm select-none">
+                              {rule.num}
+                            </span>
+                            <div>
+                              <h3 className="font-title-lg text-title-lg text-on-surface font-semibold">
+                                {rule.title}
+                              </h3>
+                              <p className="text-on-surface-variant text-body-md mt-1">
+                                {rule.desc}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -167,10 +320,10 @@ export default function TournamentDetail({ params }: { params: { id: string } })
                     </h2>
                     <div className="space-y-sm">
                       {[
-                        { rank: "1st Place", title: "Champion", prize: "$7,500", highlight: true },
-                        { rank: "2nd Place", title: "Finalist", prize: "$3,000", highlight: false },
-                        { rank: "3rd - 4th Place", title: "Semi-Finals", prize: "$1,500", highlight: false },
-                        { rank: "5th - 8th Place", title: "Quarter-Finals", prize: "$375", highlight: false },
+                        { rank: "1st Place", title: "Champion", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.5).toLocaleString()}` : "$7,500", highlight: true },
+                        { rank: "2nd Place", title: "Finalist", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.2).toLocaleString()}` : "$3,000", highlight: false },
+                        { rank: "3rd - 4th Place", title: "Semi-Finals", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.1).toLocaleString()}` : "$1,500", highlight: false },
+                        { rank: "5th - 8th Place", title: "Quarter-Finals", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.025).toLocaleString()}` : "$375", highlight: false },
                       ].map((item, index) => (
                         <div
                           key={index}
@@ -312,21 +465,26 @@ export default function TournamentDetail({ params }: { params: { id: string } })
                   account_tree
                 </span>
                 <h3 className="font-headline-md text-headline-md text-on-surface font-bold">
-                  Brackets Loading...
+                  {tournament?.matches?.length > 0 ? "Matches Generated" : "Brackets Loading..."}
                 </h3>
                 <p className="text-on-surface-variant text-body-md max-w-sm mt-1">
-                  Swiss rounds are currently in progress. Bracket visualization will appear after Round 7.
+                  {tournament?.matches?.length > 0
+                    ? `Tournament is ongoing with ${tournament.matches.length} matches created.`
+                    : "Swiss rounds are currently in progress. Bracket visualization will appear after Round 7."}
                 </p>
                 <div className="mt-lg flex flex-wrap gap-md justify-center select-none">
                   <button
                     onClick={() => setActiveTab("standings")}
                     className="bg-tertiary text-on-tertiary px-lg py-sm rounded-lg font-bold shadow-md hover:opacity-90 active:scale-95 transition-all"
                   >
-                    View Current Swiss Standing
+                    View Current Swiss Standings
                   </button>
-                  <button className="bg-surface-container-high text-on-surface px-lg py-sm rounded-lg font-bold active:scale-95 transition-all hover:bg-surface-container-highest">
-                    Refresh
-                  </button>
+                  <Link
+                    href={`/brackets?tournamentId=${id}`}
+                    className="bg-surface-container-high text-on-surface px-lg py-sm rounded-lg font-bold active:scale-95 transition-all hover:bg-surface-container-highest flex items-center justify-center"
+                  >
+                    Open Bracket Tree
+                  </Link>
                 </div>
               </motion.div>
             )}
@@ -403,9 +561,46 @@ export default function TournamentDetail({ params }: { params: { id: string } })
             )}
           </AnimatePresence>
         </div>
+
+        {/* Gateway Selection Modal */}
+        {showGatewayModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-sm">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-md shadow-2xl space-y-md">
+              <h3 className="font-headline-md text-on-surface font-bold text-center">
+                Select Payment Method
+              </h3>
+              <p className="text-on-surface-variant text-body-md text-center">
+                Entry Fee: <span className="font-bold text-tertiary">${tournament?.entryFee.toFixed(2)}</span>
+              </p>
+              <div className="grid grid-cols-2 gap-sm">
+                <button
+                  onClick={() => processCheckout("STRIPE")}
+                  className="p-md border-2 border-outline-variant hover:border-tertiary rounded-xl flex flex-col items-center gap-xs transition-all font-bold active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[32px] text-blue-600">credit_card</span>
+                  <span>Stripe</span>
+                </button>
+                <button
+                  onClick={() => processCheckout("RAZORPAY")}
+                  className="p-md border-2 border-outline-variant hover:border-tertiary rounded-xl flex flex-col items-center gap-xs transition-all font-bold active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[32px] text-green-600">payments</span>
+                  <span>Razorpay</span>
+                </button>
+              </div>
+              <button
+                onClick={() => setShowGatewayModal(false)}
+                className="w-full text-center py-xs text-outline hover:underline font-bold text-label-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />
     </>
   );
 }
+export const dynamic = "force-dynamic";

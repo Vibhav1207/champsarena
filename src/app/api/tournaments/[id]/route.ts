@@ -1,0 +1,137 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/auth";
+import { Role } from "@prisma/client";
+
+export const dynamic = "force-dynamic";
+
+// GET /api/tournaments/[id] - Fetch single tournament
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const session = await auth();
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id },
+      include: {
+        registrations: {
+          where: { status: "APPROVED" },
+          include: {
+            user: {
+              select: { id: true, name: true, elo: true, image: true },
+            },
+          },
+        },
+        matches: {
+          include: {
+            p1: { select: { id: true, name: true, image: true } },
+            p2: { select: { id: true, name: true, image: true } },
+            winner: { select: { id: true, name: true, image: true } },
+          },
+        },
+      },
+    });
+
+    if (!tournament) {
+      return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
+    }
+
+    // Determine user's registration status
+    let userRegistration = null;
+    if (session?.user?.id) {
+      userRegistration = await prisma.registration.findUnique({
+        where: {
+          userId_tournamentId: {
+            userId: session.user.id,
+            tournamentId: id,
+          },
+        },
+        include: { payments: true },
+      });
+    }
+
+    return NextResponse.json({
+      tournament,
+      userRegistration,
+    });
+  } catch (error: any) {
+    console.error("Failed to fetch tournament details:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// PUT /api/tournaments/[id] - Update tournament (Admin only)
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session || !session.user || (session.user.role !== Role.ADMIN && session.user.role !== Role.SUPER_ADMIN)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await req.json();
+
+    const updatedTournament = await prisma.tournament.update({
+      where: { id },
+      data: {
+        title: body.title,
+        description: body.description,
+        banner: body.banner,
+        rules: body.rules,
+        entryFee: body.entryFee !== undefined ? parseFloat(body.entryFee) : undefined,
+        prizePool: body.prizePool !== undefined ? parseFloat(body.prizePool) : undefined,
+        maxPlayers: body.maxPlayers !== undefined ? parseInt(body.maxPlayers) : undefined,
+        registrationDeadline: body.registrationDeadline ? new Date(body.registrationDeadline) : undefined,
+        startDate: body.startDate ? new Date(body.startDate) : undefined,
+        endDate: body.endDate ? new Date(body.endDate) : undefined,
+        type: body.type,
+        status: body.status,
+        visibility: body.visibility,
+      },
+    });
+
+    // Log update
+    await prisma.auditLog.create({
+      data: {
+        action: "UPDATE_TOURNAMENT",
+        userId: session.user.id,
+        details: `Updated tournament ${id}: "${updatedTournament.title}"`,
+      },
+    });
+
+    return NextResponse.json(updatedTournament);
+  } catch (error: any) {
+    console.error("Failed to update tournament:", error);
+    return NextResponse.json({ error: error.message || "Failed to update tournament" }, { status: 500 });
+  }
+}
+
+// DELETE /api/tournaments/[id] - Delete tournament (Admin only)
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session || !session.user || (session.user.role !== Role.ADMIN && session.user.role !== Role.SUPER_ADMIN)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { id } = await params;
+
+    const deleted = await prisma.tournament.delete({
+      where: { id },
+    });
+
+    // Log deletion
+    await prisma.auditLog.create({
+      data: {
+        action: "DELETE_TOURNAMENT",
+        userId: session.user.id,
+        details: `Deleted tournament ${id}: "${deleted.title}"`,
+      },
+    });
+
+    return NextResponse.json({ success: true, message: "Tournament deleted successfully" });
+  } catch (error: any) {
+    console.error("Failed to delete tournament:", error);
+    return NextResponse.json({ error: error.message || "Failed to delete tournament" }, { status: 500 });
+  }
+}

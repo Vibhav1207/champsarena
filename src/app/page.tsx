@@ -1,12 +1,188 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  pinned: boolean;
+  createdAt: string;
+}
+
+interface Tournament {
+  id: string;
+  title: string;
+  description: string;
+  banner: string | null;
+  entryFee: number;
+  prizePool: number;
+  maxPlayers: number;
+  startDate: string;
+  type: string;
+  status: string;
+  _count?: {
+    registrations: number;
+  };
+}
+
+interface PodiumPlayer {
+  name: string;
+  elo: number;
+  wins: number;
+  image: string | null;
+}
+
 export default function Home() {
+  // Real data state with mock fallbacks
+  const [featuredAnnouncement, setFeaturedAnnouncement] = useState<Announcement>({
+    id: "ann-default",
+    title: "Registration for the 2024 International Season is Now Open!",
+    content: "Secure your spot in the most prestigious tournament of the year. Over $1,000,000 in prizes and the title of World Champion are up for grabs.",
+    pinned: true,
+    createdAt: "2024-10-24T00:00:00Z",
+  });
+
+  const [upcomingEvents, setUpcomingEvents] = useState<Tournament[]>([
+    {
+      id: "london-regional-championships",
+      title: "London Regional Championships",
+      description: "Excel London, UK",
+      banner: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhtk607KBiCbdQvybjgNZ2gNKkzoM2lsIgp4bwuQ6j2UJ_en9Kj8obXtAyG_ZEBIwnSwpXB7S3cWooSmS3-cUBEXUCtrPjKRhZRNr6JN4lqbvsPtt8HdWD2xpjbso2Tv_6FJErMKA8IYo7OkrU7z9Id5UjxdTUKhsF2KvkmXBNPSL4i1Q8SGSsfLk0UO8cMZTPSPVzvms3kNDx4P2ez_2Kz9kghCmoQIjx_HXKVa2AcbynL8Bxm7xKmghwQBi7J4k2x1uvHD-D9Yw",
+      entryFee: 45.00,
+      prizePool: 10000,
+      maxPlayers: 1024,
+      startDate: "2024-11-15T09:00:00Z",
+      type: "SWISS",
+      status: "REGISTRATION_OPEN",
+    },
+    {
+      id: "ocic-melbourne-master-series",
+      title: "OCIC Melbourne Master Series",
+      description: "Tokyo, Japan",
+      banner: "https://lh3.googleusercontent.com/aida-public/AB6AXuDLVbdiAm1MMbXGMYA2zWLNMo0ndeBw3pGWYBE8KUNLpdF17MFBuWj9tfOHtxNRisFryJIk72498f-W4oi0lEw19I07Or4y5yBTxHg2k86f0sy4DZmvqEspQGdbmvYyJDfjebNPaVFzxp9NJu0vvingyBnCrGxGkWwj0Bnrexkx4W4QQpECGsoTMijaBdFPAGPPEOkXLj95a9D8iGuXWyELvzOAVzitCsNorMfqRi9rAiYWqo1vZKJK1olYoryVALd2piHQhBzq4eY",
+      entryFee: 60.00,
+      prizePool: 25000,
+      maxPlayers: 512,
+      startDate: "2025-01-05T09:00:00Z",
+      type: "ROUND_ROBIN",
+      status: "UPCOMING",
+    },
+    {
+      id: "tokyo-go-championship",
+      title: "Tokyo GO Championship",
+      description: "Los Angeles, USA",
+      banner: "https://lh3.googleusercontent.com/aida-public/AB6AXuBcHC7tn2-5rUOUhQgukY-uqr8l76-5Ag7t1F3XXUSwixJcWU69W1VSICNZLGJOM6Tagyp3Ll5S7_L6oz7Q0S_6RTc8c0258mL4tuoKzxS-a0qT_3-eBESDEzMaScdUGd8A-dy0f3kLZ4vAYT1FHPowUblyZ9sa-91cqVjplcRXZ7C74Pxp4ilNsxyiPRZPcq_GwFq6K5n_t5LA_pMrCo1dTeAHFkcBi22rLtXeuJil9QT_Z-2BHTtY2S5v1eZEhkDLZCU3fHqWMHU",
+      entryFee: 10.00,
+      prizePool: 2500,
+      maxPlayers: 256,
+      startDate: "2024-12-12T09:00:00Z",
+      type: "DOUBLE_ELIMINATION",
+      status: "UPCOMING",
+    },
+  ]);
+
+  const [podium, setPodium] = useState<{
+    first: PodiumPlayer;
+    second: PodiumPlayer;
+    third: PodiumPlayer;
+  }>({
+    first: {
+      name: "Marcus Vance",
+      elo: 1450,
+      wins: 45,
+      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD3NlXblngKtpCbl-MiUTpaPbPcz5dlXq-Cl1KYK7l2p3KnCm4sHJRFLENLPwJ5Qm6vsY7FQyLqbtVyrrXCILKyQZ_6JISHPj-TCbkFIvI_YOuJiw5i4uA0yvXl5lrysA-gm5cbx_lksG6zNHooqA9uydh1tzVoIZrNtzcymmE_vLK3To1t_6EZUQZsZom1k9wzYkpDXDeeMYx_GSuCkKLm6XxPyA9cH1jmCQ2M5iaPTOnocNnVfw5X_CZwV9vBm-ZT5JewA8SYgnc",
+    },
+    second: {
+      name: "Alex Kim",
+      elo: 1240,
+      wins: 38,
+      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD9gsQw6Y-zSlHCerJ7-zku2SOA23kCGzZl3vZZPHfdMP02WMUDrcyPwSOTdz0XAxBWMvrmQ-BsY7HooSbg-1Os0x59i4GXWJ91t3XuS24sqSLyi34iZOTCQwTeehMjDNrJuiCIt01lDL2TF58_znFuXNbYsYbeZoWObtDys08_vjkmK5FtE1gi3ZgWYh3gSwVpQoCBW58yUbhPZRx9y1BdG_-9Odcgmx6tVY6C7kHqWOKJXT5N44qwhIShQS3K-4hHHrw8VrHqU8Y",
+    },
+    third: {
+      name: "Elena Ross",
+      elo: 1180,
+      wins: 32,
+      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB7wSSy1cuSclpeDjk38IfpBrB_TI71I0TUBwta7qEZnuFc1eaI_Uv2C8ZrU6SB3iOmzY-9-eq29E29gEuTbQkhNZax041mhOpQqKk0l-S97IjRywUH3iCrhf-KSla5CpKD_pzco5ncRnAo416gbLZXL3qHhYNNMhaCIAMCJyIBKfWy3sScQVk7bO5iMZ4Ne0ekJcYCMqmiMTNnMqh0GxoT2bRgXPRHWFl4ldpn6VUNZp3tuG2GZAEIleWznxH8i91lBus1H-AqmqE",
+    },
+  });
+
+  const [marqueeWinners, setMarqueeWinners] = useState<string[]>([
+    "Leon 'The Unbeatable' (Galar Regional)",
+    "Cynthia 'The Champion' (Sinnoh Masters)",
+    "Steven 'Iron Will' (Hoenn Cup)",
+    "Lance 'Dragon Master' (Indigo Invitational)",
+  ]);
+
+  useEffect(() => {
+    // Fetch announcements
+    fetch("/api/announcements")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const featured = data.find((a: any) => a.pinned) || data[0];
+          setFeaturedAnnouncement({
+            id: featured.id,
+            title: featured.title,
+            content: featured.content,
+            pinned: featured.pinned,
+            createdAt: featured.createdAt,
+          });
+        }
+      })
+      .catch((err) => console.log("Failed to fetch live announcements, using fallback", err));
+
+    // Fetch tournaments
+    fetch("/api/tournaments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          // Use up to 3 upcoming/ongoing tournaments
+          const filtered = data
+            .filter((t: any) => t.status === "REGISTRATION_OPEN" || t.status === "UPCOMING" || t.status === "ONGOING")
+            .slice(0, 3);
+          if (filtered.length > 0) {
+            setUpcomingEvents(filtered);
+          }
+        }
+      })
+      .catch((err) => console.log("Failed to fetch live tournaments, using fallback", err));
+
+    // Fetch top users for podium
+    fetch("/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length >= 3) {
+          setPodium({
+            first: {
+              name: data[0].name || "Trainer",
+              elo: data[0].elo,
+              wins: data[0].wins,
+              image: data[0].image || null,
+            },
+            second: {
+              name: data[1].name || "Trainer",
+              elo: data[1].elo,
+              wins: data[1].wins,
+              image: data[1].image || null,
+            },
+            third: {
+              name: data[2].name || "Trainer",
+              elo: data[2].elo,
+              wins: data[2].wins,
+              image: data[2].image || null,
+            },
+          });
+        }
+      })
+      .catch((err) => console.log("Failed to fetch leaderboard, using fallback", err));
+  }, []);
+
   // Anim container variant
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -86,31 +262,17 @@ export default function Home() {
             <span className="font-label-lg mx-md text-on-tertiary-fixed-variant uppercase tracking-widest font-bold">
               Recent Winners:
             </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Leon &apos;The Unbeatable&apos; (Galar Regional)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Cynthia &apos;The Champion&apos; (Sinnoh Masters)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Steven &apos;Iron Will&apos; (Hoenn Cup)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Lance &apos;Dragon Master&apos; (Indigo Invitational)
-            </span>
+            {marqueeWinners.map((winner, idx) => (
+              <span key={idx} className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
+                <span className="material-symbols-fill text-[20px]">emoji_events</span> {winner}
+              </span>
+            ))}
             {/* Duplicated for smooth loop */}
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Leon &apos;The Unbeatable&apos; (Galar Regional)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Cynthia &apos;The Champion&apos; (Sinnoh Masters)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Steven &apos;Iron Will&apos; (Hoenn Cup)
-            </span>
-            <span className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
-              <span className="material-symbols-fill text-[20px]">emoji_events</span>{" "}Lance &apos;Dragon Master&apos; (Indigo Invitational)
-            </span>
+            {marqueeWinners.map((winner, idx) => (
+              <span key={`dup-${idx}`} className="flex items-center gap-xs font-title-lg text-tertiary mx-lg">
+                <span className="material-symbols-fill text-[20px]">emoji_events</span> {winner}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -146,14 +308,18 @@ export default function Home() {
                     NEWS
                   </span>
                   <span className="text-on-surface-variant font-label-lg">
-                    Oct 24, 2023
+                    {new Date(featuredAnnouncement.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </span>
                 </div>
                 <h3 className="font-headline-md text-on-surface mb-xs font-bold leading-tight">
-                  Registration for the 2024 International Season is Now Open!
+                  {featuredAnnouncement.title}
                 </h3>
                 <p className="text-body-md text-on-surface-variant mb-md flex-grow">
-                  Secure your spot in the most prestigious tournament of the year. Over $1,000,000 in prizes and the title of World Champion are up for grabs.
+                  {featuredAnnouncement.content}
                 </p>
                 <Link
                   href="#"
@@ -195,116 +361,60 @@ export default function Home() {
 
             {/* Slider cards list */}
             <div className="flex gap-md overflow-x-auto hide-scrollbar pb-xs flex-grow items-stretch select-none">
-              {/* Event 1 */}
-              <div className="flex-shrink-0 w-72 bg-white rounded-xl shadow-sm border-t-4 border-tertiary p-md hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-sm">
-                    <div className="bg-surface-container px-xs py-1 rounded font-label-lg font-bold">
-                      VGC Format
-                    </div>
-                    <span className="material-symbols-outlined text-tertiary">
-                      videogame_asset
-                    </span>
-                  </div>
-                  <h4 className="font-title-lg text-on-surface mb-xs font-semibold">
-                    London Regional
-                  </h4>
-                  <p className="text-body-md text-on-surface-variant mb-sm flex items-center gap-xs">
-                    <span className="material-symbols-outlined text-[16px] text-outline">
-                      location_on
-                    </span>
-                    Excel London, UK
-                  </p>
-                  <div className="flex items-center gap-xs mb-md">
-                    <span className="material-symbols-outlined text-tertiary text-[18px]">
-                      event
-                    </span>
-                    <span className="text-body-md font-medium text-on-surface">
-                      Nov 15 - 17
-                    </span>
-                  </div>
-                </div>
-                <Link
-                  href="/tournaments/london-regional-championships"
-                  className="w-full text-center py-xs border border-tertiary text-tertiary rounded-lg font-label-lg hover:bg-tertiary hover:text-on-tertiary transition-colors block font-bold"
-                >
-                  Details
-                </Link>
-              </div>
+              {upcomingEvents.map((event, idx) => {
+                const isSwiss = event.type === "SWISS";
+                const isRoundRobin = event.type === "ROUND_ROBIN";
+                const formatLabel = isSwiss ? "VGC Format" : isRoundRobin ? "TCG Format" : "GO Format";
+                const formatIcon = isSwiss ? "videogame_asset" : isRoundRobin ? "star" : "smartphone";
 
-              {/* Event 2 */}
-              <div className="flex-shrink-0 w-72 bg-white rounded-xl shadow-sm border-t-4 border-victory-gold p-md hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-sm">
-                    <div className="bg-surface-container px-xs py-1 rounded font-label-lg font-bold">
-                      TCG Format
+                return (
+                  <div
+                    key={event.id}
+                    className={`flex-shrink-0 w-72 bg-white rounded-xl shadow-sm border-t-4 ${
+                      idx === 1 ? "border-t-victory-gold" : "border-t-tertiary"
+                    } p-md hover:shadow-md transition-all flex flex-col justify-between`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-sm">
+                        <div className="bg-surface-container px-xs py-1 rounded font-label-lg font-bold">
+                          {formatLabel}
+                        </div>
+                        <span
+                          className={`material-symbols-${formatIcon === "star" ? "fill text-victory-gold" : "outlined text-tertiary"}`}
+                        >
+                          {formatIcon}
+                        </span>
+                      </div>
+                      <h4 className="font-title-lg text-on-surface mb-xs font-semibold">
+                        {event.title}
+                      </h4>
+                      <p className="text-body-md text-on-surface-variant mb-sm flex items-center gap-xs">
+                        <span className="material-symbols-outlined text-[16px] text-outline">
+                          location_on
+                        </span>
+                        {event.description}
+                      </p>
+                      <div className="flex items-center gap-xs mb-md">
+                        <span className="material-symbols-outlined text-tertiary text-[18px]">
+                          event
+                        </span>
+                        <span className="text-body-md font-medium text-on-surface">
+                          {new Date(event.startDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
                     </div>
-                    <span className="material-symbols-fill text-victory-gold">
-                      star
-                    </span>
+                    <Link
+                      href={`/tournaments/${event.id}`}
+                      className="w-full text-center py-xs border border-tertiary text-tertiary rounded-lg font-label-lg hover:bg-tertiary hover:text-on-tertiary transition-colors block font-bold"
+                    >
+                      Details
+                    </Link>
                   </div>
-                  <h4 className="font-title-lg text-on-surface mb-xs font-semibold">
-                    International Open
-                  </h4>
-                  <p className="text-body-md text-on-surface-variant mb-sm flex items-center gap-xs">
-                    <span className="material-symbols-outlined text-[16px] text-outline">
-                      location_on
-                    </span>
-                    Tokyo, Japan
-                  </p>
-                  <div className="flex items-center gap-xs mb-md">
-                    <span className="material-symbols-outlined text-tertiary text-[18px]">
-                      event
-                    </span>
-                    <span className="text-body-md font-medium text-on-surface">
-                      Dec 01 - 05
-                    </span>
-                  </div>
-                </div>
-                <Link
-                  href="/tournaments/ocic-melbourne-master-series"
-                  className="w-full text-center py-xs border border-tertiary text-tertiary rounded-lg font-label-lg hover:bg-tertiary hover:text-on-tertiary transition-colors block font-bold"
-                >
-                  Details
-                </Link>
-              </div>
-
-              {/* Event 3 */}
-              <div className="flex-shrink-0 w-72 bg-white rounded-xl shadow-sm border-t-4 border-tertiary p-md hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-sm">
-                    <div className="bg-surface-container px-xs py-1 rounded font-label-lg font-bold">
-                      GO Format
-                    </div>
-                    <span className="material-symbols-outlined text-tertiary">
-                      smartphone
-                    </span>
-                  </div>
-                  <h4 className="font-title-lg text-on-surface mb-xs font-semibold">
-                    LA Championship
-                  </h4>
-                  <p className="text-body-md text-on-surface-variant mb-sm flex items-center gap-xs">
-                    <span className="material-symbols-outlined text-[16px] text-outline">
-                      location_on
-                    </span>
-                    Los Angeles, USA
-                  </p>
-                  <div className="flex items-center gap-xs mb-md">
-                    <span className="material-symbols-outlined text-tertiary text-[18px]">
-                      event
-                    </span>
-                    <span className="text-body-md font-medium text-on-surface">
-                      Dec 12 - 14
-                    </span>
-                  </div>
-                </div>
-                <Link
-                  href="/tournaments/tokyo-go-championship"
-                  className="w-full text-center py-xs border border-tertiary text-tertiary rounded-lg font-label-lg hover:bg-tertiary hover:text-on-tertiary transition-colors block font-bold"
-                >
-                  Details
-                </Link>
-              </div>
+                );
+              })}
             </div>
           </motion.div>
         </section>
@@ -330,7 +440,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-3 gap-lg items-end max-w-4xl mx-auto pt-sm"
             >
-              {/* Champion 2 - Alex Kim */}
+              {/* Champion 2 - Second */}
               <motion.div
                 variants={itemVariants}
                 className="order-2 md:order-1 flex flex-col items-center pb-md md:pb-0"
@@ -338,8 +448,8 @@ export default function Home() {
                 <div className="relative mb-md">
                   <div className="w-48 h-48 rounded-full border-4 border-outline-variant overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 relative">
                     <Image
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9gsQw6Y-zSlHCerJ7-zku2SOA23kCGzZl3vZZPHfdMP02WMUDrcyPwSOTdz0XAxBWMvrmQ-BsY7HooSbg-1Os0x59i4GXWJ91t3XuS24sqSLyi34iZOTCQwTeehMjDNrJuiCIt01lDL2TF58_znFuXNbYsYbeZoWObtDys08_vjkmK5FtE1gi3ZgWYh3gSwVpQoCBW58yUbhPZRx9y1BdG_-9Odcgmx6tVY6C7kHqWOKJXT5N44qwhIShQS3K-4hHHrw8VrHqU8Y"
-                      alt="Alex 'Frost' Kim"
+                      src={podium.second.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuD9gsQw6Y-zSlHCerJ7-zku2SOA23kCGzZl3vZZPHfdMP02WMUDrcyPwSOTdz0XAxBWMvrmQ-BsY7HooSbg-1Os0x59i4GXWJ91t3XuS24sqSLyi34iZOTCQwTeehMjDNrJuiCIt01lDL2TF58_znFuXNbYsYbeZoWObtDys08_vjkmK5FtE1gi3ZgWYh3gSwVpQoCBW58yUbhPZRx9y1BdG_-9Odcgmx6tVY6C7kHqWOKJXT5N44qwhIShQS3K-4hHHrw8VrHqU8Y"}
+                      alt={podium.second.name}
                       fill
                       className="object-cover"
                       sizes="192px"
@@ -350,17 +460,17 @@ export default function Home() {
                   </div>
                 </div>
                 <h3 className="font-headline-md text-on-surface font-bold">
-                  Alex &apos;Frost&apos; Kim
+                  {podium.second.name}
                 </h3>
                 <p className="text-on-surface-variant font-label-lg uppercase tracking-wider mb-xs">
-                  VGC • 1,240 CP
+                  VGC • {podium.second.elo} CP
                 </p>
                 <span className="bg-blue-100 text-blue-800 px-xs py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter shadow-sm">
-                  Articuno-Team
+                  Wins: {podium.second.wins}
                 </span>
               </motion.div>
 
-              {/* Champion 1 - Marcus Vance */}
+              {/* Champion 1 - First */}
               <motion.div
                 variants={itemVariants}
                 className="order-1 md:order-2 flex flex-col items-center scale-110 z-10 pb-lg md:pb-0"
@@ -368,8 +478,8 @@ export default function Home() {
                 <div className="relative mb-md">
                   <div className="w-56 h-56 rounded-full border-4 border-gold-accent overflow-hidden shadow-xl hover:scale-105 transition-transform duration-300 ring-4 ring-gold-accent/20 relative">
                     <Image
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3NlXblngKtpCbl-MiUTpaPbPcz5dlXq-Cl1KYK7l2p3KnCm4sHJRFLENLPwJ5Qm6vsY7FQyLqbtVyrrXCILKyQZ_6JISHPj-TCbkFIvI_YOuJiw5i4uA0yvXl5lrysA-gm5cbx_lksG6zNHooqA9uydh1tzVoIZrNtzcymmE_vLK3To1t_6EZUQZsZom1k9wzYkpDXDeeMYx_GSuCkKLm6XxPyA9cH1jmCQ2M5iaPTOnocNnVfw5X_CZwV9vBm-ZT5JewA8SYgnc"
-                      alt="Marcus 'Legend' Vance"
+                      src={podium.first.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuD3NlXblngKtpCbl-MiUTpaPbPcz5dlXq-Cl1KYK7l2p3KnCm4sHJRFLENLPwJ5Qm6vsY7FQyLqbtVyrrXCILKyQZ_6JISHPj-TCbkFIvI_YOuJiw5i4uA0yvXl5lrysA-gm5cbx_lksG6zNHooqA9uydh1tzVoIZrNtzcymmE_vLK3To1t_6EZUQZsZom1k9wzYkpDXDeeMYx_GSuCkKLm6XxPyA9cH1jmCQ2M5iaPTOnocNnVfw5X_CZwV9vBm-ZT5JewA8SYgnc"}
+                      alt={podium.first.name}
                       fill
                       className="object-cover"
                       sizes="224px"
@@ -380,17 +490,17 @@ export default function Home() {
                   </div>
                 </div>
                 <h3 className="font-headline-md text-tertiary font-bold">
-                  Marcus &apos;Legend&apos; Vance
+                  {podium.first.name}
                 </h3>
                 <p className="text-on-surface-variant font-label-lg uppercase tracking-wider mb-xs">
-                  VGC • 1,450 CP
+                  VGC • {podium.first.elo} CP
                 </p>
                 <span className="bg-yellow-100 text-yellow-800 px-xs py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter shadow-sm">
-                  Zapdos-Team
+                  Wins: {podium.first.wins}
                 </span>
               </motion.div>
 
-              {/* Champion 3 - Elena Ross */}
+              {/* Champion 3 - Third */}
               <motion.div
                 variants={itemVariants}
                 className="order-3 flex flex-col items-center"
@@ -398,8 +508,8 @@ export default function Home() {
                 <div className="relative mb-md">
                   <div className="w-48 h-48 rounded-full border-4 border-[#CD7F32] overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 relative">
                     <Image
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7wSSy1cuSclpeDjk38IfpBrB_TI71I0TUBwta7qEZnuFc1eaI_Uv2C8ZrU6SB3iOmzY-9-eq29E29gEuTbQkhNZax041mhOpQqKk0l-S97IjRywUH3iCrhf-KSla5CpKD_pzco5ncRnAo416gbLZXL3qHhYNNMhaCIAMCJyIBKfWy3sScQVk7bO5iMZ4Ne0ekJcYCMqmiMTNnMqh0GxoT2bRgXPRHWFl4ldpn6VUNZp3tuG2GZAEIleWznxH8i91lBus1H-AqmqE"
-                      alt="Elena 'Storm' Ross"
+                      src={podium.third.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuB7wSSy1cuSclpeDjk38IfpBrB_TI71I0TUBwta7qEZnuFc1eaI_Uv2C8ZrU6SB3iOmzY-9-eq29E29gEuTbQkhNZax041mhOpQqKk0l-S97IjRywUH3iCrhf-KSla5CpKD_pzco5ncRnAo416gbLZXL3qHhYNNMhaCIAMCJyIBKfWy3sScQVk7bO5iMZ4Ne0ekJcYCMqmiMTNnMqh0GxoT2bRgXPRHWFl4ldpn6VUNZp3tuG2GZAEIleWznxH8i91lBus1H-AqmqE"}
+                      alt={podium.third.name}
                       fill
                       className="object-cover"
                       sizes="192px"
@@ -410,13 +520,13 @@ export default function Home() {
                   </div>
                 </div>
                 <h3 className="font-headline-md text-on-surface font-bold">
-                  Elena &apos;Storm&apos; Ross
+                  {podium.third.name}
                 </h3>
                 <p className="text-on-surface-variant font-label-lg uppercase tracking-wider mb-xs">
-                  TCG • 1,180 CP
+                  TCG • {podium.third.elo} CP
                 </p>
                 <span className="bg-red-100 text-red-800 px-xs py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter shadow-sm">
-                  Moltres-Team
+                  Wins: {podium.third.wins}
                 </span>
               </motion.div>
             </motion.div>

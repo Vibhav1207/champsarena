@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -11,21 +11,25 @@ interface LeaderboardEntry {
   rank: number;
   name: string;
   region: string;
-  tier: "World Champion" | "Champion" | "Elite Four" | "Veteran" | "Ace" | "Trainer" | "Rookie";
+  tier: string;
   elo: number;
   winRate: string;
   winPercent: number;
   wins: number;
   bgClass: string;
   avatarLetter: string;
+  image?: string | null;
 }
 
 export default function Rankings() {
   const [selectedRegion, setSelectedRegion] = useState("All Regions");
   const [sortBy, setSortBy] = useState("Highest ELO");
   const [searchQuery, setSearchQuery] = useState("");
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [podium, setPodium] = useState<any>({ first: null, second: null, third: null });
+  const [loading, setLoading] = useState(true);
 
-  const podiumData = {
+  const defaultPodium = {
     first: {
       name: "RedMaster",
       elo: 3015,
@@ -46,7 +50,7 @@ export default function Rankings() {
     },
   };
 
-  const leaderboardData: LeaderboardEntry[] = [
+  const defaultLeaderboard: LeaderboardEntry[] = [
     {
       rank: 4,
       name: "LeonChampion",
@@ -133,20 +137,88 @@ export default function Rankings() {
     },
   ];
 
-  // Filtering based on region and search query
-  const filteredData = leaderboardData.filter((entry) => {
-    const matchesRegion = selectedRegion === "All Regions" || entry.region === selectedRegion;
-    const matchesSearch = entry.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesRegion && matchesSearch;
-  });
+  useEffect(() => {
+    setLoading(true);
+    const query = new URLSearchParams();
+    if (selectedRegion !== "All Regions") query.set("region", selectedRegion);
+    if (searchQuery) query.set("search", searchQuery);
+    query.set("sortBy", sortBy);
 
-  // Sorting
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (sortBy === "Highest ELO") return b.elo - a.elo;
-    if (sortBy === "Most Wins") return b.wins - a.wins;
-    if (sortBy === "Win Rate") return b.winPercent - a.winPercent;
-    return 0;
-  });
+    fetch(`/api/users?${query.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Map users to leaderboard structure
+          const mapped = data.map((u: any, idx: number) => {
+            const total = u.wins + u.losses;
+            const rate = total > 0 ? Math.round((u.wins / total) * 100) : 50;
+
+            let tier = "Trainer";
+            if (u.elo >= 2800) tier = "Champion";
+            else if (u.elo >= 2500) tier = "Elite Four";
+            else if (u.elo >= 2000) tier = "Veteran";
+            else if (u.elo >= 1500) tier = "Ace";
+
+            return {
+              rank: idx + 1,
+              name: u.name || "Trainer",
+              region: u.homeRegion || "Kanto",
+              tier,
+              elo: u.elo,
+              winRate: `${rate}%`,
+              winPercent: rate,
+              wins: u.wins,
+              bgClass: u.role === "ADMIN" ? "bg-on-tertiary-fixed-variant text-white" : "bg-outline text-white",
+              avatarLetter: (u.name || "T").charAt(0).toUpperCase(),
+              image: u.image,
+            };
+          });
+
+          // Sort by criteria client-side to ensure robustness
+          const sorted = [...mapped].sort((a, b) => {
+            if (sortBy === "Highest ELO") return b.elo - a.elo;
+            if (sortBy === "Most Wins") return b.wins - a.wins;
+            if (sortBy === "Win Rate") return b.winPercent - a.winPercent;
+            return 0;
+          });
+
+          // Reassign rank numbers
+          sorted.forEach((item, index) => {
+            item.rank = index + 1;
+          });
+
+          setLeaderboardData(sorted.slice(3)); // Below top 3
+
+          // Top 3 podium mapping
+          setPodium({
+            first: sorted[0] ? {
+              name: sorted[0].name,
+              elo: sorted[0].elo,
+              wins: sorted[0].wins,
+              avatarUrl: sorted[0].image || defaultPodium.first.avatarUrl,
+            } : defaultPodium.first,
+            second: sorted[1] ? {
+              name: sorted[1].name,
+              elo: sorted[1].elo,
+              wins: sorted[1].wins,
+              avatarUrl: sorted[1].image || defaultPodium.second.avatarUrl,
+            } : defaultPodium.second,
+            third: sorted[2] ? {
+              name: sorted[2].name,
+              elo: sorted[2].elo,
+              wins: sorted[2].wins,
+              avatarUrl: sorted[2].image || defaultPodium.third.avatarUrl,
+            } : defaultPodium.third,
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Leaderboard fetch error:", err);
+        setLeaderboardData(defaultLeaderboard);
+        setPodium(defaultPodium);
+      })
+      .finally(() => setLoading(false));
+  }, [selectedRegion, sortBy, searchQuery]);
 
   return (
     <>
@@ -211,8 +283,8 @@ export default function Rankings() {
             <div className="relative mb-md">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#A8A8A8] p-1 relative shadow-inner bg-surface">
                 <Image
-                  src={podiumData.second.avatarUrl}
-                  alt={podiumData.second.name}
+                  src={podium.second?.avatarUrl || defaultPodium.second.avatarUrl}
+                  alt={podium.second?.name || "Second"}
                   fill
                   className="object-cover rounded-full"
                   sizes="96px"
@@ -223,7 +295,7 @@ export default function Rankings() {
               </div>
             </div>
             <h3 className="font-headline-md text-headline-md font-bold text-on-surface">
-              {podiumData.second.name}
+              {podium.second?.name}
             </h3>
             <span className="text-[10px] font-label-lg px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary mb-md font-bold uppercase shadow-sm">
               CHAMPION
@@ -232,13 +304,13 @@ export default function Rankings() {
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">ELO</p>
                 <p className="font-title-lg text-title-lg font-bold text-on-surface">
-                  {podiumData.second.elo}
+                  {podium.second?.elo}
                 </p>
               </div>
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">WINS</p>
                 <p className="font-title-lg text-title-lg font-bold text-on-surface">
-                  {podiumData.second.wins}
+                  {podium.second?.wins}
                 </p>
               </div>
             </div>
@@ -259,8 +331,8 @@ export default function Rankings() {
             <div className="relative mb-md">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gold-accent p-1 relative shadow-inner bg-surface">
                 <Image
-                  src={podiumData.first.avatarUrl}
-                  alt={podiumData.first.name}
+                  src={podium.first?.avatarUrl || defaultPodium.first.avatarUrl}
+                  alt={podium.first?.name || "First"}
                   fill
                   priority
                   className="object-cover rounded-full"
@@ -272,7 +344,7 @@ export default function Rankings() {
               </div>
             </div>
             <h3 className="font-headline-md text-headline-md font-bold text-tertiary">
-              {podiumData.first.name}
+              {podium.first?.name}
             </h3>
             <span className="text-[10px] font-label-lg px-2.5 py-1 rounded-full bg-tertiary/20 text-tertiary font-bold mb-md uppercase tracking-wider shadow-sm">
               WORLD CHAMPION
@@ -281,13 +353,13 @@ export default function Rankings() {
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">ELO</p>
                 <p className="font-title-lg text-title-lg font-bold text-tertiary">
-                  {podiumData.first.elo}
+                  {podium.first?.elo}
                 </p>
               </div>
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">WINS</p>
                 <p className="font-title-lg text-title-lg font-bold text-tertiary">
-                  {podiumData.first.wins}
+                  {podium.first?.wins}
                 </p>
               </div>
             </div>
@@ -303,8 +375,8 @@ export default function Rankings() {
             <div className="relative mb-md">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#CD7F32] p-1 relative shadow-inner bg-surface">
                 <Image
-                  src={podiumData.third.avatarUrl}
-                  alt={podiumData.third.name}
+                  src={podium.third?.avatarUrl || defaultPodium.third.avatarUrl}
+                  alt={podium.third?.name || "Third"}
                   fill
                   className="object-cover rounded-full"
                   sizes="96px"
@@ -315,7 +387,7 @@ export default function Rankings() {
               </div>
             </div>
             <h3 className="font-headline-md text-headline-md font-bold text-on-surface">
-              {podiumData.third.name}
+              {podium.third?.name}
             </h3>
             <span className="text-[10px] font-label-lg px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary mb-md font-bold uppercase shadow-sm">
               CHAMPION
@@ -324,13 +396,13 @@ export default function Rankings() {
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">ELO</p>
                 <p className="font-title-lg text-title-lg font-bold text-on-surface">
-                  {podiumData.third.elo}
+                  {podium.third?.elo}
                 </p>
               </div>
               <div className="flex-1">
                 <p className="text-on-surface-variant font-medium">WINS</p>
                 <p className="font-title-lg text-title-lg font-bold text-on-surface">
-                  {podiumData.third.wins}
+                  {podium.third?.wins}
                 </p>
               </div>
             </div>
@@ -399,10 +471,10 @@ export default function Rankings() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
-                {sortedData.length > 0 ? (
-                  sortedData.map((entry) => (
+                {leaderboardData.length > 0 ? (
+                  leaderboardData.map((entry) => (
                     <tr
-                      key={entry.rank}
+                      key={entry.name}
                       className="trainer-row transition-all duration-200 hover:bg-surface-container-low hover:shadow-inner cursor-pointer"
                     >
                       <td className="px-lg py-md font-bold text-on-surface-variant select-none">
@@ -410,11 +482,15 @@ export default function Rankings() {
                       </td>
                       <td className="px-lg py-md">
                         <div className="flex items-center gap-sm">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-body-md border border-outline-variant/30 select-none shadow-sm ${entry.bgClass}`}
-                          >
-                            {entry.avatarLetter}
-                          </div>
+                          {entry.image ? (
+                            <img src={entry.image} alt={entry.name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-body-md border border-outline-variant/30 select-none shadow-sm ${entry.bgClass}`}
+                            >
+                              {entry.avatarLetter}
+                            </div>
+                          )}
                           <div>
                             <p className="font-bold text-on-surface leading-tight">{entry.name}</p>
                             <p className="text-xs text-on-surface-variant font-medium">{entry.region}</p>
@@ -463,7 +539,7 @@ export default function Rankings() {
           {/* Table pagination */}
           <div className="p-md bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md select-none">
             <p className="text-body-md text-on-surface-variant font-medium">
-              Showing 1 to {sortedData.length} of 100 entries
+              Showing 4 to {leaderboardData.length + 3} of {leaderboardData.length + 3} entries
             </p>
             <div className="flex items-center gap-xs">
               <button className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white disabled:opacity-50 active:scale-90 transition-transform">
@@ -515,3 +591,4 @@ export default function Rankings() {
     </>
   );
 }
+export const dynamic = "force-dynamic";

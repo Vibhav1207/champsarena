@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -29,8 +29,10 @@ export default function Tournaments() {
   const [selectedTier, setSelectedTier] = useState("Regional");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tournamentsData: Tournament[] = [
+  const fallbackData: Tournament[] = [
     {
       id: "london-regional-championships",
       title: "London Regional Championships",
@@ -108,6 +110,53 @@ export default function Tournaments() {
     },
   ];
 
+  useEffect(() => {
+    fetch("/api/tournaments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const mapped = data.map((t: any) => {
+            let format: "VGC" | "TCG" | "GO" = "VGC";
+            if (t.type === "ROUND_ROBIN") format = "TCG";
+            if (t.type === "DOUBLE_ELIMINATION") format = "GO";
+
+            return {
+              id: t.id,
+              title: t.title,
+              format,
+              tier: (t.entryFee > 25 ? "International" : "Regional") as "Regional" | "International",
+              date: new Date(t.startDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              cost: t.entryFee > 0 ? `$${t.entryFee.toFixed(2)}` : "Free",
+              prize: `$${t.prizePool.toLocaleString()} Pool`,
+              slotsUsed: t._count?.registrations || 0,
+              slotsTotal: t.maxPlayers,
+              bgUrl: t.banner || "https://lh3.googleusercontent.com/aida-public/AB6AXuDhtk607KBiCbdQvybjgNZ2gNKkzoM2lsIgp4bwuQ6j2UJ_en9Kj8obXtAyG_ZEBIwnSwpXB7S3cWooSmS3-cUBEXUCtrPjKRhZRNr6JN4lqbvsPtt8HdWD2xpjbso2Tv_6FJErMKA8IYo7OkrU7z9Id5UjxdTUKhsF2KvkmXBNPSL4i1Q8SGSsfLk0UO8cMZTPSPVzvms3kNDx4P2ez_2Kz9kghCmoQIjx_HXKVa2AcbynL8Bxm7xKmghwQBi7J4k2x1uvHD-D9Yw",
+              imageAlt: t.title,
+              statusText: t.status === "REGISTRATION_OPEN" ? "Registration open" : t.status === "ONGOING" ? "Ongoing" : "Slots remaining",
+              statusColor: "text-on-surface-variant",
+            };
+          });
+
+          if (mapped.length > 0) {
+            setTournaments(mapped);
+          } else {
+            setTournaments(fallbackData);
+          }
+        } else {
+          setTournaments(fallbackData);
+        }
+      })
+      .catch((err) => {
+        console.log("Failed to fetch tournaments, using fallbacks", err);
+        setTournaments(fallbackData);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleFormatChange = (format: string) => {
     if (selectedFormat.includes(format)) {
       setSelectedFormat(selectedFormat.filter((f) => f !== format));
@@ -137,6 +186,13 @@ export default function Tournaments() {
     hidden: { opacity: 0, scale: 0.95, y: 15 },
     show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4 } },
   };
+
+  // Apply filters client-side
+  const filteredTournaments = tournaments.filter((t) => {
+    const matchesFormat = selectedFormat.length === 0 || selectedFormat.includes(t.format);
+    const matchesTier = !selectedTier || t.tier === selectedTier;
+    return matchesFormat && matchesTier;
+  });
 
   return (
     <>
@@ -270,7 +326,7 @@ export default function Tournaments() {
                 </p>
               </div>
               <div className="flex items-center gap-xs font-label-lg text-label-lg text-on-surface-variant bg-white px-sm py-xs rounded-full border border-outline-variant select-none font-bold">
-                <span>Showing 5 of 142 tournaments</span>
+                <span>Showing {filteredTournaments.length} of {tournaments.length} tournaments</span>
               </div>
             </header>
 
@@ -281,7 +337,7 @@ export default function Tournaments() {
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-md"
             >
-              {tournamentsData.map((tournament) => {
+              {filteredTournaments.map((tournament) => {
                 const isRegional = tournament.tier === "Regional";
                 const capacityPercent = Math.min(
                   100,
@@ -363,7 +419,7 @@ export default function Tournaments() {
                           ></div>
                         </div>
                         {tournament.statusText && (
-                          <p className={`text-right font-label-lg text-label-lg font-bold ${tournament.statusColor}`}>
+                          <p className={`text-right font-label-lg text-label-lg font-bold ${tournament.statusColor || "text-on-surface-variant"}`}>
                             {tournament.statusText}
                           </p>
                         )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -13,73 +15,153 @@ interface Team {
 }
 
 interface Match {
-  id: number;
+  id: string;
   team1: Team;
   team2: Team;
-  status: "completed" | "active" | "pending";
-  time?: string;
+  status: "completed" | "active" | "pending" | "bye";
 }
 
-export default function Brackets() {
-  const quarterFinals: Match[] = [
+function BracketsContent() {
+  const searchParams = useSearchParams();
+  const tournamentId = searchParams?.get("tournamentId");
+
+  const [tournament, setTournament] = useState<any>(null);
+  const [roundsMatches, setRoundsMatches] = useState<Record<number, Match[]>>({});
+  const [grandChampion, setGrandChampion] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fallbacks if database is empty
+  const defaultQuarterFinals: Match[] = [
     {
-      id: 1,
+      id: "q1",
       status: "completed",
       team1: {
         name: "Leon V.",
         score: "2",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDoz5Y0R4TFuXNrYLE-POKr2jfVBcGfiv3xrqewXcn_dT6Pi3y98nN89Lhyl3W232l87CwoQ7BZfA8qbk6kPJHxkY4-u9zYPdd0dciP1rQJguaadH5ak_jVWTlDdyyYkf-xTDQ9pi-g9EvcpjFdFOClplU8RKE9t6xRR0E8brOOOKRBiQSzT85kRb5GSGQOF6ERlnWa8-TdzOhAs0m8PDFak7j8ar1G7gZtM9riEUcB6EfuUwvRoSeIULm7Kmic2qMqoBuCYiiXBW4",
-        imgAlt: " Leon V. young male portrait",
+        imgAlt: "Leon V.",
         isWinner: true,
       },
       team2: {
         name: "Cynthia K.",
         score: "0",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCu_u9OZTuJcPSYW1isUiGCCrXexZNnGosHOf3aU4HkDfTKqKu3JlUk52pzvF7lD05kFgOqW1Zs6DzcwtRVznEWPNQouycuAPPuuXoh-L0bn201L7PLdNXvmdGrod19B-4qbRlE1eEmMnwjm7_WKuqGREreaLsiiM1t-9xG_HvzMS8MpYDe6jzbfBxUkA_0TVgwJv_uIVRgCm8tM87ZQ89poYDcl9JTp6TJscEnVGjq9ZhxeTmGPLWCb_wfnOUSokG7xD9FWBm1Zrs",
-        imgAlt: "Cynthia K. female portrait",
+        imgAlt: "Cynthia K.",
         isWinner: false,
       },
     },
     {
-      id: 2,
+      id: "q2",
       status: "completed",
       team1: {
         name: "Iris W.",
         score: "2",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBJzezyGL84Tp1yvIyuZStVhRRgAV0Ud-5Atd7-G-7mWOtss7bYxQlDBiY3flOs7vq8fsNoglVVo5Xdu9yjvFhgR4xJeFCJ3mYQkwoAda081_B-5zHfE9R1udXnaimbRh3NdT9G0bbHGr8LJwuxxYLQWyhiS1KY5Lj1791ucPjZ2jgULhsrPcGPKTuOXfMqENfyio2Tiil63gRCCDbFPU_CyaG9UFLoe10lVJCAt45DatRKXeE4PnmM4HUk72olztMy0N12ViKbuFk",
-        imgAlt: "Iris W. female portrait",
+        imgAlt: "Iris W.",
         isWinner: true,
       },
       team2: {
         name: "Steven S.",
         score: "1",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA0Fn7NOFe65S95OwMtnp_4PJjcnX_ebtuFpaT-wuhQkpOfVAPSbOjnGvNv8V_CrC5ZyP0hh3JBKnWakL5xgsfoMnUtR0DDcvT_s25oWSgpSoBzfqpLU9wGZjCqDbMT_5LJUIt-lSlCYQZYpF4hkPlc2BcFWbKja1O7zyEReqaeehyICqHLTu9Ffe2Ku10aipoDdZ4iC8eDzyYNGKZmw8HS6NDZi1UKyAeiXNjasOjcDwGSDUZXVP-EQMQCvBqXGuNJRII6tOuJgmE",
-        imgAlt: "Steven S. male portrait",
+        imgAlt: "Steven S.",
         isWinner: false,
       },
     },
   ];
 
-  const semiFinals: Match[] = [
+  const defaultSemiFinals: Match[] = [
     {
-      id: 3,
+      id: "s1",
       status: "active",
       team1: {
         name: "Leon V.",
         score: "VS",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuB0eetbzcfsl-l5TcK2oLm20lqelnIchiOTdUPEZNoLr47ypmig644ZIVD6qJsyUNyHYDEyPKYAkxDMiIIGwhNwumAh68qGIAnnrFGBKBnqHIjpC2rF2BRCdX_4cX9y0Bo-XmeGunvmJczWrMp3m2UUb_LZzCDi0v0MtgwC3zbph6lCKcxlQhY-z2nEhVE4OLJK7v-lLlIBqnoQn2HUOYHrBIGyiaBErayZUUNeUbQ5FfVCXwns-xkh2BnUMJXf_QByyf3_pSljTf0",
-        imgAlt: "Leon V. close-up portrait",
+        imgAlt: "Leon V.",
         isWinner: false,
       },
       team2: {
         name: "Iris W.",
         score: "...",
         avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAnW0UbrHVmM2B6hSFEtCGdooVtt4gjEZ-BLuhDOS88RNsPQ6reMSIT-L42ffnGyg2CuglkCOyLyNd6LRS66AWKxuC0dJxLJLUULOxSge9Es0V1iFTAXGwLi-h2hEiatSjWskTnX8R8_waMEr07C5KhlXqybzNfvw2C_PzgtulwtH3eVAZTlufz2m-n5oyVna9B4Psm7lYcEDZOfrOgNBOMcEcHPbIG8DFMpahU19DO1odwAdp5jEkATaQlmpZyiUbrgILhnya2Opk",
-        imgAlt: "Iris W. close-up portrait",
+        imgAlt: "Iris W.",
         isWinner: false,
       },
     },
   ];
+
+  useEffect(() => {
+    async function loadBrackets() {
+      try {
+        let activeTournamentId = tournamentId;
+
+        // If no ID provided, try to find first tournament
+        if (!activeTournamentId) {
+          const tournamentsRes = await fetch("/api/tournaments");
+          const tournaments = await tournamentsRes.json();
+          if (Array.isArray(tournaments) && tournaments.length > 0) {
+            activeTournamentId = tournaments[0].id;
+          }
+        }
+
+        if (activeTournamentId) {
+          const res = await fetch(`/api/brackets?tournamentId=${activeTournamentId}`);
+          const data = await res.json();
+          if (data.tournament) {
+            setTournament(data.tournament);
+            
+            // Group matches by round
+            const grouped: Record<number, Match[]> = {};
+            let champ = null;
+
+            if (data.matches && data.matches.length > 0) {
+              data.matches.forEach((m: any) => {
+                const roundNum = m.round;
+                if (!grouped[roundNum]) grouped[roundNum] = [];
+
+                const mapTeam = (player: any, score: number, otherScore: number) => {
+                  return {
+                    name: player?.name || "TBD",
+                    score: m.status === "BYE" && player ? "BYE" : m.status === "COMPLETED" ? String(score) : "...",
+                    avatarUrl: player?.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuDoz5Y0R4TFuXNrYLE-POKr2jfVBcGfiv3xrqewXcn_dT6Pi3y98nN89Lhyl3W232l87CwoQ7BZfA8qbk6kPJHxkY4-u9zYPdd0dciP1rQJguaadH5ak_jVWTlDdyyYkf-xTDQ9pi-g9EvcpjFdFOClplU8RKE9t6xRR0E8brOOOKRBiQSzT85kRb5GSGQOF6ERlnWa8-TdzOhAs0m8PDFak7j8ar1G7gZtM9riEUcB6EfuUwvRoSeIULm7Kmic2qMqoBuCYiiXBW4",
+                    imgAlt: player?.name || "TBD",
+                    isWinner: m.status === "COMPLETED" && m.winnerId === player?.id,
+                  };
+                };
+
+                grouped[roundNum].push({
+                  id: m.id,
+                  status: m.status.toLowerCase(),
+                  team1: mapTeam(m.p1, m.p1Score, m.p2Score),
+                  team2: mapTeam(m.p2, m.p2Score, m.p1Score),
+                });
+
+                // Find champion if grand finals (round 99 or highest round complete)
+                if (m.status === "COMPLETED" && m.winner) {
+                  champ = m.winner;
+                }
+              });
+
+              setRoundsMatches(grouped);
+              if (champ) {
+                setGrandChampion(champ);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Bracket load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBrackets();
+  }, [tournamentId]);
+
+  const quarterFinals = roundsMatches[1] || defaultQuarterFinals;
+  const semiFinals = roundsMatches[2] || defaultSemiFinals;
 
   return (
     <>
@@ -91,10 +173,10 @@ export default function Brackets() {
           <div className="select-none">
             <div className="flex items-center gap-xs mb-xs">
               <span className="px-xs py-base bg-tertiary/10 text-tertiary text-label-lg font-label-lg rounded uppercase font-bold shadow-sm">
-                Master Class
+                {tournament?.type?.replace("_", " ") || "Master Class"}
               </span>
               <span className="text-outline text-body-md font-semibold">
-                • London Regional 2024
+                • {tournament?.title || "London Regional 2024"}
               </span>
             </div>
             <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold leading-tight">
@@ -121,15 +203,15 @@ export default function Brackets() {
             {/* Quarter Finals */}
             <div className="w-[300px] flex flex-col gap-xl">
               <p className="text-label-lg font-label-lg text-outline uppercase tracking-widest mb-xs text-center font-bold">
-                Quarter Finals
+                Round 1
               </p>
               
-              {quarterFinals.map((match) => (
+              {quarterFinals.map((match, idx) => (
                 <motion.div
                   key={match.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: match.id * 0.1 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
                   className="relative group"
                 >
                   <div className="match-card bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 hover:border-tertiary cursor-pointer">
@@ -207,10 +289,10 @@ export default function Brackets() {
             {/* Semi Finals */}
             <div className="w-[300px] flex flex-col justify-center">
               <p className="text-label-lg font-label-lg text-outline uppercase tracking-widest mb-md text-center font-bold">
-                Semi Finals
+                Round 2
               </p>
               
-              {semiFinals.map((match) => (
+              {semiFinals.map((match, idx) => (
                 <motion.div
                   key={match.id}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -280,10 +362,14 @@ export default function Brackets() {
                 {/* Winner Card */}
                 <div className="match-card bg-surface-container-lowest border-2 border-outline-variant rounded-xl overflow-hidden shadow-lg p-md flex flex-col items-center gap-md hover:border-tertiary transition-colors cursor-pointer">
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center border-4 border-secondary-fixed shadow-inner">
-                      <span className="material-symbols-outlined text-[48px] text-outline opacity-20 select-none">
-                        person
-                      </span>
+                    <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center border-4 border-secondary-fixed shadow-inner overflow-hidden">
+                      {grandChampion?.image ? (
+                        <img src={grandChampion.image} alt={grandChampion.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-[48px] text-outline opacity-20 select-none">
+                          person
+                        </span>
+                      )}
                     </div>
                     <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow-md border border-outline-variant/30">
                       <span className="material-symbols-outlined text-tertiary text-[20px] material-symbols-fill">
@@ -293,10 +379,10 @@ export default function Brackets() {
                   </div>
                   <div className="text-center select-none">
                     <p className="text-[10px] font-label-lg text-outline font-bold uppercase tracking-wider">
-                      TBD
+                      {grandChampion ? "WINNER" : "TBD"}
                     </p>
                     <p className="font-headline-md text-headline-md font-bold text-on-surface-variant">
-                      Grand Champion
+                      {grandChampion?.name || "Grand Champion"}
                     </p>
                   </div>
                 </div>
@@ -309,7 +395,7 @@ export default function Brackets() {
                     workspace_premium
                   </span>
                   <p className="text-label-lg font-label-lg text-victory-gold font-bold uppercase tracking-wider text-[11px] mt-1">
-                    2024 REGIONAL TROPHY
+                    CHAMPIONSHIP TROPHY
                   </p>
                 </div>
               </motion.div>
@@ -322,19 +408,19 @@ export default function Brackets() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-md mt-xl">
           {[
             {
-              title: "Total Players",
-              value: "1,250",
-              icon: "groups",
+              title: "Tournament Status",
+              value: tournament?.status || "COMPLETED",
+              icon: "info",
             },
             {
               title: "Prize Pool",
-              value: "$25,000",
+              value: tournament?.prizePool ? `$${tournament.prizePool.toLocaleString()}` : "$25,000",
               icon: "payments",
             },
             {
-              title: "Next Match",
-              value: "14:30 GMT",
-              icon: "timer",
+              title: "Format Type",
+              value: tournament?.type?.replace("_", " ") || "SWISS",
+              icon: "category",
             },
           ].map((stat, i) => (
             <motion.div
@@ -354,8 +440,8 @@ export default function Brackets() {
                 <p className="text-[11px] font-label-lg text-outline uppercase tracking-wider font-bold">
                   {stat.title}
                 </p>
-                <p className="font-headline-md text-headline-md font-bold text-on-surface">
-                  {stat.value}
+                <p className="font-headline-md text-headline-md font-bold text-on-surface capitalize">
+                  {stat.value.toLowerCase()}
                 </p>
               </div>
             </motion.div>
@@ -367,3 +453,13 @@ export default function Brackets() {
     </>
   );
 }
+
+export default function Brackets() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-outline font-medium">Loading Battle Brackets...</div>}>
+      <BracketsContent />
+    </Suspense>
+  );
+}
+
+export const dynamic = "force-dynamic";
