@@ -10,482 +10,314 @@ import Footer from "@/components/footer";
 interface Tournament {
   id: string;
   title: string;
-  format: "VGC" | "TCG" | "GO";
-  tier: "Regional" | "International";
-  date: string;
-  cost: string;
-  prize: string;
-  slotsUsed: number;
-  slotsTotal: number;
-  bgUrl: string;
-  imageAlt: string;
-  statusText?: string;
-  statusColor?: string;
+  description: string | null;
+  type: "SINGLE_ELIMINATION" | "DOUBLE_ELIMINATION" | "ROUND_ROBIN" | "SWISS";
+  status: "UPCOMING" | "REGISTRATION_OPEN" | "ONGOING" | "COMPLETED" | "CANCELLED" | "DRAFT";
+  entryFee: number;
+  prizePool: number;
+  maxPlayers: number;
+  startDate: string;
+  banner: string | null;
+  _count?: { registrations: number };
 }
 
+const FORMAT_MAP: Record<string, { label: string; bg: string }> = {
+  SINGLE_ELIMINATION: { label: "VGC", bg: "bg-accent-blue" },
+  DOUBLE_ELIMINATION: { label: "GO", bg: "bg-accent-red" },
+  ROUND_ROBIN:        { label: "TCG", bg: "bg-primary" },
+  SWISS:              { label: "Swiss", bg: "bg-primary" },
+};
+
+const STATUS_LABEL: Record<string, { label: string; color: string }> = {
+  UPCOMING:          { label: "Upcoming",     color: "text-primary/70" },
+  REGISTRATION_OPEN: { label: "Open!",        color: "text-accent-red font-black" },
+  ONGOING:           { label: "Ongoing",      color: "text-accent-blue font-black" },
+  COMPLETED:         { label: "Completed",    color: "text-primary/40" },
+  CANCELLED:         { label: "Cancelled",    color: "text-accent-red" },
+  DRAFT:             { label: "Draft",        color: "text-primary/40" },
+};
+
+const BANNER_FALLBACK = "https://lh3.googleusercontent.com/aida-public/AB6AXuDhtk607KBiCbdQvybjgNZ2gNKkzoM2lsIgp4bwuQ6j2UJ_en9Kj8obXtAyG_ZEBIwnSwpXB7S3cWooSmS3-cUBEXUCtrPjKRhZRNr6JN4lqbvsPtt8HdWD2xpjbso2Tv_6FJErMKA8IYo7OkrU7z9Id5UjxdTUKhsF2KvkmXBNPSL4i1Q8SGSsfLk0UO8cMZTPSPVzvms3kNDx4P2ez_2Kz9kghCmoQIjx_HXKVa2AcbynL8Bxm7xKmghwQBi7J4k2x1uvHD-D9Yw";
+
 export default function Tournaments() {
-  const [selectedFormat, setSelectedFormat] = useState<string[]>(["VGC"]);
-  const [selectedRegion, setSelectedRegion] = useState("North America");
-  const [selectedTier, setSelectedTier] = useState("Regional");
+  const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const fallbackData: Tournament[] = [
-    {
-      id: "london-regional-championships",
-      title: "London Regional Championships",
-      format: "VGC",
-      tier: "Regional",
-      date: "Dec 14, 2024",
-      cost: "£45.00",
-      prize: "£10,000 Pool",
-      slotsUsed: 982,
-      slotsTotal: 1024,
-      bgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhtk607KBiCbdQvybjgNZ2gNKkzoM2lsIgp4bwuQ6j2UJ_en9Kj8obXtAyG_ZEBIwnSwpXB7S3cWooSmS3-cUBEXUCtrPjKRhZRNr6JN4lqbvsPtt8HdWD2xpjbso2Tv_6FJErMKA8IYo7OkrU7z9Id5UjxdTUKhsF2KvkmXBNPSL4i1Q8SGSsfLk0UO8cMZTPSPVzvms3kNDx4P2ez_2Kz9kghCmoQIjx_HXKVa2AcbynL8Bxm7xKmghwQBi7J4k2x1uvHD-D9Yw",
-      imageAlt: "High-tech Pokémon arena with glowing blue hexagonal floor panels",
-      statusText: "Registration closing soon!",
-      statusColor: "text-error",
-    },
-    {
-      id: "ocic-melbourne-master-series",
-      title: "OCIC Melbourne Master Series",
-      format: "TCG",
-      tier: "International",
-      date: "Jan 05, 2025",
-      cost: "$60.00",
-      prize: "$25,000 Pool",
-      slotsUsed: 302,
-      slotsTotal: 512,
-      bgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDLVbdiAm1MMbXGMYA2zWLNMo0ndeBw3pGWYBE8KUNLpdF17MFBuWj9tfOHtxNRisFryJIk72498f-W4oi0lEw19I07Or4y5yBTxHg2k86f0sy4DZmvqEspQGdbmvYyJDfjebNPaVFzxp9NJu0vvingyBnCrGxGkWwj0Bnrexkx4W4QQpECGsoTMijaBdFPAGPPEOkXLj95a9D8iGuXWyELvzOAVzitCsNorMfqRi9rAiYWqo1vZKJK1olYoryVALd2piHQhBzq4eY",
-      imageAlt: "Golden international esports stage with high-key lighting",
-      statusText: "Slots remaining",
-      statusColor: "text-on-surface-variant",
-    },
-    {
-      id: "tokyo-go-championship",
-      title: "Tokyo GO Championship",
-      format: "GO",
-      tier: "Regional",
-      date: "Dec 28, 2024",
-      cost: "¥3,500",
-      prize: "¥1.2M Pool",
-      slotsUsed: 241,
-      slotsTotal: 256,
-      bgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBcHC7tn2-5rUOUhQgukY-uqr8l76-5Ag7t1F3XXUSwixJcWU69W1VSICNZLGJOM6Tagyp3Ll5S7_L6oz7Q0S_6RTc8c0258mL4tuoKzxS-a0qT_3-eBESDEzMaScdUGd8A-dy0f3kLZ4vAYT1FHPowUblyZ9sa-91cqVjplcRXZ7C74Pxp4ilNsxyiPRZPcq_GwFq6K5n_t5LA_pMrCo1dTeAHFkcBi22rLtXeuJil9QT_Z-2BHTtY2S5v1eZEhkDLZCU3fHqWMHU",
-      imageAlt: "Urban park setup for Pokémon GO tournament",
-      statusText: "Almost full!",
-      statusColor: "text-error",
-    },
-    {
-      id: "toronto-open-tcg-finals",
-      title: "Toronto Open TCG Finals",
-      format: "TCG",
-      tier: "Regional",
-      date: "Feb 12, 2025",
-      cost: "$35.00",
-      prize: "$5,000 Pool",
-      slotsUsed: 574,
-      slotsTotal: 1024,
-      bgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDvdPG7Q-6FJsrVSKs1i2ACqHNxfvmL2HBcIdz1e3nCXuk5qkqfR_7nrE1fVPAfYCnEb-50poHzqa9fAN0PVGBHNuvdmaHYmhb2uSfduRsBoqPSXi6NmUTC1XjgPi14wLADGUly1k5xaSZYZDA5c589ercr72P09okikd8DW4RQPCWD2FW8J46VHjmmW0eZcMRI2uY06gRszLttGTmsNbQbFMuLUx3uCPwjOzTY6poF2IQjq9fgEzv2vR79hwU5OkQEgvpr_YCxD28",
-      imageAlt: "Minimalist tables and high-backed chairs set up for card game",
-      statusText: "Registration open",
-      statusColor: "text-on-surface-variant",
-    },
-    {
-      id: "berlin-pro-qualifier",
-      title: "Berlin Pro Qualifier",
-      format: "VGC",
-      tier: "Regional",
-      date: "Feb 20, 2025",
-      cost: "€40.00",
-      prize: "€8,500 Pool",
-      slotsUsed: 0,
-      slotsTotal: 128,
-      bgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBEi_rHMcusr28WzYB1KbxZ9O9in9F6427VEn3QpYSPirSa14TD6sWWwkW6Pirl6JJga8wd0by2XuNHdbjgyJ3tfL55yLHsBOUrPy6SdW3ba0yVH-5C7lEXIHkS-vq46hphJ3iwdZQhFMKmea6pmMXtxqZFsXeM51fnivOzt_KklN2L_ZPeWNpIqlzBNrdluVEn6oCWs4K95fHtHBST3zkWID9DrSEFCnm0EbcnQhOpd9X9ldYEWr3-S6xAfJh09v6_zBXuDDpVo1s",
-      imageAlt: "Futuristic stadium entrance with marble columns and glass panels",
-      statusText: "New Listing!",
-      statusColor: "text-tertiary font-bold",
-    },
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     fetch("/api/tournaments")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(r => r.json())
+      .then((data: any) => {
         if (Array.isArray(data)) {
-          const mapped = data.map((t: any) => {
-            let format: "VGC" | "TCG" | "GO" = "VGC";
-            if (t.type === "ROUND_ROBIN") format = "TCG";
-            if (t.type === "DOUBLE_ELIMINATION") format = "GO";
-
-            return {
-              id: t.id,
-              title: t.title,
-              format,
-              tier: (t.entryFee > 25 ? "International" : "Regional") as "Regional" | "International",
-              date: new Date(t.startDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              }),
-              cost: t.entryFee > 0 ? `$${t.entryFee.toFixed(2)}` : "Free",
-              prize: `$${t.prizePool.toLocaleString()} Pool`,
-              slotsUsed: t._count?.registrations || 0,
-              slotsTotal: t.maxPlayers,
-              bgUrl: t.banner || "https://lh3.googleusercontent.com/aida-public/AB6AXuDhtk607KBiCbdQvybjgNZ2gNKkzoM2lsIgp4bwuQ6j2UJ_en9Kj8obXtAyG_ZEBIwnSwpXB7S3cWooSmS3-cUBEXUCtrPjKRhZRNr6JN4lqbvsPtt8HdWD2xpjbso2Tv_6FJErMKA8IYo7OkrU7z9Id5UjxdTUKhsF2KvkmXBNPSL4i1Q8SGSsfLk0UO8cMZTPSPVzvms3kNDx4P2ez_2Kz9kghCmoQIjx_HXKVa2AcbynL8Bxm7xKmghwQBi7J4k2x1uvHD-D9Yw",
-              imageAlt: t.title,
-              statusText: t.status === "REGISTRATION_OPEN" ? "Registration open" : t.status === "ONGOING" ? "Ongoing" : "Slots remaining",
-              statusColor: "text-on-surface-variant",
-            };
-          });
-
-          if (mapped.length > 0) {
-            setTournaments(mapped);
-          } else {
-            setTournaments(fallbackData);
-          }
+          setTournaments(data);
         } else {
-          setTournaments(fallbackData);
+          setError("Failed to load tournaments.");
         }
       })
-      .catch((err) => {
-        console.log("Failed to fetch tournaments, using fallbacks", err);
-        setTournaments(fallbackData);
-      })
+      .catch(() => setError("Network error loading tournaments."))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleFormatChange = (format: string) => {
-    if (selectedFormat.includes(format)) {
-      setSelectedFormat(selectedFormat.filter((f) => f !== format));
-    } else {
-      setSelectedFormat([...selectedFormat, format]);
-    }
+  const toggleFormat = (f: string) => {
+    setSelectedFormats(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
-  const handleResetFilters = () => {
-    setSelectedFormat(["VGC"]);
-    setSelectedRegion("North America");
-    setSelectedTier("Regional");
+  const handleReset = () => {
+    setSelectedFormats([]);
+    setSelectedStatus("");
     setStartDate("");
     setEndDate("");
   };
 
-  // Card reveal list transition
-  const gridVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08 },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.95, y: 15 },
-    show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4 } },
-  };
-
-  // Apply filters client-side
-  const filteredTournaments = tournaments.filter((t) => {
-    const matchesFormat = selectedFormat.length === 0 || selectedFormat.includes(t.format);
-    const matchesTier = !selectedTier || t.tier === selectedTier;
-    return matchesFormat && matchesTier;
+  const filtered = tournaments.filter(t => {
+    if (selectedFormats.length > 0) {
+      const fmtLabel = FORMAT_MAP[t.type]?.label;
+      if (!selectedFormats.includes(fmtLabel)) return false;
+    }
+    if (selectedStatus && t.status !== selectedStatus) return false;
+    if (startDate && new Date(t.startDate) < new Date(startDate)) return false;
+    if (endDate && new Date(t.startDate) > new Date(endDate)) return false;
+    return true;
   });
 
   return (
     <>
       <Navigation />
-
       <main className="max-w-container-max mx-auto px-md py-lg min-h-screen">
-        <div className="flex flex-col lg:flex-row gap-lg">
+        <div className="flex flex-col lg:flex-row gap-lg text-left">
+
           {/* Sidebar Filters */}
           <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="bg-white p-sm rounded-xl border border-outline-variant shadow-sm sticky top-[80px]">
-              <div className="flex items-center justify-between mb-sm select-none">
-                <h2 className="font-headline-md text-headline-md text-on-surface font-bold">
-                  Filters
-                </h2>
-                <button
-                  onClick={handleResetFilters}
-                  className="text-tertiary font-label-lg text-label-lg hover:underline font-semibold"
-                >
-                  Reset All
+            <div className="bg-white p-md border-4 border-primary neo-brutalist-shadow-sm sticky top-[120px]">
+              <div className="flex items-center justify-between mb-sm border-b-2 border-primary pb-xs select-none">
+                <h2 className="font-headline-md text-headline-md text-primary uppercase italic">Filters</h2>
+                <button onClick={handleReset} className="text-primary font-label-lg text-label-lg hover:underline underline-offset-4 font-bold">
+                  RESET
                 </button>
               </div>
 
-              {/* Format Checkbox list */}
-              <div className="mb-md">
-                <h3 className="font-title-lg text-title-lg text-on-surface-variant mb-xs font-semibold text-[15px] uppercase tracking-wider">
-                  Format
-                </h3>
+              {/* Format Filter */}
+              <div className="mb-md mt-sm select-none">
+                <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase">Format</h3>
                 <div className="space-y-xs">
-                  {["VGC (Video Game)", "TCG (Trading Card)", "Pokémon GO"].map((label) => {
-                    const formatCode = label.split(" ")[0] as "VGC" | "TCG" | "GO";
-                    const checked = selectedFormat.includes(formatCode);
-                    return (
-                      <label
-                        key={formatCode}
-                        className="flex items-center gap-xs cursor-pointer group select-none"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => handleFormatChange(formatCode)}
-                          className="custom-checkbox focus:ring-0 outline-none"
-                        />
-                        <span
-                          className={`font-body-md text-body-md transition-colors group-hover:text-tertiary ${
-                            checked ? "text-tertiary font-bold" : "text-on-surface-variant"
-                          }`}
-                        >
-                          {label}
-                        </span>
-                      </label>
-                    );
-                  })}
+                  {[
+                    { label: "VGC (Video Game)", key: "VGC" },
+                    { label: "TCG (Trading Card)", key: "TCG" },
+                    { label: "Pokémon GO", key: "GO" },
+                    { label: "Swiss Format", key: "Swiss" },
+                  ].map(({ label, key }) => (
+                    <label key={key} className="flex items-center gap-xs cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={selectedFormats.includes(key)}
+                        onChange={() => toggleFormat(key)}
+                        className="pokeball-checkbox focus:ring-0 outline-none"
+                      />
+                      <span className={`font-body-md text-body-md uppercase font-bold group-hover:text-accent-blue transition-colors ${selectedFormats.includes(key) ? "text-accent-blue" : "text-primary"}`}>
+                        {label}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              {/* Region Selector */}
-              <div className="mb-md">
-                <h3 className="font-title-lg text-title-lg text-on-surface-variant mb-xs font-semibold text-[15px] uppercase tracking-wider">
-                  Region
-                </h3>
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => setSelectedRegion(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-sm py-xs font-body-md text-body-md focus:ring-2 focus:ring-tertiary/20 focus:border-tertiary outline-none"
-                >
-                  <option>North America</option>
-                  <option>Europe</option>
-                  <option>Latin America</option>
-                  <option>Asia Pacific</option>
-                  <option>Oceania</option>
-                </select>
-              </div>
-
-              {/* Tier Filter Pills */}
+              {/* Status Filter */}
               <div className="mb-md select-none">
-                <h3 className="font-title-lg text-title-lg text-on-surface-variant mb-xs font-semibold text-[15px] uppercase tracking-wider">
-                  Tier
-                </h3>
+                <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase">Status</h3>
                 <div className="flex flex-wrap gap-xs">
-                  {["Regional", "International", "Special Event"].map((tier) => (
+                  {[
+                    { label: "Open", val: "REGISTRATION_OPEN" },
+                    { label: "Upcoming", val: "UPCOMING" },
+                    { label: "Ongoing", val: "ONGOING" },
+                    { label: "Completed", val: "COMPLETED" },
+                  ].map(({ label, val }) => (
                     <button
-                      key={tier}
-                      onClick={() => setSelectedTier(tier)}
-                      className={`px-sm py-base rounded-full border font-label-lg text-label-lg font-bold transition-all ${
-                        selectedTier === tier
-                          ? "border-tertiary text-tertiary bg-tertiary/5"
-                          : "border-outline-variant text-on-surface-variant hover:border-tertiary hover:text-tertiary"
+                      key={val}
+                      onClick={() => setSelectedStatus(s => s === val ? "" : val)}
+                      className={`px-sm py-base border-2 border-primary font-label-lg text-label-lg uppercase font-bold transition-all ${
+                        selectedStatus === val
+                          ? "bg-primary text-white"
+                          : "bg-white text-primary hover:bg-accent-yellow"
                       }`}
                     >
-                      {tier}
+                      {label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Date Filters */}
+              {/* Date range */}
               <div>
-                <h3 className="font-title-lg text-title-lg text-on-surface-variant mb-xs font-semibold text-[15px] uppercase tracking-wider">
-                  Date
-                </h3>
+                <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase">Date</h3>
                 <div className="space-y-xs">
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-sm py-xs font-body-md text-body-md outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary"
+                    onChange={e => setStartDate(e.target.value)}
+                    className="w-full bg-white border-2 border-primary px-sm py-xs font-body-md text-body-md outline-none uppercase font-bold"
                   />
-                  <p className="text-center font-label-lg text-label-lg text-outline font-semibold select-none uppercase text-[10px]">
-                    to
-                  </p>
+                  <p className="text-center font-label-lg text-label-lg font-bold select-none">TO</p>
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-sm py-xs font-body-md text-body-md outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary"
+                    onChange={e => setEndDate(e.target.value)}
+                    className="w-full bg-white border-2 border-primary px-sm py-xs font-body-md text-body-md outline-none uppercase font-bold"
                   />
                 </div>
               </div>
+
             </div>
           </aside>
 
-          {/* Main Tournament Grid */}
+          {/* Main Grid */}
           <div className="flex-grow">
-            <header className="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant/30 pb-md">
+            <header className="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md border-b-4 border-primary pb-md select-none">
               <div>
-                <h1 className="font-headline-lg text-headline-lg text-on-surface font-bold">
-                  Available Tournaments
-                </h1>
-                <p className="font-body-lg text-body-lg text-on-surface-variant">
-                  Join the competitive circuit and prove you&apos;re the very best.
+                <h1 className="font-display-lg text-display-lg text-primary uppercase italic">Tournaments</h1>
+                <p className="font-body-lg text-body-lg text-primary font-medium mt-xs max-w-[576px]">
+                  JOIN THE COMPETITIVE CIRCUIT AND PROVE YOU'RE THE VERY BEST.
                 </p>
               </div>
-              <div className="flex items-center gap-xs font-label-lg text-label-lg text-on-surface-variant bg-white px-sm py-xs rounded-full border border-outline-variant select-none font-bold">
-                <span>Showing {filteredTournaments.length} of {tournaments.length} tournaments</span>
-              </div>
+              {!loading && !error && (
+                <div className="flex items-center gap-xs font-label-lg text-label-lg text-white bg-black px-md py-xs border-2 border-black">
+                  <span>SHOWING {filtered.length} / {tournaments.length} EVENTS</span>
+                </div>
+              )}
             </header>
 
-            {/* List and Animations */}
-            <motion.div
-              variants={gridVariants}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-md"
-            >
-              {filteredTournaments.map((tournament) => {
-                const isRegional = tournament.tier === "Regional";
-                const capacityPercent = Math.min(
-                  100,
-                  Math.round((tournament.slotsUsed / tournament.slotsTotal) * 100)
-                );
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
+                <span className="material-symbols-outlined animate-spin text-5xl font-bold">progress_activity</span>
+                <p className="font-black uppercase text-sm tracking-widest">Loading tournaments…</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-32 gap-4">
+                <span className="material-symbols-outlined text-5xl text-accent-red font-bold">error</span>
+                <p className="font-black uppercase text-sm tracking-widest text-primary">{error}</p>
+                <button onClick={() => window.location.reload()} className="px-lg py-md bg-white border-4 border-primary text-primary font-black uppercase neo-brutalist-shadow active:translate-y-1">Retry</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-md">
+                
+                {filtered.length > 0 ? (
+                  filtered.map(t => {
+                    const fmt = FORMAT_MAP[t.type] || { label: t.type, bg: "bg-primary" };
+                    const stat = STATUS_LABEL[t.status] || { label: t.status, color: "text-primary/70" };
+                    const used = t._count?.registrations ?? 0;
+                    const cap = Math.min(100, Math.round((used / t.maxPlayers) * 100));
+                    const isGoldBorder = t.entryFee > 25;
 
-                return (
-                  <motion.article
-                    key={tournament.id}
-                    variants={cardVariants}
-                    className={`tournament-card bg-white rounded-xl overflow-hidden border border-outline-variant shadow-sm hover:shadow-lg flex flex-col border-t-4 ${
-                      isRegional ? "border-t-tertiary" : "border-t-victory-gold"
-                    }`}
-                  >
-                    <div className="relative h-48 w-full bg-surface-dim">
-                      <Image
-                        src={tournament.bgUrl}
-                        alt={tournament.imageAlt}
-                        fill
-                        className="object-cover opacity-80"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
-                      />
-                      <div className="absolute top-sm right-sm flex gap-xs select-none">
-                        <span className="bg-on-surface text-white px-sm py-base rounded-full font-label-lg text-label-lg font-bold shadow-sm">
-                          {tournament.format}
-                        </span>
-                        <span
-                          className={`px-sm py-base rounded-full font-label-lg text-label-lg font-bold shadow-sm ${
-                            isRegional ? "bg-white text-tertiary" : "bg-victory-gold text-white"
-                          }`}
-                        >
-                          {tournament.tier}
-                        </span>
-                      </div>
+                    return (
+                      <article key={t.id} className="bg-white border-4 border-primary neo-brutalist-shadow-hover transition-all flex flex-col">
+                        <div className="relative h-48 border-b-4 border-primary bg-surface-dim">
+                          <Image
+                            src={t.banner || BANNER_FALLBACK}
+                            alt={t.title}
+                            fill
+                            className="object-cover grayscale contrast-125"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
+                          />
+                          <div className="absolute top-0 right-0 flex select-none">
+                            <span className={`${fmt.bg} text-white px-sm py-base border-l-4 border-b-4 border-primary font-label-lg text-label-lg uppercase`}>
+                              {fmt.label}
+                            </span>
+                            <span className={`bg-white text-primary px-sm py-base border-l-4 border-b-4 border-primary font-label-lg text-label-lg uppercase italic font-bold`}>
+                              {isGoldBorder ? "International" : "Regional"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-sm flex-grow flex flex-col justify-between">
+                          <div>
+                            <h3 className="font-headline-md text-headline-md text-primary mb-sm leading-tight uppercase line-clamp-2">
+                              {t.title}
+                            </h3>
+
+                            <div className="grid grid-cols-1 gap-y-xs mb-md font-bold uppercase text-body-md text-primary">
+                              <div className="flex items-center gap-xs">
+                                <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                                <span>{new Date(t.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                              </div>
+                              <div className="flex items-center gap-xs text-accent-red">
+                                <span className="material-symbols-outlined text-[18px]">trophy</span>
+                                <span>${t.prizePool.toLocaleString()} Pool</span>
+                              </div>
+                              <div className="flex items-center gap-xs">
+                                <span className="material-symbols-outlined text-[18px]">group</span>
+                                <span>{t.maxPlayers - used} / {t.maxPlayers} Slots Left</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-auto">
+                            <div className="w-full bg-surface-container-high border-2 border-primary h-4 mb-xs">
+                              <div className="bg-accent-red h-full border-r-2 border-primary" style={{ width: `${cap}%` }}></div>
+                            </div>
+                            <div className="flex justify-between items-center select-none mb-sm">
+                              <p className={`font-label-lg text-label-lg ${stat.color} uppercase italic`}>{stat.label}</p>
+                              {cap >= 90 && <p className="font-label-lg text-label-lg text-accent-red font-black uppercase italic">Almost Full!</p>}
+                            </div>
+                            <Link href={`/tournaments/${t.id}`} className="w-full text-center py-3 bg-accent-yellow border-2 border-primary text-primary font-black uppercase neo-brutalist-shadow-sm hover:translate-y-[-2px] transition-all block select-none">
+                              Join Tournament
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })
+                ) : (
+                  <div className="col-span-full flex flex-col items-center justify-center py-32 text-center gap-4 bg-white border-4 border-dashed border-primary">
+                    <span className="material-symbols-outlined text-7xl text-primary/30">emoji_events</span>
+                    <h3 className="font-title-lg text-primary font-bold uppercase italic">No Tournaments Found</h3>
+                    <p className="text-primary/60 font-bold uppercase text-xs max-w-[384px]">
+                      Try adjusting or resetting your filter criteria.
+                    </p>
+                    <button onClick={handleReset} className="px-lg py-md bg-white border-4 border-primary text-primary font-black uppercase neo-brutalist-shadow active:translate-y-1">
+                      Reset Filters
+                    </button>
+                  </div>
+                )}
+
+                {/* More coming teaser */}
+                {filtered.length > 0 && (
+                  <article className="bg-surface-container-high border-4 border-dashed border-primary flex flex-col items-center justify-center p-lg text-center select-none">
+                    <div className="w-16 h-16 bg-black flex items-center justify-center mb-sm">
+                      <span className="material-symbols-outlined text-white text-[40px]">add</span>
                     </div>
+                    <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase italic">More Events</h3>
+                    <p className="font-body-md text-body-md text-primary font-medium uppercase">Stay tuned for the 2025 schedule.</p>
+                  </article>
+                )}
 
-                    <div className="p-sm flex-grow flex flex-col">
-                      <h3 className="font-headline-md text-headline-md text-on-surface mb-xs leading-tight font-bold">
-                        {tournament.title}
-                      </h3>
-                      
-                      <div className="grid grid-cols-2 gap-y-xs gap-x-sm mb-md text-on-surface-variant">
-                        <div className="flex items-center gap-xs">
-                          <span className="material-symbols-outlined text-outline text-[18px]">
-                            calendar_month
-                          </span>
-                          <span className="font-body-md text-[13px]">{tournament.date}</span>
-                        </div>
-                        <div className="flex items-center gap-xs">
-                          <span className="material-symbols-outlined text-outline text-[18px]">
-                            payments
-                          </span>
-                          <span className="font-body-md text-[13px]">{tournament.cost}</span>
-                        </div>
-                        <div className="flex items-center gap-xs">
-                          <span className="material-symbols-outlined text-outline text-[18px]">
-                            trophy
-                          </span>
-                          <span className="font-body-md text-[13px] font-bold text-tertiary">
-                            {tournament.prize}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-xs">
-                          <span className="material-symbols-outlined text-outline text-[18px]">
-                            group
-                          </span>
-                          <span className="font-body-md text-[13px]">
-                            {tournament.slotsTotal - tournament.slotsUsed}/{tournament.slotsTotal} Left
-                          </span>
-                        </div>
-                      </div>
+              </div>
+            )}
 
-                      {/* Progress occupancy bar */}
-                      <div className="mt-auto space-y-xs select-none">
-                        <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden flex">
-                          <div
-                            className={`h-full ${isRegional ? "bg-tertiary" : "bg-victory-gold"}`}
-                            style={{ width: `${capacityPercent}%` }}
-                          ></div>
-                        </div>
-                        {tournament.statusText && (
-                          <p className={`text-right font-label-lg text-label-lg font-bold ${tournament.statusColor || "text-on-surface-variant"}`}>
-                            {tournament.statusText}
-                          </p>
-                        )}
-                      </div>
-
-                      <Link
-                        href={`/tournaments/${tournament.id}`}
-                        className="w-full mt-sm bg-tertiary text-on-tertiary py-xs rounded-lg font-title-lg text-center font-bold shadow-[0_2px_0_0_#2b3896] hover:shadow-none hover:translate-y-[2px] active:translate-y-[2px] active:scale-[0.98] transition-all block"
-                      >
-                        Join Tournament
-                      </Link>
-                    </div>
-                  </motion.article>
-                );
-              })}
-
-              {/* Empty/Upcoming Teaser Card */}
-              <motion.article
-                variants={cardVariants}
-                className="bg-surface-container-low rounded-xl border border-dashed border-outline-variant flex flex-col items-center justify-center p-lg text-center"
-              >
-                <span className="material-symbols-outlined text-outline-variant text-[64px] mb-sm select-none">
-                  more_horiz
-                </span>
-                <h3 className="font-title-lg text-title-lg text-outline mb-xs font-semibold">
-                  More Tournaments Coming
-                </h3>
-                <p className="font-body-md text-body-md text-outline">
-                  New Regional and International events are added weekly. Stay tuned for the Season 2025 schedule.
-                </p>
-                <button className="mt-md font-label-lg text-label-lg text-tertiary hover:underline font-bold active:scale-95 transition-transform">
-                  Get Notified
+            {/* Pagination */}
+            {!loading && !error && filtered.length > 0 && (
+              <div className="mt-xl flex items-center justify-center gap-xs select-none">
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white transition-all cursor-pointer">
+                  <span className="material-symbols-outlined text-[24px]">chevron_left</span>
                 </button>
-              </motion.article>
-            </motion.div>
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary bg-black text-white font-title-lg uppercase">1</button>
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">2</button>
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">3</button>
+                <span className="px-xs text-primary font-black">...</span>
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">12</button>
+                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white transition-all cursor-pointer">
+                  <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+                </button>
+              </div>
+            )}
 
-            {/* Pagination Controls */}
-            <div className="mt-xl flex items-center justify-center gap-xs select-none">
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-white active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-[20px]">
-                  chevron_left
-                </span>
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-tertiary text-white font-title-lg font-bold shadow-sm">
-                1
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-white active:scale-90 transition-all font-title-lg font-medium">
-                2
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-white active:scale-90 transition-all font-title-lg font-medium">
-                3
-              </button>
-              <span className="px-xs text-outline font-bold">...</span>
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-white active:scale-90 transition-all font-title-lg font-medium">
-                12
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-white active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-[20px]">
-                  chevron_right
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </main>
-
       <Footer />
     </>
   );

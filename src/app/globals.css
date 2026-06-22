@@ -1,58 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #fcf8f8;
-  --color-on-background: #1c1b1b;
-  --color-primary: #5d5f5f;
+  --color-background: #F5F5F5;
+  --color-on-background: #1a1a1a;
+  --color-primary: #1a1a1a;
   --color-on-primary: #ffffff;
   --color-primary-container: #ffffff;
-  --color-on-primary-container: #747676;
-  --color-secondary: #5d5f5f;
+  --color-on-primary-container: #1a1a1a;
+  --color-secondary: #1a1a1a;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #dcdddd;
-  --color-on-secondary-container: #5f6161;
-  --color-tertiary: #3f50ce;
-  --color-on-tertiary: #ffffff;
+  --color-secondary-container: #1a1a1a;
+  --color-on-secondary-container: #ffffff;
+  --color-tertiary: #1a1a1a;
+  --color-on-tertiary: #1a1a1a;
   --color-tertiary-container: #ffffff;
-  --color-on-tertiary-container: #5869e7;
-  --color-error: #ba1a1a;
+  --color-on-tertiary-container: #1a1a1a;
+  --color-error: #FF3B3B;
   --color-on-error: #ffffff;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
+  --color-error-container: #FF3B3B;
+  --color-on-error-container: #ffffff;
   
-  --color-surface: #fcf8f8;
-  --color-surface-dim: #ddd9d9;
-  --color-surface-bright: #fcf8f8;
+  --color-surface: #ffffff;
+  --color-surface-dim: #d1d1d1;
+  --color-surface-bright: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f6f3f2;
-  --color-surface-container: #f1edec;
-  --color-surface-container-high: #ebe7e7;
-  --color-surface-container-highest: #e5e2e1;
-  --color-on-surface: #1c1b1b;
-  --color-on-surface-variant: #444748;
-  --color-inverse-surface: #313030;
-  --color-inverse-on-surface: #f4f0ef;
+  --color-surface-container-low: #fafafa;
+  --color-surface-container: #ffffff;
+  --color-surface-container-high: #e5e5e5;
+  --color-surface-container-highest: #e5e5e5;
+  --color-on-surface: #1a1a1a;
+  --color-on-surface-variant: #1a1a1a;
+  --color-inverse-surface: #1a1a1a;
+  --color-inverse-on-surface: #F5F5F5;
   
-  --color-outline: #747878;
-  --color-outline-variant: #c4c7c8;
+  --color-outline: #1a1a1a;
+  --color-outline-variant: #1a1a1a;
   
-  --color-primary-fixed: #e2e2e2;
-  --color-primary-fixed-dim: #c6c6c7;
-  --color-on-primary-fixed: #1a1c1c;
-  --color-on-primary-fixed-variant: #454747;
+  --color-primary-fixed: #1a1a1a;
+  --color-primary-fixed-dim: #333333;
+  --color-on-primary-fixed: #ffffff;
+  --color-on-primary-fixed-variant: #333333;
   
-  --color-secondary-fixed: #e2e2e2;
-  --color-secondary-fixed-dim: #c6c6c7;
-  --color-on-secondary-fixed: #1a1c1c;
-  --color-on-secondary-fixed-variant: #454747;
+  --color-secondary-fixed: #1a1a1a;
+  --color-secondary-fixed-dim: #333333;
+  --color-on-secondary-fixed: #ffffff;
+  --color-on-secondary-fixed-variant: #d1d1d1;
   
-  --color-tertiary-fixed: #dfe0ff;
-  --color-tertiary-fixed-dim: #bcc2ff;
-  --color-on-tertiary-fixed: #000b62;
-  --color-on-tertiary-fixed-variant: #2335b5;
+  --color-tertiary-fixed: #FFD700;
+  --color-tertiary-fixed-dim: #e6c200;
+  --color-on-tertiary-fixed: #1a1a1a;
+  --color-on-tertiary-fixed-variant: #1a1a1a;
   
-  --color-gold-accent: #FFD700;
-  --color-victory-gold: #FFCB05;
+  --color-accent-blue: #0051FF;
+  --color-accent-red: #FF3B3B;
+  --color-accent-yellow: #FFD700;
 
   /* Custom Spacing Rules */
   --spacing-gutter: 24px;
@@ -64,18 +65,18 @@
   --spacing-xl: 64px;
   --spacing-base: 4px;
 
-  /* Custom Border Radius */
-  --radius-sm: 0.25rem;
-  --radius-DEFAULT: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  /* Custom Border Radius - Overridden to 0px for Bauhaus Edition */
+  --radius-sm: 0px;
+  --radius-DEFAULT: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
   --radius-full: 9999px;
 
   /* Custom Fonts */
-  --font-lexend: var(--font-lexend);
+  --font-space-grotesk: var(--font-space-grotesk);
 
-  /* ── M3 Typography Scale ─────────────────────────────────── */
+  /* ── Typography Scale ─────────────────────────────────── */
   /* Display */
   --text-display-lg: 3.5625rem / 4rem;
   --text-display-md: 2.8125rem / 3.25rem;
@@ -107,35 +108,33 @@
 
 /* Material symbols utility */
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
   vertical-align: middle;
 }
 
 .material-symbols-fill {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
   vertical-align: middle;
 }
 
 /* Custom layout patterns */
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
+  border: 4px solid #1a1a1a;
+  box-shadow: 8px 8px 0px 0px #1a1a1a;
 }
 
 .glass-panel {
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
+  border-left: 4px solid #1a1a1a;
 }
 
 .pokeball-pattern {
-  background-color: #fcf8f8;
-  background-image: radial-gradient(#3f50ce 1px, transparent 1px), radial-gradient(#3f50ce 1px, transparent 1px);
+  background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
   background-size: 40px 40px;
-  background-position: 0 0, 20px 20px;
-  opacity: 0.03;
+  opacity: 0.04;
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -143,15 +142,14 @@
 
 /* Custom Scrollbar for profile team section */
 .custom-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
 }
 .custom-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: #ffffff;
+  border-left: 2px solid #1a1a1a;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #e2e2e2;
-  border-radius: 10px;
+  background: #1a1a1a;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -162,8 +160,8 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #dfe0ff;
-  border-radius: 10px;
+  background: #1a1a1a;
+  border-radius: 0px;
 }
 
 /* Marquee Animation */
@@ -173,7 +171,7 @@
 }
 .animate-marquee {
   display: flex;
-  animation: marquee 30s linear infinite;
+  animation: marquee 25s linear infinite;
   width: max-content;
 }
 .animate-marquee:hover {
@@ -182,48 +180,45 @@
 
 /* Bracket Connecting Lines */
 .bracket-line-vertical {
-  width: 2px;
-  background-color: #3f50ce;
-  opacity: 0.2;
+  width: 4px;
+  background-color: #1a1a1a;
 }
 .bracket-line-horizontal {
-  height: 2px;
-  background-color: #3f50ce;
-  opacity: 0.2;
+  height: 4px;
+  background-color: #1a1a1a;
 }
 .match-card:hover .bracket-line-active {
-  opacity: 1;
+  background-color: #FF3B3B;
 }
 .champion-glow {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  box-shadow: 8px 8px 0px 0px #FFD700;
 }
 
 .trainer-card-shadow {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 8px 8px 0px 0px #1a1a1a;
 }
 
 .trainer-card-gradient {
-  background: linear-gradient(135deg, #ffffff 0%, #f6f3f2 100%);
-  border-top: 6px solid #3f50ce;
+  background: #ffffff;
+  border: 4px solid #1a1a1a;
 }
 
 .active-nav-bg {
-  background: linear-gradient(90deg, rgba(63, 80, 206, 0.1) 0%, rgba(63, 80, 206, 0) 100%);
+  background-color: #FFD700;
+  color: #1a1a1a;
 }
 
 .pokeball-checkbox {
   appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #5d5f5f;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #1a1a1a;
   position: relative;
   cursor: pointer;
-  transition: all 0.2s ease;
+  background: white;
 }
 .pokeball-checkbox:checked {
-  background-color: #3f50ce;
-  border-color: #3f50ce;
+  background-color: #FF3B3B;
 }
 .pokeball-checkbox:checked::after {
   content: '';
@@ -233,23 +228,23 @@
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background: white;
+  background: #1a1a1a;
   border-radius: 50%;
 }
 
 .active-tab-indicator {
-  height: 4px;
-  background-color: #3f50ce;
-  border-radius: 2px 2px 0 0;
+  height: 8px;
+  background-color: #FF3B3B;
   position: absolute;
-  bottom: 0;
+  bottom: -4px;
   left: 0;
   width: 100%;
+  z-index: 10;
 }
 
 /* Custom styling for body element */
 body {
-  font-family: var(--font-lexend), sans-serif;
+  font-family: var(--font-space-grotesk), sans-serif;
   background-color: var(--color-background);
   color: var(--color-on-background);
 }
@@ -265,25 +260,47 @@ body {
   gap: 24px;
 }
 
+/* Neo-brutalist theme specific styles */
+.neo-brutalist-shadow {
+  box-shadow: 8px 8px 0px 0px #1a1a1a;
+}
+.neo-brutalist-shadow-sm {
+  box-shadow: 4px 4px 0px 0px #1a1a1a;
+}
+.neo-brutalist-shadow-hover {
+  transition: all 0.2s ease;
+}
+.neo-brutalist-shadow-hover:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 12px 12px 0px 0px #1a1a1a;
+}
+.neo-brutalist-button-active:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px #1a1a1a;
+}
+.bauhaus-grid {
+  background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.05;
+}
+
 /* ── M3 Typography utilities (font-* mirrors the size classes)  */
-/* Tailwind v4 generates text-* from --text-* theme tokens.     */
-/* These font-* aliases keep backward-compatible class usage.   */
-.font-display-lg  { font-size: 3.5625rem; line-height: 4rem;    letter-spacing: -0.015625rem; }
-.font-display-md  { font-size: 2.8125rem; line-height: 3.25rem; }
-.font-display-sm  { font-size: 2.25rem;   line-height: 2.75rem; }
+.font-display-lg  { font-size: 3.5625rem; line-height: 4rem;    letter-spacing: -0.04em; font-weight: 800; text-transform: uppercase; }
+.font-display-md  { font-size: 2.8125rem; line-height: 3.25rem; letter-spacing: -0.03em; font-weight: 800; text-transform: uppercase; }
+.font-display-sm  { font-size: 2.25rem;   line-height: 2.75rem; letter-spacing: -0.02em; font-weight: 800; text-transform: uppercase; }
 
-.font-headline-lg { font-size: 2rem;      line-height: 2.5rem;  }
-.font-headline-md { font-size: 1.75rem;   line-height: 2.25rem; }
-.font-headline-sm { font-size: 1.5rem;    line-height: 2rem;    }
+.font-headline-lg { font-size: 2rem;      line-height: 2.5rem;  font-weight: 700; text-transform: uppercase; }
+.font-headline-md { font-size: 1.75rem;   line-height: 2.25rem; font-weight: 700; text-transform: uppercase; }
+.font-headline-sm { font-size: 1.5rem;    line-height: 2rem;    font-weight: 700; text-transform: uppercase; }
 
-.font-title-lg    { font-size: 1.375rem;  line-height: 1.75rem; }
-.font-title-md    { font-size: 1rem;      line-height: 1.5rem;  }
-.font-title-sm    { font-size: 0.875rem;  line-height: 1.25rem; }
+.font-title-lg    { font-size: 1.25rem;   line-height: 1.75rem; font-weight: 700; text-transform: uppercase; }
+.font-title-md    { font-size: 1rem;      line-height: 1.5rem;  font-weight: 700; text-transform: uppercase; }
+.font-title-sm    { font-size: 0.875rem;  line-height: 1.25rem; font-weight: 700; text-transform: uppercase; }
 
-.font-body-lg     { font-size: 1rem;      line-height: 1.5rem;  letter-spacing: 0.03125rem; }
-.font-body-md     { font-size: 0.875rem;  line-height: 1.25rem; letter-spacing: 0.015625rem; }
-.font-body-sm     { font-size: 0.75rem;   line-height: 1rem;    letter-spacing: 0.025rem; }
+.font-body-lg     { font-size: 1rem;      line-height: 1.5rem;  font-weight: 500; }
+.font-body-md     { font-size: 0.875rem;  line-height: 1.25rem; font-weight: 500; }
+.font-body-sm     { font-size: 0.75rem;   line-height: 1rem;    font-weight: 500; }
 
-.font-label-lg    { font-size: 0.875rem;  line-height: 1.25rem; letter-spacing: 0.00625rem; }
-.font-label-md    { font-size: 0.75rem;   line-height: 1rem;    letter-spacing: 0.03125rem; }
-.font-label-sm    { font-size: 0.6875rem; line-height: 1rem;    letter-spacing: 0.03125rem; }
+.font-label-lg    { font-size: 0.75rem;   line-height: 1rem;    letter-spacing: 0.1em; font-weight: 700; text-transform: uppercase; }
+.font-label-md    { font-size: 0.6875rem; line-height: 1rem;    letter-spacing: 0.08em; font-weight: 700; text-transform: uppercase; }
+.font-label-sm    { font-size: 0.625rem;  line-height: 1rem;    letter-spacing: 0.05em; font-weight: 700; text-transform: uppercase; }

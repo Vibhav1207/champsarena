@@ -9,6 +9,26 @@ export const authConfig = {
     signIn: "/login",
   },
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id!;
+        token.role = user.role!;
+        token.elo = user.elo!;
+        token.trainerId = user.trainerId!;
+        token.homeRegion = user.homeRegion!;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as any;
+        session.user.elo = token.elo as number;
+        session.user.trainerId = token.trainerId as string;
+        session.user.homeRegion = token.homeRegion as string;
+      }
+      return session;
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isAuthPage = nextUrl.pathname.startsWith("/login");

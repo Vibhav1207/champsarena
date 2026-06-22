@@ -1,105 +1,116 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logoutTrainer } from "@/app/actions/authActions";
 
 export default function Navigation() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then(r => r.json())
+      .then(data => { if (data?.user) setSession(data.user); })
+      .catch(() => {});
+  }, []);
+
+  const isAdmin = session?.role === "ADMIN" || session?.role === "SUPER_ADMIN";
 
   const isActive = (path: string) => {
-    if (path === "/tournaments" && pathname.startsWith("/tournaments")) {
-      return true;
-    }
+    if (path === "/tournaments" && pathname.startsWith("/tournaments")) return true;
     return pathname === path;
   };
 
-  return (
-    <header className="sticky top-0 z-50 bg-surface dark:bg-surface-container-low border-b border-outline-variant dark:border-outline shadow-sm">
-      <div className="flex justify-between items-center px-md py-sm max-w-container-max mx-auto h-16">
-        {/* Brand Logo */}
-        <div className="flex items-center gap-xs">
-          <Link
-            href="/"
-            className="font-display-lg text-display-lg text-tertiary dark:text-on-tertiary-container tracking-tight text-[24px] hover:opacity-90 active:scale-95 transition-all"
-          >
-            Pokémon Champions
-          </Link>
-        </div>
+  const getLinkCls = (path: string, activeColor: string) => {
+    const base = "text-primary font-black uppercase text-[15px] tracking-tight transition-colors duration-150 py-1 px-2";
+    if (isActive(path)) {
+      return `${base} border-b-4 ${activeColor}`;
+    }
+    return `${base} hover:bg-accent-yellow`;
+  };
 
-        {/* Desktop Links */}
-        <nav className="hidden md:flex items-center gap-lg">
-          <Link
-            href="/tournaments"
-            className={`${
-              isActive("/tournaments")
-                ? "text-tertiary font-bold border-b-2 border-tertiary pb-1"
-                : "text-on-surface-variant font-medium hover:text-tertiary"
-            } transition-colors duration-200 font-title-lg text-[16px]`}
-          >
-            Tournaments
-          </Link>
-          <Link
-            href="/rankings"
-            className={`${
-              isActive("/rankings")
-                ? "text-tertiary font-bold border-b-2 border-tertiary pb-1"
-                : "text-on-surface-variant font-medium hover:text-tertiary"
-            } transition-colors duration-200 font-title-lg text-[16px]`}
-          >
-            Rankings
-          </Link>
-          <Link
-            href="/profile"
-            className={`${
-              isActive("/profile")
-                ? "text-tertiary font-bold border-b-2 border-tertiary pb-1"
-                : "text-on-surface-variant font-medium hover:text-tertiary"
-            } transition-colors duration-200 font-title-lg text-[16px]`}
-          >
-            Profile
-          </Link>
+  const getMobileLinkCls = (path: string, activeBg: string) => {
+    const base = "text-primary font-black uppercase text-[16px] tracking-tight py-2 px-3 border-2 border-primary transition-all";
+    if (isActive(path)) {
+      return `${base} ${activeBg} neo-brutalist-shadow-sm`;
+    }
+    return `${base} bg-white hover:bg-accent-yellow`;
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b-4 border-primary">
+      <div className="flex justify-between items-center px-md py-sm max-w-container-max mx-auto h-20">
+
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-xs hover:opacity-95 transition-all">
+          <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0">
+            <circle cx="50" cy="50" r="48" fill="white" stroke="#1a1a1a" strokeWidth="6" />
+            <path d="M 3 50 Q 3 3 50 3 Q 97 3 97 50 Z" fill="#FF3B3B" />
+            <line x1="3" y1="50" x2="97" y2="50" stroke="#1a1a1a" strokeWidth="6" />
+            <circle cx="50" cy="50" r="14" fill="white" stroke="#1a1a1a" strokeWidth="6" />
+            <circle cx="50" cy="50" r="6" fill="#FFD700" />
+          </svg>
+          <span className="font-bold text-[22px] md:text-[26px] uppercase tracking-tighter bg-primary text-white px-3 py-1 select-none">
+            ChampsArena
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-md">
+          <Link href="/tournaments" className={getLinkCls("/tournaments", "border-accent-red")}>Tournaments</Link>
+          <Link href="/rankings"    className={getLinkCls("/rankings", "border-accent-yellow")}>Rankings</Link>
+          {isAdmin && (
+            <Link href="/admin" className={getLinkCls("/admin", "border-accent-blue")}>
+              Admin
+            </Link>
+          )}
         </nav>
 
-        {/* Actions Area */}
+        {/* Actions */}
         <div className="flex items-center gap-md">
-          {/* Search Bar (Desktop only) */}
+          {/* Search (desktop) */}
           <div className="hidden lg:flex relative items-center">
             <input
               type="text"
-              placeholder="Search tournaments..."
-              className="bg-surface-container border border-outline-variant rounded-full px-sm py-xs pl-10 text-body-md focus:outline-none focus:ring-2 focus:ring-tertiary transition-all outline-none"
+              placeholder="SEARCH..."
+              className="bg-white border-4 border-primary rounded-none px-sm py-xs pl-10 text-body-md focus:outline-none focus:ring-0 transition-all font-bold placeholder:text-primary/50 w-48"
             />
-            <span className="material-symbols-outlined absolute left-3 text-outline">
-              search
-            </span>
+            <span className="material-symbols-outlined absolute left-3 text-primary font-bold">search</span>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-sm">
-            <button className="material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-transform active:scale-95">
+            <button className="material-symbols-outlined text-primary hover:text-accent-red hover:scale-115 transition-all font-bold cursor-pointer">
               notifications
             </button>
-            <Link
-              href="/profile"
-              className="material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-transform active:scale-95"
-            >
-              person
-            </Link>
-            <Link
-              href="/login"
-              className="bg-tertiary text-on-tertiary px-sm py-xs rounded-lg font-label-lg transition-transform hover:brightness-110 active:scale-95 shadow-sm text-center"
-            >
-              Register
+
+            {session ? (
+              /* Logged-in avatar */
+              <Link href="/profile" title={session.name || "Profile"}
+                className="w-9 h-9 rounded-full bg-accent-yellow text-primary flex items-center justify-center font-bold text-sm border-2 border-primary overflow-hidden hover:scale-105 transition-transform">
+                {session.image
+                  ? <img src={session.image} alt={session.name || "You"} className="w-full h-full object-cover" />
+                  : (session.name || "?")[0].toUpperCase()}
+              </Link>
+            ) : (
+              <Link href="/profile" className="material-symbols-outlined text-primary hover:text-accent-blue hover:scale-115 transition-all font-bold">
+                person
+              </Link>
+            )}
+
+            <Link href="/login"
+              className="bg-primary text-white px-sm py-2 border-2 border-primary font-bold uppercase tracking-widest text-[13px] neo-brutalist-shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-accent-blue transition-colors">
+              {session ? "Dashboard" : "Register"}
             </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-transform active:scale-95"
-            >
-              {mobileMenuOpen ? "close" : "menu"}
+            {/* Mobile menu toggle */}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-primary hover:bg-accent-yellow transition-colors flex items-center justify-center w-10 h-10 border-2 border-primary font-bold">
+              <span className="material-symbols-outlined">
+                {mobileMenuOpen ? "close" : "menu"}
+              </span>
             </button>
           </div>
         </div>
@@ -107,52 +118,46 @@ export default function Navigation() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-surface border-b border-outline-variant px-md py-sm flex flex-col gap-sm animate-in slide-in-from-top duration-200">
-          <Link
-            href="/tournaments"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`${
-              isActive("/tournaments")
-                ? "text-tertiary font-bold pl-2 border-l-2 border-tertiary"
-                : "text-on-surface-variant font-medium"
-            } py-xs`}
-          >
+        <div className="md:hidden bg-background border-t-4 border-primary p-md flex flex-col gap-sm z-50">
+          <Link href="/tournaments" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/tournaments", "bg-accent-red/20")}>
             Tournaments
           </Link>
-          <Link
-            href="/rankings"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`${
-              isActive("/rankings")
-                ? "text-tertiary font-bold pl-2 border-l-2 border-tertiary"
-                : "text-on-surface-variant font-medium"
-            } py-xs`}
-          >
+          <Link href="/rankings" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/rankings", "bg-accent-yellow/20")}>
             Rankings
           </Link>
-          <Link
-            href="/profile"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`${
-              isActive("/profile")
-                ? "text-tertiary font-bold pl-2 border-l-2 border-tertiary"
-                : "text-on-surface-variant font-medium"
-            } py-xs`}
-          >
-            Profile
-          </Link>
-
-          {/* Search bar inside mobile drawer */}
-          <div className="relative flex items-center mt-xs">
-            <input
-              type="text"
-              placeholder="Search tournaments..."
-              className="w-full bg-surface-container border border-outline-variant rounded-full px-sm py-xs pl-10 text-body-md focus:outline-none focus:ring-2 focus:ring-tertiary outline-none"
-            />
-            <span className="material-symbols-outlined absolute left-3 text-outline">
-              search
-            </span>
-          </div>
+          {isAdmin && (
+            <Link href="/admin" onClick={() => setMobileMenuOpen(false)}
+              className={getMobileLinkCls("/admin", "bg-accent-blue/20")}>
+              Admin Panel
+            </Link>
+          )}
+          {session && (
+            <div className="flex flex-col gap-xs py-sm border-t-2 border-primary mt-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-accent-yellow border-2 border-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {(session.name || "?")[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-primary">{session.name}</p>
+                  <p className="text-xs text-primary/70">{session.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  setMobileMenuOpen(false);
+                  try {
+                    await logoutTrainer();
+                  } catch (err) {
+                    console.error("Sign out failed", err);
+                  }
+                }}
+                className="text-left text-xs font-black text-accent-red hover:underline flex items-center gap-1 mt-2 pl-1"
+              >
+                <span className="material-symbols-outlined text-[14px]">logout</span>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

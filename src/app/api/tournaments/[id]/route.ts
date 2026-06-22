@@ -71,6 +71,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const body = await req.json();
 
+    // Check status transition for bracket generation
+    const tourBefore = await prisma.tournament.findUnique({
+      where: { id },
+      include: { matches: true },
+    });
+
     const updatedTournament = await prisma.tournament.update({
       where: { id },
       data: {
@@ -90,12 +96,37 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
 
+    // Auto-generate brackets/matches if transitioning to ONGOING and matches don't exist yet
+    if (body.status === "ONGOING" && tourBefore && tourBefore.status !== "ONGOING" && tourBefore.matches.length === 0) {
+      try {
+        const { generateMatchesForTournament } = await import("@/lib/tournament/engine");
+        await generateMatchesForTournament(id, body.seedingType || "ELO");
+      } catch (err: any) {
+        console.error("Bracket generation failed during status transition:", err);
+        return NextResponse.json({ error: "Tournament status updated, but bracket generation failed: " + err.message }, { status: 400 });
+      }
+    }
+
+    // Manual bracket regeneration
+    if (body.regenerateBrackets) {
+      try {
+        await prisma.match.deleteMany({
+          where: { tournamentId: id },
+        });
+        const { generateMatchesForTournament } = await import("@/lib/tournament/engine");
+        await generateMatchesForTournament(id, body.seedingType || "ELO");
+      } catch (err: any) {
+        console.error("Bracket regeneration failed:", err);
+        return NextResponse.json({ error: "Failed to regenerate brackets: " + err.message }, { status: 400 });
+      }
+    }
+
     // Log update
     await prisma.auditLog.create({
       data: {
         action: "UPDATE_TOURNAMENT",
         userId: session.user.id,
-        details: `Updated tournament ${id}: "${updatedTournament.title}"`,
+        details: `Updated tournament ${id}: "${updatedTournament.title}" (Status: ${updatedTournament.status})`,
       },
     });
 

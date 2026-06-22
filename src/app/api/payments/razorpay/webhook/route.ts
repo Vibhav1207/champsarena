@@ -77,6 +77,22 @@ export async function POST(req: NextRequest) {
         });
 
         console.log(`Razorpay Payment success processed for order: ${orderId}`);
+
+        // Check and auto-generate bracket if capacity is reached
+        try {
+          const { checkAndAutoGenerateBrackets } = await import("@/lib/tournament/engine");
+          if (dbPayment.registrationId) {
+            const reg = await prisma.registration.findUnique({
+              where: { id: dbPayment.registrationId },
+              select: { tournamentId: true },
+            });
+            if (reg?.tournamentId) {
+              await checkAndAutoGenerateBrackets(reg.tournamentId);
+            }
+          }
+        } catch (err) {
+          console.error("Auto bracket generation failed inside Razorpay webhook:", err);
+        }
       }
     }
 

@@ -36,6 +36,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Check capacity if the user is not already registered & approved
+    const isAlreadyApproved = registration?.status === "APPROVED";
+    if (!isAlreadyApproved) {
+      const approvedCount = await prisma.registration.count({
+        where: {
+          tournamentId,
+          status: "APPROVED",
+        },
+      });
+
+      if (approvedCount >= tournament.maxPlayers) {
+        return NextResponse.json({ error: "Tournament is full." }, { status: 400 });
+      }
+    }
+
     if (registration) {
       if (registration.status === "APPROVED") {
         return NextResponse.json({ error: "Already registered and paid" }, { status: 400 });
@@ -59,6 +74,15 @@ export async function POST(req: NextRequest) {
         where: { id: registration.id },
         data: { status: "APPROVED" },
       });
+      
+      // Check and auto-generate bracket if capacity is reached
+      try {
+        const { checkAndAutoGenerateBrackets } = await import("@/lib/tournament/engine");
+        await checkAndAutoGenerateBrackets(tournamentId);
+      } catch (err) {
+        console.error("Auto bracket generation failed inside checkout route:", err);
+      }
+
       return NextResponse.json({ success: true, message: "Free tournament registration approved" });
     }
 

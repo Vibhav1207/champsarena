@@ -57,7 +57,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
     try {
       setPaying(true);
       setShowGatewayModal(false);
-
+ 
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,10 +83,6 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
         // Launch Razorpay checkout
         const options = {
           key: data.key,
-          amount: data.amount,
-          currency: data.currency,
-          name: "Pokémon Champions",
-          description: `Entry fee for ${tournament.title}`,
           order_id: data.orderId,
           handler: async function (response: any) {
             alert("Payment completed! Awaiting confirmation...");
@@ -96,7 +92,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
             name: "Trainer",
           },
           theme: {
-            color: "#2b3896",
+            color: "#1a1a1a",
           },
         };
         const rzp = new (window as any).Razorpay(options);
@@ -124,12 +120,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
       points: wins * 3,
       omw: "50.0%",
     };
-  }) || [
-    { rank: "#1", name: "S. Arisaka", record: "4-0-0", points: 12, omw: "78.5%" },
-    { rank: "#2", name: "M. Wolf", record: "4-0-0", points: 12, omw: "72.1%" },
-    { rank: "#3", name: "E. Rizzo", record: "3-1-0", points: 9, omw: "84.0%" },
-    { rank: "#4", name: "K. Zheng", record: "3-1-0", points: 9, omw: "65.8%" },
-  ];
+  }) || [];
 
   const filteredStandings = standingsData.filter((player) =>
     player.name.toLowerCase().includes(searchPlayer.toLowerCase())
@@ -142,82 +133,84 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
       {/* Script for Razorpay */}
       <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
 
-      <main className="max-w-container-max mx-auto px-md py-lg">
+      <main className="max-w-container-max mx-auto px-md py-xl text-left">
         {/* Tournament Hero Banner */}
-        <section className="relative rounded-xl overflow-hidden mb-xl bg-surface-container-lowest border border-outline-variant shadow-lg h-[400px]">
-          <div className="absolute inset-0 z-0">
-            <div className="relative w-full h-full bg-cover bg-center opacity-40">
+        <section className="relative border-4 border-primary neo-brutalist-shadow mb-xl bg-surface-container-high overflow-hidden h-[500px]">
+          <div className="absolute inset-0 z-0 grayscale contrast-125 select-none">
+            <div className="w-full h-full bg-cover bg-center opacity-60">
               <Image
                 src={tournament?.banner || "https://lh3.googleusercontent.com/aida-public/AB6AXuBCv2pWhNKWU97uKk9zYDylNAFoYURc2PUasR4OKe0YGHIzxtQjexfWnxinQsdaYb3Wczwvt-xknZIr3_-eePNVgaNFcOU7Aw1a-EwXrJm-FHI42wIz6yc-JfG2PAkZvhe0weNIunPtr810PRThL4s2e-ZJP9t2mttk2E4VEEwHjCCPPCQ5b62Sq3JJRUqKPd-FAwMxt93tWBzkTVU9tuyeuZGkLY3bx5gHUo-5gSLwET6ltb9H0rd_71fi8hTxfYJAEBkq83Bwoks"}
-                alt="High-tech Pokémon tournament stadium at dusk"
+                alt="Tournament banner image"
                 fill
                 priority
                 className="object-cover"
               />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-accent-yellow/20 mix-blend-multiply"></div>
           </div>
-          <div className="absolute bottom-0 left-0 p-xl z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-md">
-            <div className="space-y-xs">
+          <div className="absolute bottom-0 left-0 p-xl z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-xl bg-white/90 border-t-4 border-primary">
+            <div className="space-y-sm">
               <div className="flex flex-wrap items-center gap-sm mb-xs select-none">
-                <span className="px-sm py-1 bg-tertiary text-on-tertiary text-label-lg font-label-lg rounded-full shadow-sm font-bold uppercase">
+                <span className="px-sm py-1 bg-primary text-white text-label-lg font-black uppercase">
                   {tournament?.type?.replace("_", " ") || "REGIONAL QUALIFIER"}
                 </span>
-                <span className="px-sm py-1 bg-surface-container-high text-on-surface text-label-lg font-label-lg rounded-full flex items-center gap-1 font-bold border border-outline-variant/30">
-                  <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                <span className="px-sm py-1 bg-accent-red text-white text-label-lg font-black uppercase flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-white"></span>
                   {tournament?.status || "LIVE NOW"}
                 </span>
               </div>
-              <h1 className="font-display-lg text-display-lg text-on-surface font-bold leading-tight">
-                {tournament?.title || "Lumiose City Masters: Summer 2024"}
+              <h1 className="font-bold text-[48px] md:text-[64px] uppercase leading-none text-primary tracking-tighter select-none">
+                {tournament?.title}
               </h1>
-              <p className="text-on-surface-variant font-body-lg max-w-2xl">
-                {tournament?.description || "The premier VGC Regulation G tournament in the Kalos circuit. Top 4 finishers secure a direct invitation."}
+              <p className="text-primary font-body-lg max-w-[672px] font-bold uppercase">
+                {tournament?.description || "The premier circuit tournament stage. Form follows function."}
               </p>
             </div>
             
             {/* Quick stats sidebar */}
-            <div className="flex flex-col gap-xs min-w-[240px] bg-white/70 p-sm rounded-lg border border-white/50 backdrop-blur-sm shadow-md select-none">
-              <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
-                <span>Participants</span>
-                <span className="font-bold text-on-surface">
+            <div className="flex flex-col gap-sm min-w-[280px] bg-accent-yellow p-md border-4 border-primary select-none">
+              <div className="flex items-center justify-between text-primary border-b-2 border-primary pb-xs">
+                <span className="uppercase font-black text-sm">Participants</span>
+                <span className="font-black text-lg">
                   {tournament?.registrations?.length || 0} / {tournament?.maxPlayers || 128}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
-                <span>Entry Fee</span>
-                <span className="font-bold text-on-surface">
+              <div className="flex items-center justify-between text-primary border-b-2 border-primary pb-xs">
+                <span className="uppercase font-black text-sm">Entry Fee</span>
+                <span className="font-black text-lg">
                   {tournament?.entryFee > 0 ? `$${tournament.entryFee.toFixed(2)}` : "Free"}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-on-surface-variant text-body-md border-b border-outline-variant/30 pb-xs">
-                <span>Prize Pool</span>
-                <span className="font-bold text-tertiary">
-                  ${tournament?.prizePool?.toLocaleString() || "15,000.00"}
+              <div className="flex items-center justify-between text-primary pb-xs">
+                <span className="uppercase font-black text-sm">Prize Pool</span>
+                <span className="font-black text-2xl text-accent-red">
+                  ${tournament?.prizePool?.toLocaleString()}
                 </span>
               </div>
 
-              {/* Registration and payment action button */}
+              {/* Action Button */}
               <div className="mt-xs">
-                {userRegistration ? (
-                  userRegistration.status === "APPROVED" ? (
-                    <button disabled className="w-full bg-green-600 text-white py-xs rounded-lg font-bold text-body-md text-center opacity-90 cursor-default">
-                      ✓ Registered & Paid
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleRegister}
-                      disabled={paying}
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-xs rounded-lg font-bold text-body-md text-center transition-all shadow-sm"
-                    >
-                      {paying ? "Processing..." : "Complete Payment"}
-                    </button>
-                  )
+                {userRegistration && userRegistration.status === "APPROVED" ? (
+                  <button disabled className="w-full bg-primary text-white py-3 border-2 border-primary font-black uppercase text-sm cursor-default tracking-wider select-none text-center">
+                    ✓ Registered & Paid
+                  </button>
+                ) : (tournament?.registrations?.length || 0) >= (tournament?.maxPlayers || 64) ? (
+                  <button disabled className="w-full bg-surface-container-high border-2 border-primary text-primary/40 py-3 font-black uppercase text-sm cursor-not-allowed select-none text-center">
+                    Tournament Full
+                  </button>
+                ) : userRegistration ? (
+                  <button
+                    onClick={handleRegister}
+                    disabled={paying}
+                    className="w-full bg-accent-red text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
+                  >
+                    {paying ? "Processing..." : "Complete Payment"}
+                  </button>
                 ) : (
                   <button
                     onClick={handleRegister}
                     disabled={paying}
-                    className="w-full bg-tertiary text-on-primary hover:brightness-110 py-xs rounded-lg font-bold text-body-md text-center transition-all shadow-md"
+                    className="w-full bg-primary text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
                   >
                     {paying ? "Processing..." : "Register Now"}
                   </button>
@@ -228,23 +221,23 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
         </section>
 
         {/* Tab switch Navigation */}
-        <nav className="flex gap-lg border-b border-outline-variant mb-lg overflow-x-auto whitespace-nowrap custom-scrollbar select-none">
-          {(["rules", "schedule", "brackets", "standings"] as TabId[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-sm transition-all text-title-lg font-title-lg px-xs capitalize font-semibold relative focus:outline-none ${
-                activeTab === tab
-                  ? "text-tertiary font-bold"
-                  : "text-on-surface-variant hover:text-tertiary"
-              }`}
-            >
-              {tab}
-              {activeTab === tab && (
-                <motion.div layoutId="detail-tab-indicator" className="active-tab-indicator" />
-              )}
-            </button>
-          ))}
+        <nav className="flex gap-0 border-4 border-primary mb-xl overflow-x-auto whitespace-nowrap custom-scrollbar bg-white select-none">
+          {(["rules", "schedule", "brackets", "standings"] as TabId[]).map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`font-black uppercase py-md px-lg transition-all border-r-4 border-primary text-base cursor-pointer focus:outline-none ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-primary hover:bg-accent-yellow"
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Tab contents */}
@@ -257,51 +250,51 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="bento-grid"
+                className="grid grid-cols-12 gap-xl"
               >
                 {/* Rules List */}
-                <div className="col-span-12 lg:col-span-8 space-y-md">
-                  <div className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm border-t-4 border-t-tertiary">
-                    <h2 className="font-headline-lg text-headline-lg mb-md font-bold">
+                <div className="col-span-12 lg:col-span-8 space-y-xl">
+                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                    <h2 className="font-headline-lg uppercase mb-xl border-b-8 border-primary inline-block select-none">
                       Tournament Regulations
                     </h2>
-                    <div className="space-y-sm">
+                    <div className="space-y-lg mt-xl">
                       {tournament?.rules ? (
-                        <p className="text-on-surface-variant text-body-md whitespace-pre-wrap">
+                        <p className="text-primary font-bold uppercase text-body-lg whitespace-pre-wrap">
                           {tournament.rules}
                         </p>
                       ) : (
                         [
                           {
-                            num: 1,
-                            title: "Standard Format (Regulation G)",
-                            desc: "Players must use teams consistent with the Regulation G ruleset, which allows for one restricted Legendary Pokémon per team.",
+                            num: "01",
+                            title: "Standard Format",
+                            desc: "Regulation G ruleset. One restricted Legendary Pokémon permitted per team.",
                           },
                           {
-                            num: 2,
+                            num: "02",
                             title: "Match Structure",
-                            desc: "All matches are Best-of-Three (Bo3). Time limits are 20 minutes for total game time and 7 minutes per player (Your Time).",
+                            desc: "Best-of-Three (Bo3). 20 min total game time, 7 min player time.",
                           },
                           {
-                            num: 3,
+                            num: "03",
                             title: "Open Team Sheets",
-                            desc: "Participants must provide an open team sheet highlighting moves, abilities, and held items. Tera types must be explicitly listed.",
+                            desc: "Must list moves, abilities, items, and Tera types explicitly.",
                           },
                           {
-                            num: 4,
+                            num: "04",
                             title: "Disconnect Policy",
-                            desc: "In the event of a disconnection, players must immediately call a judge. Intentional disconnects will result in immediate disqualification.",
+                            desc: "Call judge immediately. Intentional disconnects = immediate DQ.",
                           },
                         ].map((rule) => (
                           <div key={rule.num} className="flex gap-md group">
-                            <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-tertiary-fixed text-on-tertiary-fixed rounded-full font-bold shadow-sm select-none">
+                            <span className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-primary text-white text-2xl font-black select-none">
                               {rule.num}
                             </span>
                             <div>
-                              <h3 className="font-title-lg text-title-lg text-on-surface font-semibold">
+                              <h3 className="font-title-lg uppercase mb-xs select-none">
                                 {rule.title}
                               </h3>
-                              <p className="text-on-surface-variant text-body-md mt-1">
+                              <p className="text-primary font-bold uppercase text-sm mt-1">
                                 {rule.desc}
                               </p>
                             </div>
@@ -313,43 +306,39 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 </div>
 
                 {/* Prize Pool Distribution */}
-                <div className="col-span-12 lg:col-span-4 space-y-md">
-                  <div className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm">
-                    <h2 className="font-headline-md text-headline-md mb-md font-bold select-none">
+                <div className="col-span-12 lg:col-span-4 space-y-xl">
+                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                    <h2 className="font-headline-md uppercase mb-xl border-b-4 border-primary select-none">
                       Prize Distribution
                     </h2>
-                    <div className="space-y-sm">
+                    <div className="space-y-0 border-2 border-primary">
                       {[
-                        { rank: "1st Place", title: "Champion", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.5).toLocaleString()}` : "$7,500", highlight: true },
-                        { rank: "2nd Place", title: "Finalist", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.2).toLocaleString()}` : "$3,000", highlight: false },
-                        { rank: "3rd - 4th Place", title: "Semi-Finals", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.1).toLocaleString()}` : "$1,500", highlight: false },
-                        { rank: "5th - 8th Place", title: "Quarter-Finals", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.025).toLocaleString()}` : "$375", highlight: false },
+                        { rank: "1st Place", title: "CHAMPION", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.5).toLocaleString()}` : "$7,500", highlight: true },
+                        { rank: "2nd Place", title: "FINALIST", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.2).toLocaleString()}` : "$3,000", highlight: false },
+                        { rank: "3rd - 4th", title: "SEMI-FINAL", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.1).toLocaleString()}` : "$1,500", highlight: false },
+                        { rank: "5th - 8th", title: "QUARTER-FINAL", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.025).toLocaleString()}` : "$375", highlight: false },
                       ].map((item, index) => (
                         <div
                           key={index}
-                          className={`flex justify-between items-center p-sm rounded-lg border-l-4 ${
+                          className={`flex justify-between items-center p-md border-b-2 last:border-b-0 border-primary ${
                             item.highlight
-                              ? "bg-surface-container-low border-l-tertiary shadow-sm"
-                              : "bg-surface-container-low border-l-transparent"
+                              ? "bg-accent-yellow"
+                              : "bg-white"
                           }`}
                         >
-                          <div className="flex flex-col">
-                            <span className="font-bold text-on-surface">{item.rank}</span>
-                            <span className="text-[10px] font-label-lg text-on-surface-variant uppercase tracking-wider">
+                          <div className="flex flex-col select-none">
+                            <span className="font-black uppercase text-lg leading-tight">{item.rank}</span>
+                            <span className="text-[10px] font-label-lg uppercase tracking-wider">
                               {item.title}
                             </span>
                           </div>
-                          <span
-                            className={`font-bold ${
-                              item.highlight ? "text-title-lg text-tertiary" : "text-on-surface"
-                            }`}
-                          >
+                          <span className="font-display-lg text-2xl font-black">
                             {item.prize}
                           </span>
                         </div>
                       ))}
                     </div>
-                    <button className="w-full mt-lg py-sm border border-tertiary text-tertiary rounded-lg font-bold hover:bg-tertiary-fixed transition-colors active:scale-95 shadow-sm">
+                    <button className="w-full mt-xl py-md bg-primary text-white uppercase font-black neo-brutalist-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
                       Full Prize Matrix
                     </button>
                   </div>
@@ -364,11 +353,11 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="bento-grid"
+                className="grid grid-cols-12 gap-xl"
               >
-                <div className="col-span-12 max-w-3xl mx-auto w-full">
-                  <div className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm">
-                    <h2 className="font-headline-lg text-headline-lg mb-xl text-center font-bold select-none">
+                <div className="col-span-12 max-w-[896px] mx-auto w-full">
+                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                    <h2 className="font-headline-lg uppercase mb-xl text-center select-none">
                       Event Timeline
                     </h2>
                     <div className="space-y-0">
@@ -407,40 +396,34 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                           desc: "The crowning of the Lumiose City Champion on the main stage.",
                           icon: "emoji_events",
                           highlight: true,
-                          fill: true,
                         },
                       ].map((item, index, arr) => (
-                        <div key={index} className="timeline-item flex gap-lg pb-xl relative">
-                          {/* Dot line connector */}
+                        <div key={index} className="timeline-item flex gap-xl pb-xl relative">
                           <div className="timeline-dot flex flex-col items-center relative select-none">
                             <span
-                              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md z-10 ${
+                              className={`w-16 h-16 flex items-center justify-center border-4 border-primary z-10 ${
                                 item.highlight
-                                  ? "bg-tertiary text-on-tertiary"
-                                  : "bg-surface-container-high text-on-surface border border-outline-variant"
+                                  ? "bg-primary text-white"
+                                  : "bg-white text-primary"
                               }`}
                             >
-                              <span className={`material-symbols-outlined ${item.fill ? "material-symbols-fill" : ""}`}>
+                              <span className="material-symbols-outlined scale-150">
                                 {item.icon}
                               </span>
                             </span>
                             {index !== arr.length - 1 && (
-                              <div className="absolute top-12 bottom-0 w-[2px] bg-outline-variant/30 translate-y-2 h-[calc(100%+8px)]" />
+                              <div className="absolute top-16 bottom-0 w-[4px] bg-primary h-[calc(100%+8px)]" />
                             )}
                           </div>
                           
-                          <div className="flex-1 pt-2">
-                            <span
-                              className={`text-[12px] font-label-lg uppercase tracking-wider font-bold ${
-                                item.highlight ? "text-tertiary" : "text-on-surface-variant"
-                              }`}
-                            >
+                          <div className="flex-1 pt-4 text-left">
+                            <span className="text-label-lg bg-accent-yellow border-2 border-primary px-2 py-1 font-black">
                               {item.time}
                             </span>
-                            <h3 className="font-headline-md text-headline-md font-bold mt-0.5">
+                            <h3 className="font-headline-md uppercase mt-2">
                               {item.title}
                             </h3>
-                            <p className="text-on-surface-variant text-body-md mt-1">
+                            <p className="text-primary font-bold uppercase text-sm mt-2">
                               {item.desc}
                             </p>
                           </div>
@@ -459,29 +442,29 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="flex flex-col items-center justify-center min-h-[400px] bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant p-lg text-center"
+                className="flex flex-col items-center justify-center min-h-[500px] bg-white border-4 border-primary neo-brutalist-shadow text-center"
               >
-                <span className="material-symbols-outlined text-6xl text-outline-variant mb-md select-none">
+                <span className="material-symbols-outlined text-8xl text-primary mb-xl select-none">
                   account_tree
                 </span>
-                <h3 className="font-headline-md text-headline-md text-on-surface font-bold">
+                <h3 className="font-display-lg uppercase text-center select-none">
                   {tournament?.matches?.length > 0 ? "Matches Generated" : "Brackets Loading..."}
                 </h3>
-                <p className="text-on-surface-variant text-body-md max-w-sm mt-1">
+                <p className="text-primary font-bold uppercase mt-md select-none">
                   {tournament?.matches?.length > 0
                     ? `Tournament is ongoing with ${tournament.matches.length} matches created.`
-                    : "Swiss rounds are currently in progress. Bracket visualization will appear after Round 7."}
+                    : "Swiss rounds in progress"}
                 </p>
-                <div className="mt-lg flex flex-wrap gap-md justify-center select-none">
+                <div className="mt-xl flex flex-col md:flex-row gap-lg select-none">
                   <button
                     onClick={() => setActiveTab("standings")}
-                    className="bg-tertiary text-on-tertiary px-lg py-sm rounded-lg font-bold shadow-md hover:opacity-90 active:scale-95 transition-all"
+                    className="bg-primary text-white px-xl py-md font-black uppercase neo-brutalist-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
                   >
-                    View Current Swiss Standings
+                    View Standings
                   </button>
                   <Link
-                    href={`/brackets?tournamentId=${id}`}
-                    className="bg-surface-container-high text-on-surface px-lg py-sm rounded-lg font-bold active:scale-95 transition-all hover:bg-surface-container-highest flex items-center justify-center"
+                    href={`/tournaments/${id}/bracket`}
+                    className="bg-white text-primary border-4 border-primary px-xl py-md font-black uppercase hover:bg-accent-yellow transition-all flex items-center justify-center"
                   >
                     Open Bracket Tree
                   </Link>
@@ -496,59 +479,57 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-md"
+                className="space-y-xl font-bold"
               >
-                <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-                  <div className="p-lg bg-surface border-b border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-md select-none">
-                    <h2 className="font-headline-md text-headline-md font-bold">
-                      Current Swiss Standings
-                    </h2>
-                    <div className="relative w-full sm:w-64">
+                <div className="bg-white border-4 border-primary neo-brutalist-shadow overflow-hidden">
+                  <div className="p-xl bg-accent-yellow border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none">
+                    <h2 className="font-headline-md uppercase">Current Swiss Standings</h2>
+                    <div className="relative w-full md:w-auto">
                       <input
                         type="text"
                         value={searchPlayer}
                         onChange={(e) => setSearchPlayer(e.target.value)}
-                        placeholder="Search player..."
-                        className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-full text-body-md focus:ring-2 focus:ring-tertiary outline-none bg-white"
+                        placeholder="SEARCH PLAYER..."
+                        className="w-full md:w-80 pl-12 pr-4 py-3 bg-white border-4 border-primary text-body-md font-bold focus:bg-primary focus:text-white outline-none placeholder:text-primary/50 uppercase"
                       />
-                      <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[20px]">
+                      <span className="material-symbols-outlined absolute left-3 top-3.5 text-primary scale-110">
                         search
                       </span>
                     </div>
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[600px]">
+                    <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-surface-container-low text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider select-none font-bold border-b border-outline-variant">
-                          <th className="px-lg py-md">Rank</th>
-                          <th className="px-lg py-md">Player</th>
-                          <th className="px-lg py-md">W-L-D</th>
-                          <th className="px-lg py-md">Points</th>
-                          <th className="px-lg py-md">OMW%</th>
+                        <tr className="bg-primary text-white uppercase font-black select-none border-b-4 border-primary">
+                          <th className="px-xl py-md border-r-2 border-primary">Rank</th>
+                          <th className="px-xl py-md border-r-2 border-primary">Player</th>
+                          <th className="px-xl py-md border-r-2 border-primary">W-L-D</th>
+                          <th className="px-xl py-md border-r-2 border-primary">Pts</th>
+                          <th className="px-xl py-md">OMW%</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-outline-variant">
+                      <tbody className="divide-y-4 divide-primary">
                         {filteredStandings.length > 0 ? (
                           filteredStandings.map((player, index) => (
-                            <tr key={index} className="hover:bg-tertiary-fixed/10 transition-colors">
-                              <td className="px-lg py-md font-bold text-tertiary select-none">{player.rank}</td>
-                              <td className="px-lg py-md">
-                                <div className="flex items-center gap-sm">
-                                  <div className="w-8 h-8 rounded-full bg-secondary-fixed border border-outline-variant flex items-center justify-center font-bold text-[11px] text-on-surface select-none">
+                            <tr key={index} className="hover:bg-accent-yellow transition-colors group">
+                              <td className="px-xl py-md font-black text-2xl border-r-2 border-primary select-none">{player.rank}</td>
+                              <td className="px-xl py-md border-r-2 border-primary">
+                                <div className="flex items-center gap-md">
+                                  <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
                                     {player.name.charAt(0)}
                                   </div>
-                                  <span className="font-bold text-on-surface">{player.name}</span>
+                                  <span className="font-black uppercase text-xl">{player.name}</span>
                                 </div>
                               </td>
-                              <td className="px-lg py-md font-medium">{player.record}</td>
-                              <td className="px-lg py-md font-bold text-on-surface">{player.points}</td>
-                              <td className="px-lg py-md font-medium text-on-surface-variant">{player.omw}</td>
+                              <td className="px-xl py-md font-bold border-r-2 border-primary select-none">{player.record}</td>
+                              <td className="px-xl py-md font-black border-r-2 border-primary select-none">{player.points}</td>
+                              <td className="px-xl py-md font-bold select-none">{player.omw}</td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="text-center py-lg font-body-md text-on-surface-variant">
+                            <td colSpan={5} className="text-center py-12 font-bold uppercase text-primary/60">
                               No players match your search.
                             </td>
                           </tr>
@@ -564,33 +545,33 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
         {/* Gateway Selection Modal */}
         {showGatewayModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-sm">
-            <div className="bg-white rounded-2xl max-w-sm w-full p-md shadow-2xl space-y-md">
-              <h3 className="font-headline-md text-on-surface font-bold text-center">
-                Select Payment Method
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[384px] w-full p-md neo-brutalist-shadow space-y-md text-left">
+              <h3 className="font-headline-md text-primary uppercase text-center font-black">
+                Select Payment
               </h3>
-              <p className="text-on-surface-variant text-body-md text-center">
-                Entry Fee: <span className="font-bold text-tertiary">${tournament?.entryFee.toFixed(2)}</span>
+              <p className="text-primary font-bold uppercase text-center border-2 border-primary p-sm bg-accent-yellow text-sm">
+                Entry Fee: <span className="font-black text-lg text-accent-red">${tournament?.entryFee.toFixed(2)}</span>
               </p>
               <div className="grid grid-cols-2 gap-sm">
                 <button
                   onClick={() => processCheckout("STRIPE")}
-                  className="p-md border-2 border-outline-variant hover:border-tertiary rounded-xl flex flex-col items-center gap-xs transition-all font-bold active:scale-95"
+                  className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
                 >
-                  <span className="material-symbols-outlined text-[32px] text-blue-600">credit_card</span>
+                  <span className="material-symbols-outlined text-[32px] text-primary">credit_card</span>
                   <span>Stripe</span>
                 </button>
                 <button
                   onClick={() => processCheckout("RAZORPAY")}
-                  className="p-md border-2 border-outline-variant hover:border-tertiary rounded-xl flex flex-col items-center gap-xs transition-all font-bold active:scale-95"
+                  className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
                 >
-                  <span className="material-symbols-outlined text-[32px] text-green-600">payments</span>
+                  <span className="material-symbols-outlined text-[32px] text-primary">payments</span>
                   <span>Razorpay</span>
                 </button>
               </div>
               <button
                 onClick={() => setShowGatewayModal(false)}
-                className="w-full text-center py-xs text-outline hover:underline font-bold text-label-lg"
+                className="w-full text-center py-3 bg-primary text-white uppercase font-black text-xs hover:bg-accent-red transition-all"
               >
                 Cancel
               </button>

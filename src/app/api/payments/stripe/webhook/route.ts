@@ -71,6 +71,20 @@ export async function POST(req: NextRequest) {
       });
 
       console.log(`Stripe Payment success processed for registration: ${regId}`);
+
+      // Check and auto-generate bracket if capacity is reached
+      try {
+        const { checkAndAutoGenerateBrackets } = await import("@/lib/tournament/engine");
+        const reg = await prisma.registration.findUnique({
+          where: { id: regId },
+          select: { tournamentId: true },
+        });
+        if (reg?.tournamentId) {
+          await checkAndAutoGenerateBrackets(reg.tournamentId);
+        }
+      } catch (err) {
+        console.error("Auto bracket generation failed inside Stripe webhook:", err);
+      }
     }
   }
 

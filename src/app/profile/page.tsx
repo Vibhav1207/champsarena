@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import { logoutTrainer } from "@/app/actions/authActions";
 
 interface Pokemon {
   name: string;
@@ -15,60 +16,18 @@ interface Pokemon {
 }
 
 export default function Profile() {
-  // 3D card tilt values
-  const [rotateX, setRotateX] = useState(0);
-  const [rotateY, setRotateY] = useState(0);
   const [profileData, setProfileData] = useState<any>(null);
   const [squad, setSquad] = useState<Pokemon[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const defaultPokemonSquad: Pokemon[] = [
-    {
-      name: "Dragonite",
-      types: ["Dragon", "Flying"],
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA2yTz_FoqBcl3-wQte7pgq_j6H17YmkZLNHDXbWX7pLiofwbWVXOdF7tDYCWpI-kg0eYUeu1C-KhFfWUslN1eNIxIsfb7Qk5F4s-AO11CqGOaE7GtFv1Kp0tDAQPUSkRyRpGVOyP6riTNis-nUtE48RbqKxoLf2T1xlMoWBmB3vWmvN5ecGJEMXMvy6nEnvlUyXDw07PfPtz9lHErtiS1FTtbFXgAmFMlBmO2jocuQqp3OFz2g1n7XWm59N3gHTnDoLehE3GbWAMA",
-      imgAlt: "Dragonite",
-    },
-    {
-      name: "Gholdengo",
-      types: ["Steel"],
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCu0t364iyBwtVTIHG-RHmE-_no_76WGJbBpRVe0RNGENmHK8mHElntDgEbdUQk6P8P9e9hZK5ZJkylHiGSCNRnQYsliif9vFxve3PBX-5stm7fbl-0ishLldaM-NWjKvRruuUpdNrAnYuZSwbTwu_s62OBzXgqJBJRngMNRQumTebb25RW0RcUyfwYl4Ebyj7AuERdp-VUX3u2TPLkrX2ZDjV3ou1SD0oJCA-jzxG811oPAIEMIYq4duSKbh02Lu6cimmglJqT8zM",
-      imgAlt: "Gholdengo",
-    },
-    {
-      name: "Flutter Mane",
-      types: ["Ghost"],
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAty_IAwwFW6wd8o5yi2JuD2zAhCnrZG6W_Xd1b3QVwJeMRQ-i9EpC-2xM7BlizbKGyLe5ZAdTTT3yDfLlTIRaIALDeowOW6SMdPpsQZT0kWTLnv8jldIxC90sQaVNk-16qiU8c1scFCe7XUyDhAiKs9LXk97AD3vEdzd3RMKtl-CmtwQaPnF_9-I7kZGXJviJS7yrM7PZGcuhdrfA9tY9V_Km1dmKCydg7zfbdXxquq0EMmSXKEv36YMIaQ-wYx9Cl0TxkfTR_8mo",
-      imgAlt: "Flutter Mane",
-    },
-    {
-      name: "Iron Hands",
-      types: ["Electric"],
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBSI-wfDlkkYejAaRMOMwZje9Dfa-FVC79Ai_CpH_ytBq-moj_i91dYvE5gUZnsNKEke-gz-rqvat_t_BXSuxq6tg_vx4x9saZd_asFlWWfpFucybZbCfIDfj6YYY62qmqiwzLRdLCw_H1UA9aSeanRej6V58RVeCj78Hvf-hJVpB88_bi8AXmub5vIIawlh8uTJJiAUNxdQOg2drSknheKR1Ey4ByCUdv19YOb0JlPtGzEPayOv7OxAlNMd4PyuWNX1NRWb6zy1hE",
-      imgAlt: "Iron Hands",
-    },
-    {
-      name: "Chien-Pao",
-      types: ["Ice"],
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAwSdowhTHbdY_WTX4UH2GnyaCkEeUmESoKbYVMt-kmUj8zPIjqYGS9M5c-siQdbwPc0JdLS4IZNCkyTN3vtEZJ90v00GPcj5eLM_qNbr8SA9EGPTMy_h5DWNtMQBWA-Qqd12WIwVqWFcdB0iBn3G4uTn5OqrwA_mHTBXFaLQb6XjPdhkHkfQTuw_RfNu5_plT5b3iUfVZAb3OkFKwLj2B1GnyKZZ5pb_z6Ph9seMGgA5ANwO2nqAPF6JGVE3pS1YnyPKvSvItRFJM",
-      imgAlt: "Chien-Pao",
-    },
-  ];
-
   const badges = [
-    { name: "Regional Champ", icon: "workspace_premium", color: "text-yellow-600 bg-yellow-50 border-yellow-200", active: true },
-    { name: "100 Wins", icon: "stars", color: "text-blue-600 bg-blue-50 border-blue-200", active: true },
-    { name: "Tactician", icon: "psychology", color: "text-purple-600 bg-purple-50 border-purple-200", active: true },
-    { name: "Grand Master", icon: "trophy", color: "text-gray-500 bg-gray-100 border-gray-200", active: false },
-    { name: "Collector", icon: "eco", color: "text-green-600 bg-green-50 border-green-200", active: true },
-    { name: "On Fire", icon: "local_fire_department", color: "text-red-600 bg-red-50 border-red-200", active: true },
-  ];
-
-  const defaultHistory = [
-    { event: "Indigo Plateau Regional", date: "Oct 24, 2024", rank: "#4", points: "+150 CP", dotColor: "bg-blue-500" },
-    { event: "Spring International Open", date: "Sep 12, 2024", rank: "#12", points: "+80 CP", dotColor: "bg-yellow-500" },
-    { event: "Celadon City Invitational", date: "Aug 05, 2024", rank: "#1", points: "+300 CP", dotColor: "bg-blue-500" },
+    { name: "Regional Champ", icon: "workspace_premium", color: "hover:bg-accent-yellow", active: true },
+    { name: "100 Wins", icon: "stars", color: "hover:bg-accent-blue hover:text-white", active: false },
+    { name: "Tactician", icon: "psychology", color: "hover:bg-accent-red hover:text-white", active: false },
+    { name: "Grand Master", icon: "trophy", color: "bg-gray-100 opacity-30", active: false },
+    { name: "Collector", icon: "eco", color: "hover:bg-green-500 hover:text-white", active: false },
+    { name: "On Fire", icon: "local_fire_department", color: "bg-primary text-white hover:bg-accent-red", active: false },
   ];
 
   const fetchProfile = () => {
@@ -78,37 +37,38 @@ export default function Profile() {
         if (data.user) {
           setProfileData(data.user);
           
-          // Parse active team
+          // Parse active team from DB
           const activeTeam = data.user.teams?.find((t: any) => t.active);
           if (activeTeam) {
             try {
-              setSquad(JSON.parse(activeTeam.pokemonJson));
+              const parsed = JSON.parse(activeTeam.pokemonJson);
+              setSquad(Array.isArray(parsed) ? parsed : []);
             } catch (e) {
-              setSquad(defaultPokemonSquad);
+              setSquad([]);
             }
           } else {
-            setSquad(defaultPokemonSquad);
+            setSquad([]);
           }
 
-          // Parse match history
+          // Parse match history from DB
           if (data.matches && data.matches.length > 0) {
             const mappedHistory = data.matches.map((m: any) => {
               const isWinner = m.winnerId === data.user.id;
               return {
                 event: m.tournament?.title || "Tournament Match",
                 date: new Date(m.tournament?.startDate || m.updatedAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
                   year: "numeric",
-                }),
+                }).replace(/\//g, "."),
                 rank: isWinner ? "Win" : "Loss",
                 points: isWinner ? "+15 CP" : "-10 CP",
-                dotColor: isWinner ? "bg-green-500" : "bg-red-500",
+                isWin: isWinner,
               };
             });
             setHistory(mappedHistory);
           } else {
-            setHistory(defaultHistory);
+            setHistory([]);
           }
         }
       })
@@ -120,27 +80,6 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    const calculatedX = (y - centerY) / 20;
-    const calculatedY = (centerX - x) / 40;
-    
-    setRotateX(calculatedX);
-    setRotateY(calculatedY);
-  };
-
-  const handleMouseLeave = () => {
-    setRotateX(0);
-    setRotateY(0);
-  };
-
   const handleAddMember = async () => {
     const name = prompt("Enter Pokémon name:");
     if (!name) return;
@@ -151,7 +90,7 @@ export default function Profile() {
     const newPokemon: Pokemon = {
       name,
       types,
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA2yTz_FoqBcl3-wQte7pgq_j6H17YmkZLNHDXbWX7pLiofwbWVXOdF7tDYCWpI-kg0eYUeu1C-KhFfWUslN1eNIxIsfb7Qk5F4s-AO11CqGOaE7GtFv1Kp0tDAQPUSkRyRpGVOyP6riTNis-nUtE48RbqKxoLf2T1xlMoWBmB3vWmvN5ecGJEMXMvy6nEnvlUyXDw07PfPtz9lHErtiS1FTtbFXgAmFMlBmO2jocuQqp3OFz2g1n7XWm59N3gHTnDoLehE3GbWAMA",
+      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXu2yTz_FoqBcl3-wQte7pgq_j6H17YmkZLNHDXbWX7pLiofwbWVXOdF7tDYCWpI-kg0eYUeu1C-KhFfWUslN1eNIxIsfb7Qk5F4s-AO11CqGOaE7GtFv1Kp0tDAQPUSkRyRpGVOyP6riTNis-nUtE48RbqKxoLf2T1xlMoWBmB3vWmvN5ecGJEMXMvy6nEnvlUyXDw07PfPtz9lHErtiS1FTtbFXgAmFMlBmO2jocuQqp3OFz2g1n7XWm59N3gHTnDoLehE3GbWAMA",
       imgAlt: name,
     };
 
@@ -169,300 +108,286 @@ export default function Profile() {
         }),
       });
       alert("Squad updated successfully!");
+      fetchProfile();
     } catch (err) {
       console.error("Failed to save team", err);
     }
   };
 
-  const trainerName = profileData?.name || "Trainer Ash";
-  const trainerId = profileData?.trainerId?.slice(0, 8) || "4829-XJ";
-  const elo = profileData?.elo || 1120;
-  const wins = profileData?.wins || 25;
-  const losses = profileData?.losses || 8;
-  const homeRegion = profileData?.homeRegion || "Kanto District";
-  const favPokemon = profileData?.favPokemon || "Pikachu";
-  const image = profileData?.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuA2m0uFr8ZYf6G2xUoHleC1yw2YEnvxaDJr17ZxQ5jQt6DcW_fdnx2MuPDad0Imb7BnvcSPzM5nrLQ-B_iNunutW2EwIl75iyZ6yTUDQwZCmLA-jMPN0Y03ulLvt0A0lsztAPQvvtjT4uvYb6ASpyQhmTD9lHNvS19Q2vSA8TDNf9wGkZUfPSDyfqQZ8U_hHu6tmj5KDEMPq3XMruKrvLUtrEgNt-dEc3kpd14w_hPktYEES54rKqkRlbYUeT539lUYSz16c1tiJeE";
+  const trainerName = profileData?.name || "Trainer";
+  const trainerId = profileData?.trainerId?.slice(0, 8) || "—";
+  const elo = profileData?.elo ?? 1000;
+  const wins = profileData?.wins ?? 0;
+  const losses = profileData?.losses ?? 0;
+  const homeRegion = profileData?.homeRegion || "Unknown Region";
+  const favPokemon = profileData?.favPokemon || "—";
+  const image = profileData?.image || null;
 
   return (
     <>
       <Navigation />
 
-      <main className="max-w-container-max mx-auto px-md py-lg space-y-lg">
-        
-        {/* Main Trainer Card box */}
-        <section className="grid grid-cols-1 gap-lg select-none">
-          <div
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            style={{
-              transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-              transition: rotateX === 0 && rotateY === 0 ? "transform 0.5s ease" : "none",
-            }}
-            className="trainer-card-gradient rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row relative cursor-pointer"
-          >
-            {/* Flashing ID Chip Decoration */}
-            <div className="absolute top-4 right-4 bg-tertiary/10 px-sm py-xs rounded-full flex items-center gap-xs border border-tertiary/20">
-              <div className="w-2 h-2 bg-tertiary rounded-full animate-pulse"></div>
-              <span className="font-label-lg text-tertiary font-bold tracking-wider text-[11px]">
-                OFFICIAL ID: {trainerId}
-              </span>
-            </div>
-
-            {/* Left Column: Trainer photo & name */}
-            <div className="md:w-1/3 p-lg flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-outline-variant/30 bg-white/40">
-              <div className="relative group">
-                <div className="w-48 h-48 rounded-full border-4 border-tertiary/20 p-1 relative overflow-hidden bg-surface shadow-md">
-                  <Image
-                    src={image}
-                    alt={trainerName}
-                    fill
-                    priority
-                    className="object-cover rounded-full"
-                    sizes="192px"
-                  />
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-white border border-outline-variant shadow-md p-2 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-tertiary text-[20px] material-symbols-fill">
-                    verified
+      <main className="max-w-container-max mx-auto px-md py-xl space-y-xl">
+        {/* Loading overlay */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
+            <span className="material-symbols-outlined animate-spin text-5xl">progress_activity</span>
+            <p className="text-lg font-bold uppercase tracking-wider">Loading profile…</p>
+          </div>
+        ) : (
+          <>
+            {/* ── Main Trainer Card Box ── */}
+            <section>
+              <div className="border-4 border-primary neo-brutalist-shadow flex flex-col md:flex-row bg-white relative">
+                
+                {/* ID Card Chip Decoration */}
+                <div className="absolute -top-4 -right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10">
+                  <span className="font-bold text-xs uppercase tracking-widest text-primary">
+                    ID: {trainerId}
                   </span>
                 </div>
-              </div>
-              <h1 className="font-headline-lg text-headline-lg mt-md text-on-surface font-bold leading-tight">
-                {trainerName}
-              </h1>
-              <p className="font-body-md text-on-surface-variant font-medium mt-0.5">
-                ELO Rating: {elo} (W: {wins} / L: {losses})
-              </p>
-            </div>
 
-            {/* Right Column: Stats & Signature Partners */}
-            <div className="md:w-2/3 p-lg flex flex-col justify-between space-y-md">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-md pt-sm">
-                <div className="space-y-xs">
-                  <span className="font-label-lg text-on-surface-variant uppercase tracking-wider font-semibold text-[11px]">
-                    Current Rank
-                  </span>
-                  <div className="flex items-center gap-sm">
-                    <span className="material-symbols-outlined text-tertiary text-[32px] material-symbols-fill select-none">
-                      military_tech
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="font-title-lg text-title-lg text-on-surface font-semibold leading-tight">
-                        {elo > 1500 ? "Grand Master" : elo > 1200 ? "Veteran" : "Ace Trainer"}
-                      </span>
-                      <span className="font-body-md text-tertiary font-medium">
-                        Active League competitor
-                      </span>
+                {/* Left Side: Avatar & Name */}
+                <div className="md:w-2/5 p-lg flex flex-col items-start border-b-4 md:border-b-0 md:border-r-4 border-primary bg-white">
+                  <div className="relative w-full aspect-square border-4 border-primary mb-md overflow-hidden bg-surface-container-low select-none">
+                    {image ? (
+                      <Image
+                        src={image}
+                        alt={trainerName}
+                        fill
+                        className="object-cover grayscale contrast-125"
+                        sizes="384px"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-black text-7xl text-primary bg-accent-yellow/20 select-none">
+                        {trainerName[0]}
+                      </div>
+                    )}
+                    <div className="absolute bottom-4 left-4 bg-white border-2 border-primary px-3 py-1 font-bold text-xs uppercase text-primary">
+                      Verified Unit
                     </div>
                   </div>
+                  
+                  <h1 className="text-5xl font-black uppercase leading-none tracking-tighter mb-2 text-primary">
+                    Trainer {trainerName}
+                  </h1>
+                  <p className="text-xl font-medium uppercase text-primary opacity-60">
+                    Established 2024
+                  </p>
+
+                  <button
+                    onClick={async () => {
+                      try {
+                        await logoutTrainer();
+                      } catch (err) {
+                        console.error("Sign out failed", err);
+                      }
+                    }}
+                    className="mt-md bg-accent-red text-white border-4 border-primary px-4 py-2 font-black uppercase tracking-widest hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:translate-x-0 active:translate-y-0 text-xs shrink-0 cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
                 </div>
 
-                <div className="space-y-xs">
-                  <span className="font-label-lg text-on-surface-variant uppercase tracking-wider font-semibold text-[11px]">
-                    Home Region
-                  </span>
-                  <div className="flex items-center gap-sm">
-                    <span className="material-symbols-outlined text-tertiary text-[32px] select-none">
-                      public
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="font-title-lg text-title-lg text-on-surface font-semibold leading-tight">
-                        {homeRegion}
-                      </span>
-                      <span className="font-body-md text-on-surface-variant font-medium">
-                        Favorite Partner: {favPokemon}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Signature partners line */}
-              <div className="pt-md border-t border-outline-variant/30">
-                <span className="font-label-lg text-on-surface-variant uppercase tracking-wider mb-sm block font-semibold text-[11px]">
-                  Signature Partners
-                </span>
-                <div className="flex gap-md flex-wrap">
-                  {[
-                    { name: favPokemon, icon: "electric_bolt" },
-                    { name: "Charizard", icon: "local_fire_department" },
-                    { name: "Greninja", icon: "water_drop" },
-                  ].map((partner, i) => (
-                    <div key={i} className="flex flex-col items-center gap-xs">
-                      <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center border border-outline-variant/50 hover:bg-tertiary/10 hover:border-tertiary transition-colors shadow-inner">
-                        <span className="material-symbols-outlined text-tertiary text-[24px]">
-                          {partner.icon}
+                {/* Right Side: Stats & Info */}
+                <div className="md:w-3/5 flex flex-col">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 flex-grow">
+                    <div className="p-lg border-b-4 sm:border-r-4 border-primary flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150">
+                      <span className="font-black text-xs uppercase tracking-widest text-primary mb-4 block">Rank Status</span>
+                      <div className="space-y-2">
+                        <span className="text-4xl font-black uppercase block italic text-primary">
+                          {elo > 1500 ? "Grand Master" : elo > 1200 ? "Veteran Tier" : "Ace Tier"}
+                        </span>
+                        <span className="bg-primary text-white inline-block px-2 py-1 text-xs font-bold uppercase">
+                          ELO Rating: {elo.toLocaleString()}
                         </span>
                       </div>
-                      <span className="font-label-lg font-bold">{partner.name}</span>
+                    </div>
+
+                    <div className="p-lg border-b-4 border-primary flex flex-col justify-between hover:bg-accent-blue hover:text-white transition-colors duration-150 group">
+                      <span className="font-black text-xs uppercase tracking-widest text-primary group-hover:text-white mb-4 block">Deployment Region</span>
+                      <div className="space-y-2">
+                        <span className="text-4xl font-black uppercase block italic">
+                          {homeRegion} Dist.
+                        </span>
+                        <span className="border-2 border-primary group-hover:border-white inline-block px-2 py-1 text-xs font-bold uppercase">
+                          Badges: {wins > 10 ? "08/08" : "04/08"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-lg bg-surface-container-low border-t-4 border-primary">
+                    <span className="font-black text-xs uppercase tracking-widest text-primary mb-6 block">Core Operational Units</span>
+                    <div className="flex flex-wrap gap-8">
+                      {[
+                        { name: favPokemon, icon: "electric_bolt" },
+                        { name: "Charizard", icon: "local_fire_department" },
+                        { name: "Greninja", icon: "water_drop" },
+                      ].map((unit, i) => (
+                        <div key={i} className="flex items-center gap-4 group">
+                          <div className="w-16 h-16 border-4 border-primary flex items-center justify-center bg-white group-hover:bg-accent-red group-hover:text-white transition-all duration-150 select-none">
+                            <span className="material-symbols-outlined text-3xl">{unit.icon}</span>
+                          </div>
+                          <span className="font-black uppercase tracking-tighter text-primary">{unit.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </section>
+
+            {/* ── Combat Squad Preview Section ── */}
+            <section className="space-y-md">
+              <div className="flex justify-between items-baseline border-b-4 border-primary pb-4">
+                <div>
+                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-primary">Combat Squad</h2>
+                  <p className="font-black text-xs uppercase tracking-widest text-primary opacity-60">Active VGC Championship Configuration</p>
+                </div>
+                <button 
+                  onClick={handleAddMember}
+                  className="bg-primary text-white border-2 border-primary px-6 py-2 font-black uppercase text-xs hover:bg-accent-red hover:-translate-y-0.5 transition-all duration-150 cursor-pointer"
+                >
+                  Modify Fleet
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                {squad.map((pokemon, i) => (
+                  <div 
+                    key={i} 
+                    className="pokemon-slot border-4 border-primary neo-brutalist-shadow-sm p-md flex flex-col items-center gap-4 neo-brutalist-shadow-hover bg-white cursor-pointer group"
+                  >
+                    <div className="w-full aspect-square bg-surface-container-low border-2 border-primary flex items-center justify-center overflow-hidden relative select-none">
+                      <Image 
+                        src={pokemon.imgUrl} 
+                        alt={pokemon.imgAlt} 
+                        width={80}
+                        height={80}
+                        className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                      />
+                    </div>
+                    <div className="text-center w-full">
+                      <span className="text-xl font-black uppercase block mb-2 text-primary tracking-tighter">{pokemon.name}</span>
+                      <div className="flex gap-1 justify-center flex-wrap">
+                        {pokemon.types.map((t, idx) => (
+                          <span 
+                            key={idx} 
+                            className={`px-2 py-0.5 border-2 border-primary text-[10px] font-black uppercase select-none ${
+                              idx === 0 ? "bg-primary text-white" : "bg-white text-primary"
+                            }`}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Member Slot */}
+                {squad.length < 6 && (
+                  <div 
+                    onClick={handleAddMember}
+                    className="pokemon-slot border-4 border-dashed border-primary p-md flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-surface-container-low transition-colors duration-150 group min-h-[220px]"
+                  >
+                    <span className="material-symbols-outlined text-6xl group-hover:text-accent-red text-primary transition-colors">add_box</span>
+                    <span className="font-black uppercase text-xs text-primary">Append Member</span>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* ── Accolades and Mission Log Bento Row ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-sm">
+              
+              {/* Accolades (Badges) Column */}
+              <div className="lg:col-span-1 space-y-md">
+                <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary">Accolades</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {badges.map((badge, idx) => (
+                    <div 
+                      key={idx}
+                      title={`${badge.name} - ${badge.active ? "Unlocked" : "Locked"}`}
+                      className={`aspect-square border-4 border-primary flex items-center justify-center transition-colors cursor-help group bg-white ${
+                        badge.active ? badge.color : "bg-surface-container-low opacity-40 grayscale"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">
+                        {badge.icon}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Tournament Team Squad slots */}
-        <section className="space-y-sm">
-          <div className="flex justify-between items-end select-none">
-            <div>
-              <h2 className="font-headline-md text-headline-md text-on-surface font-bold">
-                Tournament Team
-              </h2>
-              <p className="font-body-md text-on-surface-variant">
-                Active VGC Championship Squad
-              </p>
-            </div>
-            <button onClick={handleAddMember} className="text-tertiary font-bold hover:underline active:scale-95 transition-all text-body-md">
-              Manage Team
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-sm">
-            {squad.map((pokemon, i) => (
-              <div
-                key={i}
-                className="pokemon-slot bg-surface border border-outline-variant rounded-xl p-sm flex flex-col items-center justify-center space-y-xs cursor-pointer shadow-sm"
-              >
-                <div className="w-20 h-20 relative select-none">
-                  <Image
-                    src={pokemon.imgUrl}
-                    alt={pokemon.imgAlt}
-                    fill
-                    className="object-contain"
-                    sizes="80px"
-                  />
-                </div>
-                <div className="text-center select-none">
-                  <span className="font-title-lg text-body-md block text-on-surface font-bold leading-tight">
-                    {pokemon.name}
-                  </span>
-                  <div className="flex gap-1 justify-center mt-1">
-                    {pokemon.types.map((t, idx) => (
-                      <span
-                        key={idx}
-                        className={`px-1.5 py-0.5 text-[9px] font-bold rounded uppercase shadow-sm ${
-                          t === "Dragon"
-                            ? "bg-orange-100 text-orange-700"
-                            : t === "Flying"
-                            ? "bg-blue-100 text-blue-700"
-                            : t === "Steel"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : t === "Ghost"
-                            ? "bg-purple-100 text-purple-700"
-                            : t === "Electric"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {t}
-                      </span>
-                    ))}
+              {/* Mission Log (Match History) Column */}
+              <div className="lg:col-span-2 space-y-md">
+                <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary">Mission Log</h3>
+                <div className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead>
+                        <tr className="bg-primary text-white border-b-4 border-primary font-black uppercase text-xs tracking-wider select-none">
+                          <th className="px-md py-4 border-r-2 border-white/20">Operation</th>
+                          <th className="px-md py-4 border-r-2 border-white/20">Timestamp</th>
+                          <th className="px-md py-4 border-r-2 border-white/20">Result</th>
+                          <th className="px-md py-4 text-right">Yield</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-4 divide-primary bg-white font-bold">
+                        {history.length > 0 ? (
+                          history.map((item, idx) => {
+                            const rowHoverCls = item.isWin 
+                              ? "hover:bg-accent-yellow" 
+                              : "hover:bg-accent-blue hover:text-white";
+                            
+                            return (
+                              <tr 
+                                key={idx} 
+                                className={`trainer-row border-b-4 border-primary transition-colors cursor-pointer ${rowHoverCls}`}
+                              >
+                                <td className="px-md py-4 font-black uppercase">{item.event}</td>
+                                <td className="px-md py-4 text-sm uppercase tracking-wider">{item.date}</td>
+                                <td className="px-md py-4">
+                                  <span className={`px-3 py-1 font-black text-xs uppercase ${
+                                    item.isWin 
+                                      ? "bg-primary text-white" 
+                                      : "border-2 border-primary text-primary bg-white"
+                                  }`}>
+                                    Pos. {item.rank === "Win" ? "#01" : "#04"}
+                                  </span>
+                                </td>
+                                <td className="px-md py-4 text-right font-black text-lg">{item.points}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="text-center py-12 text-primary font-black uppercase italic select-none">
+                              <span className="material-symbols-outlined text-4xl block mb-2 text-primary">history</span>
+                              No operations logged yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            ))}
 
-            {/* Add member slot */}
-            <div onClick={handleAddMember} className="pokemon-slot border-2 border-dashed border-outline-variant rounded-xl p-sm flex flex-col items-center justify-center space-y-xs cursor-pointer hover:bg-surface-container-low group select-none transition-colors min-h-[148px] shadow-sm">
-              <span className="material-symbols-outlined text-outline-variant group-hover:text-tertiary text-[48px] transition-colors">
-                add_circle
-              </span>
-              <span className="font-label-lg text-on-surface-variant font-bold">Add Member</span>
             </div>
-          </div>
-        </section>
-
-        {/* Achievement Badges & Recent History split bento grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg pt-sm">
-          {/* Achievement Badges Column */}
-          <div className="lg:col-span-1 space-y-sm">
-            <h3 className="font-title-lg text-title-lg text-on-surface font-bold select-none">
-              Achievement Badges
-            </h3>
-            <div className="bg-surface rounded-xl border border-outline-variant p-md grid grid-cols-3 gap-md shadow-sm">
-              {badges.map((badge, idx) => (
-                <div
-                  key={idx}
-                  title={`${badge.name} - ${badge.active ? "Unlocked" : "Locked"}`}
-                  className={`flex flex-col items-center group cursor-help transition-all ${
-                    badge.active ? "" : "opacity-40 grayscale"
-                  }`}
-                >
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center border transition-transform group-hover:scale-110 shadow-sm ${badge.color}`}
-                  >
-                    <span className={`material-symbols-outlined text-[24px] ${badge.active ? "material-symbols-fill" : ""}`}>
-                      {badge.icon}
-                    </span>
-                  </div>
-                  <span className="text-[9px] mt-1 font-bold text-center uppercase text-on-surface-variant tracking-tighter select-none">
-                    {badge.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Tournament History Column */}
-          <div className="lg:col-span-2 space-y-sm">
-            <h3 className="font-title-lg text-title-lg text-on-surface font-bold select-none">
-              Recent Tournaments
-            </h3>
-            <div className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[500px]">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant select-none">
-                      <th className="px-md py-sm font-label-lg text-on-surface-variant uppercase tracking-wider text-[11px] font-bold">
-                        Event
-                      </th>
-                      <th className="px-md py-sm font-label-lg text-on-surface-variant uppercase tracking-wider text-[11px] font-bold">
-                        Date
-                      </th>
-                      <th className="px-md py-sm font-label-lg text-on-surface-variant uppercase tracking-wider text-[11px] font-bold">
-                        Result
-                      </th>
-                      <th className="px-md py-sm font-label-lg text-on-surface-variant uppercase tracking-wider text-[11px] font-bold">
-                        Points
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/30">
-                    {history.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-surface-container-low transition-colors group cursor-pointer">
-                        <td className="px-md py-sm">
-                          <div className="flex items-center gap-xs">
-                            <div className={`w-2.5 h-2.5 rounded-full ${item.dotColor} shrink-0`} />
-                            <span className="font-title-lg text-body-md text-on-surface font-bold leading-tight">
-                              {item.event}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-md py-sm font-body-md text-[13px] text-on-surface-variant font-medium">
-                          {item.date}
-                        </td>
-                        <td className="px-md py-sm">
-                          <span className="px-2.5 py-0.5 bg-tertiary/10 text-tertiary text-[11px] font-bold rounded-full border border-tertiary/20">
-                            {item.rank}
-                          </span>
-                        </td>
-                        <td className="px-md py-sm font-title-lg text-body-md text-on-surface font-bold">
-                          {item.points}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </main>
 
       <Footer />
     </>
   );
 }
+
 export const dynamic = "force-dynamic";

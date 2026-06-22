@@ -173,6 +173,8 @@ model Match {
   p1           User?      @relation("MatchP1", fields: [p1Id], references: [id])
   p2           User?      @relation("MatchP2", fields: [p2Id], references: [id])
   winner       User?      @relation("MatchWinner", fields: [winnerId], references: [id])
+  attachments  MatchAttachment[]
+  dispute      MatchDispute?
 
   @@index([tournamentId])
   @@index([p1Id])
@@ -274,4 +276,36 @@ model TicketReply {
 
   ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model MatchAttachment {
+  id         String   @id @default(cuid())
+  matchId    String
+  url        String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+}
+
+model MatchDispute {
+  id           String        @id @default(cuid())
+  matchId      String        @unique
+  raisedById   String
+  reason       String        @db.Text
+  status       DisputeStatus @default(OPEN)
+  resolvedById String?
+  resolution   String?       @db.Text
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  match        Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
 }
