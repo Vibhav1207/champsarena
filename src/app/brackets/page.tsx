@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -19,6 +20,7 @@ interface Match {
   team1: Team;
   team2: Team;
   status: "completed" | "active" | "pending" | "bye";
+  round: number;
 }
 
 function BracketsContent() {
@@ -72,11 +74,11 @@ function BracketsContent() {
                 grouped[roundNum].push({
                   id: m.id,
                   status: m.status.toLowerCase(),
+                  round: roundNum,
                   team1: mapTeam(m.p1, m.p1Score, m.p2Score),
                   team2: mapTeam(m.p2, m.p2Score, m.p1Score),
                 });
 
-                // Find champion if grand finals (round 99 or highest round complete)
                 if (m.status === "COMPLETED" && m.winner) {
                   champ = m.winner;
                 }
@@ -86,6 +88,9 @@ function BracketsContent() {
               if (champ) {
                 setGrandChampion(champ);
               }
+            } else {
+              setRoundsMatches({});
+              setGrandChampion(null);
             }
           }
         }
@@ -100,43 +105,80 @@ function BracketsContent() {
   }, [tournamentId]);
 
   const isPreview = Object.keys(roundsMatches).length === 0;
-  const quarterFinals = roundsMatches[1] || [];
-  const semiFinals = roundsMatches[2] || [];
+
+  const sortedRounds = Object.keys(roundsMatches)
+    .map(Number)
+    .sort((a, b) => {
+      if (a === 99) return 1;
+      if (b === 99) return -1;
+      if (a > 0 && b < 0) return -1;
+      if (a < 0 && b > 0) return 1;
+      return a - b;
+    });
+
+  const getRoundName = (roundNum: number, type?: string) => {
+    if (roundNum === 99) return "Grand Finals";
+    if (type === "DOUBLE_ELIMINATION") {
+      if (roundNum < 0) return `Losers Round ${Math.abs(roundNum)}`;
+      return `Winners Round ${roundNum}`;
+    }
+    if (type === "ROUND_ROBIN") {
+      return `Round ${roundNum}`;
+    }
+    if (type === "SWISS") {
+      return `Swiss Round ${roundNum}`;
+    }
+    return `Round ${roundNum}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-primary font-black uppercase tracking-widest">
+        Loading Battle Brackets...
+      </div>
+    );
+  }
 
   return (
     <>
       <Navigation />
 
-      <main className="max-w-container-max mx-auto px-md py-lg">
+      <main className="max-w-container-max mx-auto px-md py-lg text-left">
         {/* Tournament Header */}
-        <section className="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant/30 pb-md">
-          <div className="select-none">
+        <section className="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md border-b-4 border-primary pb-md select-none">
+          <div>
             <div className="flex items-center gap-xs mb-xs">
-              <span className="px-xs py-base bg-tertiary/10 text-tertiary text-label-lg font-label-lg rounded uppercase font-bold shadow-sm">
+              {tournament?.id && (
+                <Link
+                  href={`/tournaments/${tournament.id}`}
+                  className="text-primary hover:underline flex items-center gap-xs text-body-md font-bold uppercase mr-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  Back
+                </Link>
+              )}
+              <span className="px-2 py-1 bg-primary text-white text-xs font-bold uppercase">
                 {tournament?.type?.replace("_", " ") || "Master Class"}
               </span>
-              <span className="text-outline text-body-md font-semibold">
+              <span className="font-bold text-xs uppercase tracking-widest text-primary">
                 • {tournament?.title || "London Regional 2024"}
               </span>
             </div>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold leading-tight">
-              Championship Finals
+            <h2 className="text-5xl font-bold uppercase tracking-tighter text-primary">
+              Championship Bracket
             </h2>
           </div>
           <div className="flex gap-sm">
-            <button className="flex items-center gap-xs px-sm py-xs border border-outline-variant rounded-lg font-title-lg text-body-md hover:bg-surface-container-low transition-colors font-bold active:scale-95">
-              <span className="material-symbols-outlined text-[20px]">share</span> Share Bracket
+            <button className="flex items-center gap-xs px-sm py-xs border-4 border-primary bg-white font-bold uppercase text-sm neo-brutalist-shadow-sm active:translate-y-0.5 transition-all">
+              <span className="material-symbols-outlined">share</span> Share
             </button>
-            <button className="flex items-center gap-xs px-sm py-xs bg-tertiary text-on-primary rounded-lg font-title-lg text-body-md shadow-sm active:scale-95 hover:brightness-110 transition-all font-bold">
-              <span className="material-symbols-outlined text-[20px] material-symbols-fill">
-                play_circle
-              </span>
-              Watch Live
+            <button className="flex items-center gap-xs px-sm py-xs border-4 border-primary bg-primary text-white font-bold uppercase text-sm neo-brutalist-shadow-sm active:translate-y-0.5 transition-all">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span> Watch Live
             </button>
           </div>
         </section>
 
-        {/* Interactive Bracket Tree */}
+        {/* Warning banner or bracket tree depending on started status */}
         {isPreview ? (
           <div className="border-4 border-primary p-xl text-center bg-white neo-brutalist-shadow select-none my-xl max-w-[896px] mx-auto text-primary">
             <span className="material-symbols-outlined text-7xl text-primary mb-sm">account_tree</span>
@@ -147,255 +189,136 @@ function BracketsContent() {
           </div>
         ) : (
           <section className="overflow-x-auto pb-lg select-none">
-            <div className="min-w-[1000px] flex items-center justify-between py-md relative">
-              
-              {/* Quarter Finals */}
-              <div className="w-[300px] flex flex-col gap-xl">
-                <p className="text-label-lg font-label-lg text-outline uppercase tracking-widest mb-xs text-center font-bold">
-                  Round 1
-                </p>
+            <div className="flex gap-xl py-md relative">
+              {sortedRounds.map((roundNum) => {
+                const matches = roundsMatches[roundNum] || [];
+                const roundName = getRoundName(roundNum, tournament?.type);
                 
-                {quarterFinals.map((match, idx) => (
-                  <motion.div
-                    key={match.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: idx * 0.1 }}
-                    className="relative group"
-                  >
-                    <div className="match-card bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 hover:border-tertiary cursor-pointer">
-                      <div className="flex flex-col">
-                        {/* Player 1 */}
-                        <div
-                          className={`flex items-center justify-between p-sm border-b border-outline-variant ${
-                            match.team1.isWinner ? "bg-surface-container-low" : "opacity-60"
-                          }`}
-                        >
-                          <div className="flex items-center gap-sm">
-                            <div
-                              className="w-8 h-8 rounded-full bg-cover bg-center border border-outline-variant shadow-sm"
-                              style={{ backgroundImage: `url('${match.team1.avatarUrl}')` }}
-                            />
-                            <span
-                              className={`font-body-md text-on-surface ${
-                                match.team1.isWinner ? "font-bold text-tertiary" : "font-medium"
-                              }`}
-                            >
-                              {match.team1.name}
-                            </span>
-                          </div>
-                          <span
-                            className={`font-bold ${
-                              match.team1.isWinner ? "text-tertiary" : "text-outline"
-                            }`}
-                          >
-                            {match.team1.score}
-                          </span>
-                        </div>
-
-                        {/* Player 2 */}
-                        <div
-                          className={`flex items-center justify-between p-sm ${
-                            match.team2.isWinner ? "bg-surface-container-low" : "opacity-60"
-                          }`}
-                        >
-                          <div className="flex items-center gap-sm">
-                            <div
-                              className="w-8 h-8 rounded-full bg-cover bg-center border border-outline-variant shadow-sm"
-                              style={{ backgroundImage: `url('${match.team2.avatarUrl}')` }}
-                            />
-                            <span
-                              className={`font-body-md text-on-surface ${
-                                match.team2.isWinner ? "font-bold text-tertiary" : "font-medium"
-                              }`}
-                            >
-                              {match.team2.name}
-                            </span>
-                          </div>
-                          <span
-                            className={`font-bold ${
-                              match.team2.isWinner ? "text-tertiary" : "text-outline"
-                            }`}
-                          >
-                            {match.team2.score}
-                          </span>
-                        </div>
-                      </div>
+                return (
+                  <div key={roundNum} className="flex flex-col gap-lg min-w-[280px] w-[280px]">
+                    <div className="text-center border-b-4 border-primary pb-xs mb-md select-none bg-surface-container-high p-xs">
+                      <p className="text-xs font-black text-primary uppercase tracking-[0.2em] line-clamp-1">
+                        {roundName}
+                      </p>
                     </div>
-                    {/* Right horizontal connector line */}
-                    <div className="absolute -right-4 top-1/2 w-4 bracket-line-horizontal group-hover:bg-tertiary group-hover:opacity-100 transition-all duration-200" />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Quarter Connector Lines (SVG for crisp responsive curves) */}
-              <div className="w-[40px] h-[360px] flex items-center justify-center relative pointer-events-none select-none">
-                <svg className="absolute inset-0 w-full h-full stroke-tertiary/20 fill-none stroke-[2]">
-                  <path d="M 0,98 L 20,98 L 20,262 L 0,262 M 20,180 L 40,180" />
-                </svg>
-              </div>
-
-              {/* Semi Finals */}
-              <div className="w-[300px] flex flex-col justify-center">
-                <p className="text-label-lg font-label-lg text-outline uppercase tracking-widest mb-md text-center font-bold">
-                  Round 2
-                </p>
-                
-                {semiFinals.map((match, idx) => (
-                  <motion.div
-                    key={match.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="relative group py-lg"
-                  >
-                    {/* Left horizontal connector */}
-                    <div className="absolute -left-4 top-1/2 w-4 bracket-line-horizontal group-hover:bg-tertiary group-hover:opacity-100 transition-all duration-200" />
                     
-                    <div className="match-card bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-tertiary cursor-pointer transition-all hover:-translate-y-0.5 border-l-4 border-l-tertiary">
-                      <div className="flex flex-col">
-                        {/* Player 1 */}
-                        <div className="flex items-center justify-between p-sm border-b border-outline-variant">
-                          <div className="flex items-center gap-sm">
-                            <div
-                              className="w-10 h-10 rounded-full bg-cover bg-center border-2 border-tertiary/30 shadow-sm"
-                              style={{ backgroundImage: `url('${match.team1.avatarUrl}')` }}
-                            />
-                            <span className="font-body-md text-on-surface font-bold text-tertiary">
-                              {match.team1.name}
-                            </span>
+                    <div className="flex flex-col justify-around h-full gap-md">
+                      {matches.map((match) => (
+                        <div key={match.id} className="relative group text-primary">
+                          <div className="match-card border-4 border-primary bg-white overflow-hidden neo-brutalist-shadow-sm hover:-translate-y-0.5 hover:translate-x-[-2px] hover:shadow-md transition-all">
+                            <div className="flex flex-col">
+                              {/* Player 1 */}
+                              <div
+                                className={`flex items-center justify-between p-sm border-b-2 border-primary ${
+                                  match.team1.isWinner ? "bg-accent-yellow/20 font-black" : match.team2.isWinner ? "opacity-40" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-xs">
+                                  <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
+                                    {match.team1.name.charAt(0)}
+                                  </div>
+                                  <span className="text-xs uppercase line-clamp-1">
+                                    {match.team1.name}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-black">
+                                  {match.team1.score}
+                                </span>
+                              </div>
+
+                              {/* Player 2 */}
+                              <div
+                                className={`flex items-center justify-between p-sm ${
+                                  match.team2.isWinner ? "bg-accent-yellow/20 font-black" : match.team1.isWinner ? "opacity-40" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-xs">
+                                  <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
+                                    {match.team2.name.charAt(0)}
+                                  </div>
+                                  <span className="text-xs uppercase line-clamp-1">
+                                    {match.team2.name}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-black">
+                                  {match.team2.score}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-outline font-bold italic px-xs text-[12px]">{match.team1.score}</span>
                         </div>
-
-                        {/* Player 2 */}
-                        <div className="flex items-center justify-between p-sm">
-                          <div className="flex items-center gap-sm">
-                            <div
-                              className="w-10 h-10 rounded-full bg-cover bg-center border border-outline-variant shadow-sm"
-                              style={{ backgroundImage: `url('${match.team2.avatarUrl}')` }}
-                            />
-                            <span className="font-body-md text-on-surface font-semibold">
-                              {match.team2.name}
-                            </span>
-                          </div>
-                          <span className="text-outline font-bold italic px-xs text-[12px]">{match.team2.score}</span>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Right horizontal connector */}
-                    <div className="absolute -right-4 top-1/2 w-4 bracket-line-horizontal group-hover:bg-tertiary group-hover:opacity-100 transition-all duration-200" />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Finals Connector */}
-              <div className="w-[40px] h-[360px] flex items-center justify-center relative pointer-events-none select-none">
-                <svg className="absolute inset-0 w-full h-full stroke-tertiary/20 fill-none stroke-[2]">
-                  <path d="M 0,180 L 40,180" />
-                </svg>
-              </div>
-
-              {/* Grand Finals */}
-              <div className="w-[300px] flex flex-col items-center justify-center">
-                <p className="text-label-lg font-label-lg text-outline uppercase tracking-widest mb-xs text-center font-bold">
-                  Grand Final
-                </p>
-                
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  className="relative w-full"
-                >
-                  {/* Winner Card */}
-                  <div className="match-card bg-surface-container-lowest border-2 border-outline-variant rounded-xl overflow-hidden shadow-lg p-md flex flex-col items-center gap-md hover:border-tertiary transition-colors cursor-pointer">
-                    <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center border-4 border-secondary-fixed shadow-inner overflow-hidden">
-                        {grandChampion?.image ? (
-                          <img src={grandChampion.image} alt={grandChampion.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-[48px] text-outline opacity-20 select-none">
-                            person
-                          </span>
-                        )}
-                      </div>
-                      <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow-md border border-outline-variant/30">
-                        <span className="material-symbols-outlined text-tertiary text-[20px] material-symbols-fill">
-                          emoji_events
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-center select-none">
-                      <p className="text-[10px] font-label-lg text-outline font-bold uppercase tracking-wider">
-                        {grandChampion ? "WINNER" : "TBD"}
-                      </p>
-                      <p className="font-headline-md text-headline-md font-bold text-on-surface-variant">
-                        {grandChampion?.name || "Grand Champion"}
-                      </p>
+                      ))}
                     </div>
                   </div>
+                );
+              })}
 
-                  {/* Trophy Highlight */}
-                  <div className="mt-lg flex flex-col items-center animate-bounce duration-1000 select-none">
-                    <span
-                      className="material-symbols-outlined text-[64px] text-gold-accent material-symbols-fill"
-                    >
-                      workspace_premium
-                    </span>
-                    <p className="text-label-lg font-label-lg text-victory-gold font-bold uppercase tracking-wider text-[11px] mt-1">
-                      CHAMPIONSHIP TROPHY
-                    </p>
+              {/* Grand Champion Column */}
+              {grandChampion && (
+                <div className="flex flex-col items-center justify-center min-w-[280px] w-[280px] bg-accent-yellow/10 border-4 border-primary border-dashed p-md neo-brutalist-shadow self-center">
+                  <div className="w-20 h-20 bg-primary flex items-center justify-center border-4 border-primary mb-sm">
+                    {grandChampion.image ? (
+                      <img src={grandChampion.image} alt={grandChampion.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-[48px] text-white">person</span>
+                    )}
                   </div>
-                </motion.div>
-              </div>
-
+                  <div className="text-center select-none text-primary">
+                    <span className="px-2 py-0.5 bg-primary text-white text-[10px] font-black uppercase">Grand Champion</span>
+                    <h3 className="text-2xl font-black uppercase tracking-tight mt-xs">{grandChampion.name}</h3>
+                    <div className="mt-sm border-2 border-primary bg-accent-yellow p-sm inline-block">
+                      <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
 
         {/* Stats & Info banner row */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-md mt-xl">
-          {[
-            {
-              title: "Tournament Status",
-              value: tournament?.status || "COMPLETED",
-              icon: "info",
-            },
-            {
-              title: "Prize Pool",
-              value: tournament?.prizePool ? `$${tournament.prizePool.toLocaleString()}` : "$25,000",
-              icon: "payments",
-            },
-            {
-              title: "Format Type",
-              value: tournament?.type?.replace("_", " ") || "SWISS",
-              icon: "category",
-            },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="bg-surface-container-lowest border border-outline-variant rounded-xl p-sm flex items-center gap-md shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 rounded-lg bg-tertiary/10 flex items-center justify-center select-none shadow-sm">
-                <span className="material-symbols-outlined text-tertiary text-[24px]">
-                  {stat.icon}
-                </span>
-              </div>
-              <div className="select-none">
-                <p className="text-[11px] font-label-lg text-outline uppercase tracking-wider font-bold">
-                  {stat.title}
-                </p>
-                <p className="font-headline-md text-headline-md font-bold text-on-surface capitalize">
-                  {stat.value.toLowerCase()}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-xl border-t-4 border-primary">
+          <div className="border-r-4 border-b-4 border-primary p-md flex items-center gap-md">
+            <div className="w-12 h-12 border-4 border-primary bg-accent-yellow flex items-center justify-center select-none shadow-sm">
+              <span className="material-symbols-outlined text-primary font-bold">
+                groups
+              </span>
+            </div>
+            <div className="select-none">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">Registered Players</p>
+              <p className="text-4xl font-bold tracking-tighter">
+                {tournament?.registrations?.length || 0} Players
+              </p>
+            </div>
+          </div>
+          
+          <div className="border-r-4 border-b-4 border-primary p-md flex items-center gap-md bg-primary text-white">
+            <div className="w-12 h-12 border-2 border-white flex items-center justify-center select-none">
+              <span className="material-symbols-outlined text-white">
+                payments
+              </span>
+            </div>
+            <div className="select-none">
+              <p className="text-xs font-bold uppercase tracking-widest opacity-70">Prize Pool</p>
+              <p className="text-4xl font-bold tracking-tighter text-accent-yellow">
+                ${tournament?.prizePool?.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          <div className="border-b-4 border-primary p-md flex items-center gap-md">
+            <div className="w-12 h-12 border-4 border-primary bg-white flex items-center justify-center select-none">
+              <span className="material-symbols-outlined text-primary">
+                category
+              </span>
+            </div>
+            <div className="select-none">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">Format Type</p>
+              <p className="text-4xl font-bold tracking-tighter capitalize">
+                {tournament?.type?.toLowerCase().replace("_", " ")}
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 

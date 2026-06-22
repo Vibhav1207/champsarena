@@ -27,6 +27,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             p1: { select: { id: true, name: true, image: true } },
             p2: { select: { id: true, name: true, image: true } },
             winner: { select: { id: true, name: true, image: true } },
+            attachments: true,
+            dispute: true,
           },
         },
       },

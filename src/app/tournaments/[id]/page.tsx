@@ -28,6 +28,16 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
   const [paying, setPaying] = useState(false);
   const [showGatewayModal, setShowGatewayModal] = useState(false);
 
+  // Active match state
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [reportP1Score, setReportP1Score] = useState("");
+  const [reportP2Score, setReportP2Score] = useState("");
+  const [reportScreenshot, setReportScreenshot] = useState("");
+  const [reportingMatch, setReportingMatch] = useState(false);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [submittingDispute, setSubmittingDispute] = useState(false);
+
   const fetchDetails = () => {
     fetch(`/api/tournaments/${id}`)
       .then((res) => res.json())
@@ -43,7 +53,78 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     fetchDetails();
+    fetch("/api/profile")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
   }, [id]);
+
+  const handleReportMatch = async (matchId: string) => {
+    if (!reportP1Score || !reportP2Score) {
+      alert("Please enter scores for both players.");
+      return;
+    }
+    try {
+      setReportingMatch(true);
+      const res = await fetch(`/api/matches/${matchId}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p1Score: parseInt(reportP1Score),
+          p2Score: parseInt(reportP2Score),
+          screenshotUrl: reportScreenshot,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Scores submitted successfully!");
+        setReportP1Score("");
+        setReportP2Score("");
+        setReportScreenshot("");
+        fetchDetails();
+      }
+    } catch (err: any) {
+      alert("Failed to report scores: " + err.message);
+    } finally {
+      setReportingMatch(false);
+    }
+  };
+
+  const handleRaiseDispute = async (matchId: string) => {
+    if (!disputeReason.trim()) {
+      alert("Please provide a reason for the dispute.");
+      return;
+    }
+    try {
+      setSubmittingDispute(true);
+      const res = await fetch(`/api/matches/${matchId}/dispute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reason: disputeReason,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Dispute filed successfully. A judge will review your match.");
+        setDisputeReason("");
+        setShowDisputeModal(false);
+        fetchDetails();
+      }
+    } catch (err: any) {
+      alert("Failed to file dispute: " + err.message);
+    } finally {
+      setSubmittingDispute(false);
+    }
+  };
 
   const handleRegister = async () => {
     if (tournament?.entryFee > 0) {
@@ -126,8 +207,42 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
     player.name.toLowerCase().includes(searchPlayer.toLowerCase())
   );
 
+  const activeMatch = tournament?.matches?.find(
+    (m: any) =>
+      (m.p1Id === currentUser?.id || m.p2Id === currentUser?.id) &&
+      m.status !== "COMPLETED" &&
+      m.status !== "BYE"
+  );
+
   return (
     <>
+      {tournament && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Event",
+              "name": tournament.title,
+              "description": tournament.description,
+              "startDate": tournament.startDate,
+              "endDate": tournament.endDate,
+              "eventStatus": "https://schema.org/EventScheduled",
+              "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+              "location": {
+                "@type": "VirtualLocation",
+                "url": typeof window !== "undefined" ? window.location.href : `https://champsarena.gg/tournaments/${tournament.id}`
+              },
+              "offers": {
+                "@type": "Offer",
+                "price": tournament.entryFee,
+                "priceCurrency": "USD",
+                "availability": tournament.registrations?.length >= tournament.maxPlayers ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
+              }
+            })
+          }}
+        />
+      )}
       <Navigation />
 
       {/* Script for Razorpay */}
@@ -219,6 +334,144 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </section>
+
+        {/* Active Match Card */}
+        {activeMatch && (
+          <section className="border-4 border-primary bg-white p-xl neo-brutalist-shadow mb-xl relative overflow-hidden text-primary">
+            {/* Top Bar Accent */}
+            <div className="absolute top-0 left-0 right-0 h-3 bg-accent-blue" />
+            
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-xl mt-2">
+              <div className="space-y-sm w-full lg:w-auto">
+                <div className="flex flex-wrap items-center gap-sm">
+                  <span className="px-sm py-1 bg-accent-blue text-white text-label-md font-black uppercase tracking-wider">
+                    My Active Match (Round {activeMatch.round})
+                  </span>
+                  {activeMatch.dispute ? (
+                    <span className="px-sm py-1 bg-accent-red text-white text-label-md font-black uppercase tracking-wider animate-pulse">
+                      ⚠️ Match Disputed
+                    </span>
+                  ) : (
+                    <span className="px-sm py-1 bg-accent-yellow text-primary text-label-md font-black uppercase tracking-wider">
+                      Status: {activeMatch.status}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Matchup visualizer */}
+                <div className="flex flex-col sm:flex-row items-center gap-md sm:gap-xl">
+                  {/* Player 1 */}
+                  <div className="flex items-center gap-sm bg-surface-container-high border-2 border-primary p-xs pr-md min-w-[200px]">
+                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
+                      {activeMatch.p1?.name?.charAt(0) || "P"}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-black text-sm uppercase text-primary line-clamp-1">
+                        {activeMatch.p1?.name || "Player 1"}
+                      </div>
+                      <div className="text-[10px] font-black text-primary/60">
+                        {activeMatch.p1?.id === currentUser?.id ? "YOU" : "OPPONENT"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="font-black text-xl text-primary">VS</span>
+
+                  {/* Player 2 */}
+                  <div className="flex items-center gap-sm bg-surface-container-high border-2 border-primary p-xs pr-md min-w-[200px]">
+                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
+                      {activeMatch.p2?.name?.charAt(0) || "P"}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-black text-sm uppercase text-primary line-clamp-1">
+                        {activeMatch.p2?.name || "Player 2"}
+                      </div>
+                      <div className="text-[10px] font-black text-primary/60">
+                        {activeMatch.p2?.id === currentUser?.id ? "YOU" : "OPPONENT"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Forms / Info */}
+              <div className="w-full lg:w-auto flex flex-col md:flex-row gap-md items-end">
+                {activeMatch.dispute ? (
+                  <div className="w-full md:w-80 bg-accent-red/10 border-2 border-accent-red p-sm text-xs font-bold uppercase text-accent-red">
+                    <p className="font-black mb-1">Dispute Reason:</p>
+                    <p className="line-clamp-3 italic">"{activeMatch.dispute.reason}"</p>
+                    <p className="mt-2 text-[10px] text-primary/70">Our moderation team is investigating this match. Stand by for the final ruling.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Score Reporting Inputs */}
+                    <div className="w-full md:w-auto bg-surface-container-high border-4 border-primary p-sm space-y-xs">
+                      <span className="text-[10px] font-black uppercase text-primary/70 block">Report Match Scores</span>
+                      <div className="flex items-center gap-sm">
+                        <div className="flex flex-col gap-1 w-24">
+                          <label className="text-[9px] font-black uppercase text-primary/70 line-clamp-1">
+                            {activeMatch.p1?.name || "P1"}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Score"
+                            value={reportP1Score}
+                            onChange={(e) => setReportP1Score(e.target.value)}
+                            className="w-full p-xs bg-white border-2 border-primary text-xs font-black text-center focus:bg-accent-yellow focus:outline-none"
+                          />
+                        </div>
+                        <span className="font-black text-xs text-primary mt-4">-</span>
+                        <div className="flex flex-col gap-1 w-24">
+                          <label className="text-[9px] font-black uppercase text-primary/70 line-clamp-1">
+                            {activeMatch.p2?.name || "P2"}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Score"
+                            value={reportP2Score}
+                            onChange={(e) => setReportP2Score(e.target.value)}
+                            className="w-full p-xs bg-white border-2 border-primary text-xs font-black text-center focus:bg-accent-yellow focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Screenshot Url input */}
+                      <div className="flex flex-col gap-1 pt-xs">
+                        <label className="text-[9px] font-black uppercase text-primary/70">Screenshot Proof (URL)</label>
+                        <input
+                          type="text"
+                          placeholder="https://..."
+                          value={reportScreenshot}
+                          onChange={(e) => setReportScreenshot(e.target.value)}
+                          className="w-full p-xs bg-white border-2 border-primary text-xs font-bold focus:bg-accent-yellow focus:outline-none placeholder:text-primary/30"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-sm w-full md:w-auto select-none">
+                      <button
+                        onClick={() => handleReportMatch(activeMatch.id)}
+                        disabled={reportingMatch}
+                        className="flex-1 md:flex-none bg-primary text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                      >
+                        {reportingMatch ? "Submitting..." : "Submit Result"}
+                      </button>
+                      <button
+                        onClick={() => setShowDisputeModal(true)}
+                        className="bg-accent-red text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                      >
+                        Dispute
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Tab switch Navigation */}
         <nav className="flex gap-0 border-4 border-primary mb-xl overflow-x-auto whitespace-nowrap custom-scrollbar bg-white select-none">
@@ -575,6 +828,53 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Dispute Modal */}
+        {showDisputeModal && activeMatch && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary">
+              <h3 className="font-headline-md text-primary uppercase text-center font-black">
+                File Match Dispute
+              </h3>
+              <div className="bg-accent-yellow border-2 border-primary p-xs text-center text-xs font-black uppercase text-primary">
+                Match: {activeMatch.p1?.name || "Player 1"} vs {activeMatch.p2?.name || "Player 2"}
+              </div>
+              <p className="text-primary font-bold uppercase text-xs">
+                Provide a clear description of the issue (e.g. incorrect score reported by opponent, player didn't show up, connection issues, rules violation). Please also submit screenshot URL proof in the match lobby report if possible.
+              </p>
+              
+              <div className="flex flex-col gap-xs">
+                <label className="text-[10px] font-black uppercase text-primary/70">Reason / Details</label>
+                <textarea
+                  placeholder="EXPLAIN THE ISSUE..."
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                  rows={4}
+                  className="w-full p-sm bg-white border-4 border-primary text-sm font-bold focus:bg-accent-yellow focus:outline-none uppercase placeholder:text-primary/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm select-none">
+                <button
+                  onClick={() => handleRaiseDispute(activeMatch.id)}
+                  disabled={submittingDispute}
+                  className="p-3 bg-accent-red text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                >
+                  {submittingDispute ? "Filing..." : "Raise Dispute"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDisputeModal(false);
+                    setDisputeReason("");
+                  }}
+                  className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}

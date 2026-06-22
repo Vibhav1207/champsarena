@@ -95,6 +95,22 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // 7. Active/Open Disputes
+    const disputes = await prisma.matchDispute.findMany({
+      where: { status: "OPEN" },
+      include: {
+        match: {
+          include: {
+            p1: { select: { id: true, name: true } },
+            p2: { select: { id: true, name: true } },
+            tournament: { select: { id: true, title: true } },
+            attachments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
     return NextResponse.json({
       metrics: {
         totalUsers,
@@ -108,6 +124,7 @@ export async function GET(req: NextRequest) {
       recentPayments,
       auditLogs,
       recentTournaments,
+      disputes,
     });
   } catch (error: any) {
     console.error("Failed to compile system analytics:", error);

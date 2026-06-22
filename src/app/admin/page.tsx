@@ -29,6 +29,14 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
 
+  // Disputes state
+  const [resolvingDispute, setResolvingDispute] = useState<any>(null);
+  const [disputeComment, setDisputeComment] = useState("");
+  const [disputeP1Score, setDisputeP1Score] = useState("");
+  const [disputeP2Score, setDisputeP2Score] = useState("");
+  const [disputeWinnerId, setDisputeWinnerId] = useState("");
+  const [handlingDispute, setHandlingDispute] = useState(false);
+
   // Tournament management state
   const [managingTournamentId, setManagingTournamentId] = useState<string | null>(null);
   const [managedTournament, setManagedTournament] = useState<any>(null);
@@ -152,6 +160,52 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try { await logoutTrainer(); } catch { setLoggingOut(false); }
+  };
+
+  const handleResolveDispute = async (action: "RESOLVE" | "DISMISS") => {
+    if (!resolvingDispute) return;
+    setHandlingDispute(true);
+    try {
+      const matchId = resolvingDispute.matchId;
+      const body: any = {
+        disputeAction: action,
+        resolutionComment: disputeComment,
+      };
+
+      if (action === "RESOLVE") {
+        if (!disputeP1Score || !disputeP2Score || !disputeWinnerId) {
+          alert("Scores and winner ID are required to resolve a dispute.");
+          setHandlingDispute(false);
+          return;
+        }
+        body.p1Score = parseInt(disputeP1Score);
+        body.p2Score = parseInt(disputeP2Score);
+        body.winnerId = disputeWinnerId;
+      }
+
+      const res = await fetch(`/api/matches/${matchId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(action === "RESOLVE" ? "Dispute resolved and winner advanced!" : "Dispute dismissed.");
+        setResolvingDispute(null);
+        setDisputeComment("");
+        setDisputeP1Score("");
+        setDisputeP2Score("");
+        setDisputeWinnerId("");
+        fetchData();
+      }
+    } catch (err: any) {
+      alert("Failed to process dispute: " + err.message);
+    } finally {
+      setHandlingDispute(false);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -396,6 +450,91 @@ export default function AdminDashboard() {
                 </div>
               </section>
 
+              {/* Active disputes log */}
+              <section className="bg-white border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] text-primary">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b-4 border-primary bg-accent-red text-white text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined scale-110">warning</span>
+                    <h2 className="font-black text-xl uppercase tracking-tight">Active Match Disputes</h2>
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-wider bg-white text-accent-red px-2.5 py-1 border-2 border-primary shadow-[2px_2px_0px_0px_#1a1a1a]">
+                    {analytics.disputes?.length || 0} Open Disputes
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-container border-b-2 border-primary">
+                        {["Tournament", "Matchup", "Reason", "Screenshots", "Filed By", "Action"].map(h => (
+                          <th key={h} className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-primary">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y-2 divide-primary">
+                      {analytics.disputes?.length > 0 ? (
+                        analytics.disputes.map((d: any) => (
+                          <tr key={d.id} className="hover:bg-surface-container-low transition-colors text-xs font-bold text-primary">
+                            <td className="px-5 py-4">
+                              <Link href={`/tournaments/${d.match?.tournament?.id}`} className="font-bold text-primary hover:text-accent-blue uppercase tracking-tight">
+                                {d.match?.tournament?.title}
+                              </Link>
+                            </td>
+                            <td className="px-5 py-4 font-black">
+                              {d.match?.p1?.name || "Player 1"} vs {d.match?.p2?.name || "Player 2"}
+                            </td>
+                            <td className="px-5 py-4 max-w-xs truncate italic">
+                              "{d.reason}"
+                            </td>
+                            <td className="px-5 py-4">
+                              {d.match?.attachments?.length > 0 ? (
+                                <div className="flex flex-col gap-1">
+                                  {d.match.attachments.map((att: any, idx: number) => (
+                                    <a
+                                      key={att.id}
+                                      href={att.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-accent-blue underline hover:text-blue-800 break-all"
+                                    >
+                                      Proof #{idx + 1} (View)
+                                    </a>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-primary/40 uppercase text-[10px]">No Proof URL</span>
+                              )}
+                            </td>
+                            <td className="px-5 py-4">
+                              {d.match?.p1Id === d.raisedById ? d.match?.p1?.name : d.match?.p2?.name}
+                            </td>
+                            <td className="px-5 py-4">
+                              <button
+                                onClick={() => {
+                                  setResolvingDispute(d);
+                                  setDisputeP1Score(String(d.match?.p1Score || 0));
+                                  setDisputeP2Score(String(d.match?.p2Score || 0));
+                                  setDisputeWinnerId(d.match?.p1Id || "");
+                                  setDisputeComment("");
+                                }}
+                                className="bg-accent-yellow text-primary border-2 border-primary px-3 py-1.5 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-yellow-400 transition-all cursor-pointer"
+                              >
+                                Resolve
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="text-center py-8 text-primary/40 font-bold uppercase text-[10px]">
+                            No active disputes reported. Everything is running smoothly!
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
               {/* Bottom row: Audit Logs + System Health */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <section className="bg-white border-4 border-primary p-5 shadow-[8px_8px_0px_0px_#1a1a1a] text-left">
@@ -535,6 +674,134 @@ export default function AdminDashboard() {
               </form>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Dispute Resolution Modal ── */}
+      <AnimatePresence>
+        {resolvingDispute && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-sm bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-[512px] bg-white border-8 border-primary shadow-[12px_12px_0px_0px_#1a1a1a] max-h-[90vh] overflow-y-auto custom-scrollbar text-primary">
+              <div className="flex items-center justify-between p-5 border-b-4 border-primary bg-accent-red text-white">
+                <h2 className="text-xl font-black uppercase tracking-tight">Resolve Dispute</h2>
+                <button
+                  onClick={() => setResolvingDispute(null)}
+                  className="material-symbols-outlined text-white hover:text-white/70 transition-colors cursor-pointer"
+                >
+                  close
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4 text-left font-bold text-xs uppercase">
+                <div className="bg-accent-yellow border-2 border-primary p-xs text-center font-black">
+                  Match: {resolvingDispute.match?.p1?.name} vs {resolvingDispute.match?.p2?.name}
+                </div>
+                <div className="border-2 border-primary p-xs bg-surface-container-high">
+                  <p className="font-black text-primary/60 mb-1">Dispute Reason:</p>
+                  <p className="normal-case italic">"{resolvingDispute.reason}"</p>
+                </div>
+                
+                {resolvingDispute.match?.attachments?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="font-black text-primary/60">Screenshot Evidence:</p>
+                    <div className="flex flex-col gap-1">
+                      {resolvingDispute.match.attachments.map((att: any, idx: number) => (
+                        <a
+                          key={att.id}
+                          href={att.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-accent-blue underline hover:text-blue-800 break-all text-[11px]"
+                        >
+                          View Evidence Screenshot #{idx + 1}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Scores input */}
+                <div className="border-4 border-primary p-sm space-y-sm bg-surface-container-low">
+                  <span className="font-black tracking-wider block text-center">Admin Score Override</span>
+                  <div className="grid grid-cols-2 gap-sm">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-black line-clamp-1">
+                        {resolvingDispute.match?.p1?.name || "Player 1"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={disputeP1Score}
+                        onChange={(e) => setDisputeP1Score(e.target.value)}
+                        className="w-full border-2 border-primary p-xs font-black text-center focus:bg-accent-yellow outline-none"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-black line-clamp-1">
+                        {resolvingDispute.match?.p2?.name || "Player 2"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={disputeP2Score}
+                        onChange={(e) => setDisputeP2Score(e.target.value)}
+                        className="w-full border-2 border-primary p-xs font-black text-center focus:bg-accent-yellow outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1 pt-xs">
+                    <label className="text-[10px] font-black">Declare Winner</label>
+                    <select
+                      value={disputeWinnerId}
+                      onChange={(e) => setDisputeWinnerId(e.target.value)}
+                      className="w-full border-2 border-primary p-xs font-black bg-white focus:outline-none"
+                    >
+                      <option value="">-- SELECT WINNER --</option>
+                      {resolvingDispute.match?.p1Id && (
+                        <option value={resolvingDispute.match.p1Id}>
+                          {resolvingDispute.match.p1?.name || "Player 1"}
+                        </option>
+                      )}
+                      {resolvingDispute.match?.p2Id && (
+                        <option value={resolvingDispute.match.p2Id}>
+                          {resolvingDispute.match.p2?.name || "Player 2"}
+                        </option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black">Resolution Comment / Verdict</label>
+                  <textarea
+                    placeholder="Enter ruling details..."
+                    value={disputeComment}
+                    onChange={(e) => setDisputeComment(e.target.value)}
+                    rows={3}
+                    className="w-full border-3 border-primary p-xs font-medium uppercase placeholder:text-primary/30 resize-none outline-none focus:bg-accent-yellow/10"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-sm select-none pt-2">
+                  <button
+                    onClick={() => handleResolveDispute("RESOLVE")}
+                    disabled={handlingDispute}
+                    className="p-3 bg-accent-blue text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-y-0.5 active:shadow-none"
+                  >
+                    {handlingDispute ? "Processing..." : "Submit Verdict"}
+                  </button>
+                  <button
+                    onClick={() => handleResolveDispute("DISMISS")}
+                    disabled={handlingDispute}
+                    className="p-3 bg-accent-red text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-y-0.5 active:shadow-none"
+                  >
+                    {handlingDispute ? "Processing..." : "Dismiss Dispute"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </div>
