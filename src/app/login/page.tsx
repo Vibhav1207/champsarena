@@ -325,7 +325,7 @@ export default function AuthPage() {
                         {/* Form Inputs */}
                         <div className="space-y-xs text-left">
                           <div className="space-y-1">
-                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
+                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Email</label>
                             <input
                               type="email"
                               required
@@ -559,7 +559,7 @@ export default function AuthPage() {
 
                         <div className="space-y-xs text-left">
                           <div className="space-y-1">
-                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
+                            <label className="text-[10px] text-primary uppercase font-black tracking-widest"> Email</label>
                             <input
                               type="email"
                               required

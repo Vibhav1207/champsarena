@@ -39,7 +39,7 @@ function ResetPasswordForm() {
           setCaptchaToken(d.token);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -105,9 +105,9 @@ function ResetPasswordForm() {
 
       <AnimatePresence>
         {(error || success) && (
-          <motion.div 
-            initial={{ opacity: 0, y: -8 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className="p-3 border-2 border-primary font-black uppercase text-xs tracking-wider text-center"
             style={{
@@ -122,8 +122,8 @@ function ResetPasswordForm() {
 
       <form onSubmit={handleSubmit} className="space-y-sm text-left uppercase font-bold text-xs">
         <div className="space-y-1">
-          <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
-          <input 
+          <label className="text-[10px] text-primary uppercase font-black tracking-widest"> Email</label>
+          <input
             type="email"
             required
             value={email}
@@ -135,7 +135,7 @@ function ResetPasswordForm() {
 
         <div className="space-y-1">
           <label className="text-[10px] text-primary uppercase font-black tracking-widest">Reset Token</label>
-          <input 
+          <input
             type="text"
             required
             value={token}
@@ -148,7 +148,7 @@ function ResetPasswordForm() {
         <div className="grid grid-cols-2 gap-sm">
           <div className="space-y-1">
             <label className="text-[10px] text-primary uppercase font-black tracking-widest">New Security Key</label>
-            <input 
+            <input
               type="password"
               required
               value={password}
@@ -159,7 +159,7 @@ function ResetPasswordForm() {
           </div>
           <div className="space-y-1">
             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Confirm Key</label>
-            <input 
+            <input
               type="password"
               required
               value={confirmPassword}
@@ -186,7 +186,7 @@ function ResetPasswordForm() {
             <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
               {captchaQuestion}
             </div>
-            <input 
+            <input
               type="text"
               required
               value={captchaAnswer}
@@ -197,7 +197,7 @@ function ResetPasswordForm() {
           </div>
         </div>
 
-        <button 
+        <button
           type="submit"
           disabled={loading}
           className="w-full mt-xs bg-primary text-white py-3 border-2 border-primary font-black uppercase tracking-widest text-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer"
