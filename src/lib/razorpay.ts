@@ -14,7 +14,7 @@ export async function createRazorpayOrder(params: {
   currency?: string;
 }) {
   const options = {
-    amount: Math.round(params.amount * 100), // Razorpay takes amounts in paise
+    amount: Math.round(params.amount * 100),
     currency: params.currency || "INR",
     receipt: `rcpt_${params.registrationId}`,
     notes: {
