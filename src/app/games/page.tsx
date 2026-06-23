@@ -72,65 +72,88 @@ export default function GamesCatalogPage() {
 
         {/* Games Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
-          {gamesList.map((game) => (
-            <article 
-              key={game.slug} 
-              className="bg-white border-4 border-primary neo-brutalist-shadow-hover transition-all flex flex-col justify-between"
-            >
-              {/* Game Banner */}
-              <div className="relative h-44 border-b-4 border-primary bg-surface-dim overflow-hidden select-none">
-                <Image
-                  src={game.bannerUrl}
-                  alt={`${game.name} competition banner`}
-                  fill
-                  className="object-cover grayscale contrast-125 transition-transform duration-300 hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <span className="absolute bottom-sm left-sm bg-primary text-white px-sm py-xs font-black uppercase text-xs">
-                  {game.genre}
-                </span>
-              </div>
-
-              {/* Game Content */}
-              <div className="p-md flex-grow flex flex-col justify-between">
-                <div className="mb-md">
-                  <h2 className="text-2xl font-black uppercase tracking-tight text-primary mb-xs">
-                    {game.name}
-                  </h2>
-                  <p className="text-sm font-bold uppercase text-primary/60 mb-sm">
-                    By {game.publisher}
-                  </p>
-                  <p className="text-sm text-primary font-medium line-clamp-3">
-                    {game.description}
-                  </p>
+          {gamesList.map((game) => {
+            const isActive = game.slug === "pokemon" || game.slug === "free-fire";
+            return (
+              <article 
+                key={game.slug} 
+                className={`bg-white border-4 border-primary transition-all flex flex-col justify-between ${
+                  isActive ? "neo-brutalist-shadow-hover" : "opacity-75 shadow-[4px_4px_0px_0px_rgba(26,26,26,0.3)]"
+                }`}
+              >
+                {/* Game Banner */}
+                <div className="relative h-44 border-b-4 border-primary bg-surface-dim overflow-hidden select-none">
+                  <Image
+                    src={game.bannerUrl}
+                    alt={`${game.name} competition banner`}
+                    fill
+                    className={`object-cover contrast-125 transition-transform duration-300 ${
+                      isActive ? "grayscale hover:scale-105" : "grayscale opacity-60"
+                    }`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                  <span className="absolute bottom-sm left-sm bg-primary text-white px-sm py-xs font-black uppercase text-xs">
+                    {game.genre}
+                  </span>
+                  {!isActive && (
+                    <span className="absolute top-sm right-sm bg-accent-red text-white border-2 border-primary px-sm py-xs font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_#1a1a1a]">
+                      Coming Soon
+                    </span>
+                  )}
                 </div>
 
-                {/* Game Quick Navigation Actions */}
-                <div className="space-y-xs pt-xs select-none">
-                  <Link 
-                    href={`/games/${game.slug}`} 
-                    className="w-full text-center py-2 bg-accent-yellow border-2 border-primary text-primary font-black uppercase text-xs hover:translate-y-[-1px] transition-all block"
-                  >
-                    View Game Hub
-                  </Link>
-                  <div className="grid grid-cols-2 gap-xs">
-                    <Link 
-                      href={`/games/${game.slug}/tournaments`} 
-                      className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
-                    >
-                      Tournaments
-                    </Link>
-                    <Link 
-                      href={`/games/${game.slug}/leaderboards`} 
-                      className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
-                    >
-                      Leaderboards
-                    </Link>
+                {/* Game Content */}
+                <div className="p-md flex-grow flex flex-col justify-between">
+                  <div className="mb-md">
+                    <h2 className="text-2xl font-black uppercase tracking-tight text-primary mb-xs">
+                      {game.name}
+                    </h2>
+                    <p className="text-sm font-bold uppercase text-primary/60 mb-sm">
+                      By {game.publisher}
+                    </p>
+                    <p className="text-sm text-primary font-medium line-clamp-3">
+                      {game.description}
+                    </p>
+                  </div>
+
+                  {/* Game Quick Navigation Actions */}
+                  <div className="space-y-xs pt-xs select-none">
+                    {isActive ? (
+                      <>
+                        <Link 
+                          href={`/games/${game.slug}`} 
+                          className="w-full text-center py-2 bg-accent-yellow border-2 border-primary text-primary font-black uppercase text-xs hover:translate-y-[-1px] transition-all block"
+                        >
+                          View Game Hub
+                        </Link>
+                        <div className="grid grid-cols-2 gap-xs">
+                          <Link 
+                            href={`/games/${game.slug}/tournaments`} 
+                            className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
+                          >
+                            Tournaments
+                          </Link>
+                          <Link 
+                            href={`/games/${game.slug}/leaderboards`} 
+                            className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
+                          >
+                            Leaderboards
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <button 
+                        disabled 
+                        className="w-full text-center py-2 bg-surface-container-high border-2 border-primary/30 text-primary/40 font-black uppercase text-xs cursor-not-allowed"
+                      >
+                        Register Coming Soon
+                      </button>
+                    )}
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </main>
       <Footer />

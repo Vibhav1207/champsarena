@@ -112,6 +112,7 @@ export default function Navigation() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-md">
+          <Link href="/games" className={getLinkCls("/games", "border-accent-blue")}>Games</Link>
           <Link href="/tournaments" className={getLinkCls("/tournaments", "border-accent-red")}>Tournaments</Link>
           <Link href="/rankings" className={getLinkCls("/rankings", "border-accent-yellow")}>Rankings</Link>
           {isAdmin && (
@@ -255,6 +256,9 @@ export default function Navigation() {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-background border-t-4 border-primary p-md flex flex-col gap-sm z-50">
+          <Link href="/games" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/games", "bg-accent-blue/20")}>
+            Games
+          </Link>
           <Link href="/tournaments" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/tournaments", "bg-accent-red/20")}>
             Tournaments
           </Link>
