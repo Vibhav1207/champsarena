@@ -568,26 +568,7 @@ async function advanceSingleElimination(completedMatch: any, winnerId: string) {
     }
   } else {
     // No more matches in the next round, so the tournament is completed!
-    await prisma.tournament.update({
-      where: { id: tournamentId },
-      data: { status: "COMPLETED" },
-    });
-
-    // Notify all participants
-    const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId },
-      include: { registrations: true },
-    });
-    const winnerUser = await prisma.user.findUnique({ where: { id: winnerId } });
-
-    if (tournament && winnerUser) {
-      const notifications = tournament.registrations.map((reg) => ({
-        userId: reg.userId,
-        message: `Tournament "${tournament.title}" has completed! Congratulations to the Grand Champion: ${winnerUser.name}!`,
-        type: "INFO",
-      }));
-      await prisma.notification.createMany({ data: notifications });
-    }
+    await completeTournament(tournamentId, winnerId);
   }
 }
 
@@ -624,10 +605,30 @@ async function checkAndAdvanceSwissRound(tournamentId: string) {
       }
     } else {
       // Completed Swiss rounds, mark tournament as completed
-      await prisma.tournament.update({
-        where: { id: tournamentId },
-        data: { status: "COMPLETED" },
+      const winCounts = new Map<string, number>();
+      allMatches.forEach((m) => {
+        if (m.winnerId) {
+          winCounts.set(m.winnerId, (winCounts.get(m.winnerId) || 0) + 1);
+        }
       });
+
+      let winnerId: string | null = null;
+      let maxWins = -1;
+      winCounts.forEach((wins, id) => {
+        if (wins > maxWins) {
+          maxWins = wins;
+          winnerId = id;
+        }
+      });
+
+      if (winnerId) {
+        await completeTournament(tournamentId, winnerId);
+      } else {
+        await prisma.tournament.update({
+          where: { id: tournamentId },
+          data: { status: "COMPLETED" },
+        });
+      }
     }
   }
 }
@@ -879,7 +880,7 @@ async function checkAndNotifyMatchReadyForRound(tournamentId: string, round: num
 async function completeTournament(tournamentId: string, winnerId: string) {
   await prisma.tournament.update({
     where: { id: tournamentId },
-    data: { status: "COMPLETED" },
+    data: { status: "COMPLETED", winnerId },
   });
 
   const tournament = await prisma.tournament.findUnique({

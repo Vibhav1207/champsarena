@@ -41,9 +41,9 @@ interface TopPlayer {
 
 const TYPE_MAP: Record<string, { label: string; bg: string }> = {
   SINGLE_ELIMINATION: { label: "VGC Format", bg: "bg-accent-blue" },
+  SWISS: { label: "VGC Format", bg: "bg-accent-blue" },
   ROUND_ROBIN: { label: "TCG Format", bg: "bg-primary" },
   DOUBLE_ELIMINATION: { label: "GO Format", bg: "bg-accent-red" },
-  SWISS: { label: "Swiss Format", bg: "bg-primary" },
 };
 
 const STATUS_LABEL: Record<string, string> = {

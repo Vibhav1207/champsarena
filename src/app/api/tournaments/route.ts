@@ -79,6 +79,8 @@ export async function POST(req: NextRequest) {
       type,
       status,
       visibility,
+      badgeName,
+      badgeIcon,
     } = body;
 
     if (!title || !description || !rules || !registrationDeadline || !startDate || !endDate) {
@@ -100,6 +102,8 @@ export async function POST(req: NextRequest) {
         type: type || TournamentType.SINGLE_ELIMINATION,
         status: status || TournamentStatus.DRAFT,
         visibility: visibility !== undefined ? visibility : true,
+        badgeName: badgeName || null,
+        badgeIcon: badgeIcon || null,
       },
     });
 

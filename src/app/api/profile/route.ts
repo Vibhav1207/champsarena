@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
           },
         },
         wonMatches: true,
+        wonTournaments: true,
       },
     });
 

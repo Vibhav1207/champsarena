@@ -22,6 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             },
           },
         },
+        winner: { select: { id: true, name: true, image: true } },
         matches: {
           include: {
             p1: { select: { id: true, name: true, image: true } },
@@ -95,6 +96,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         type: body.type,
         status: body.status,
         visibility: body.visibility,
+        badgeName: body.badgeName,
+        badgeIcon: body.badgeIcon,
+        winnerId: body.winnerId,
       },
     });
 

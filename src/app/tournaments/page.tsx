@@ -23,9 +23,9 @@ interface Tournament {
 
 const FORMAT_MAP: Record<string, { label: string; bg: string }> = {
   SINGLE_ELIMINATION: { label: "VGC", bg: "bg-accent-blue" },
+  SWISS:              { label: "VGC", bg: "bg-accent-blue" },
   DOUBLE_ELIMINATION: { label: "GO", bg: "bg-accent-red" },
   ROUND_ROBIN:        { label: "TCG", bg: "bg-primary" },
-  SWISS:              { label: "Swiss", bg: "bg-primary" },
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -104,26 +104,48 @@ export default function Tournaments() {
 
               {/* Format Filter */}
               <div className="mb-md mt-sm select-none">
-                <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase">Format</h3>
-                <div className="space-y-xs">
+                <h3 className="font-title-lg text-title-lg text-primary mb-xs uppercase font-black italic">Format</h3>
+                <div className="space-y-sm">
                   {[
-                    { label: "VGC (Video Game)", key: "VGC" },
-                    { label: "TCG (Trading Card)", key: "TCG" },
-                    { label: "Pokémon GO", key: "GO" },
-                    { label: "Swiss Format", key: "Swiss" },
-                  ].map(({ label, key }) => (
-                    <label key={key} className="flex items-center gap-xs cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={selectedFormats.includes(key)}
-                        onChange={() => toggleFormat(key)}
-                        className="pokeball-checkbox focus:ring-0 outline-none"
-                      />
-                      <span className={`font-body-md text-body-md uppercase font-bold group-hover:text-accent-blue transition-colors ${selectedFormats.includes(key) ? "text-accent-blue" : "text-primary"}`}>
-                        {label}
-                      </span>
-                    </label>
-                  ))}
+                    { label: "VGC (Video Game)", key: "VGC", img: "/vgc.png", color: "bg-accent-blue/10" },
+                    { label: "TCG (Trading Card)", key: "TCG", img: "/tcg.png", color: "bg-primary/5" },
+                    { label: "Pokémon GO", key: "GO", img: "/pogo.png", color: "bg-accent-red/10" },
+                  ].map(({ label, key, img, color }) => {
+                    const isSelected = selectedFormats.includes(key);
+                    return (
+                      <button
+                        type="button"
+                        key={key}
+                        onClick={() => toggleFormat(key)}
+                        className={`w-full text-left border-4 border-primary flex flex-col transition-all duration-150 relative overflow-hidden group active:translate-x-[2px] active:translate-y-[2px] cursor-pointer ${
+                          isSelected
+                            ? "bg-accent-yellow shadow-none translate-x-[2px] translate-y-[2px]"
+                            : "bg-white shadow-[4px_4px_0px_0px_#1a1a1a] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1a1a1a]"
+                        }`}
+                      >
+                        {/* Game Image */}
+                        <div className={`relative h-20 w-full ${color} border-b-2 border-primary overflow-hidden`}>
+                          <Image
+                            src={img}
+                            alt={label}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1"
+                          />
+                        </div>
+                        {/* Card Label */}
+                        <div className="p-2 flex items-center justify-between">
+                          <span className="font-bold text-[10px] uppercase tracking-tight text-primary">
+                            {label}
+                          </span>
+                          <span className={`material-symbols-outlined text-xs border-2 border-primary flex items-center justify-center w-5 h-5 shrink-0 ${
+                            isSelected ? "bg-primary text-white" : "bg-white text-transparent"
+                          }`}>
+                            check
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

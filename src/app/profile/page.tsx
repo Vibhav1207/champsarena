@@ -8,27 +8,10 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { logoutTrainer } from "@/app/actions/authActions";
 
-interface Pokemon {
-  name: string;
-  types: string[];
-  imgUrl: string;
-  imgAlt: string;
-}
-
 export default function Profile() {
   const [profileData, setProfileData] = useState<any>(null);
-  const [squad, setSquad] = useState<Pokemon[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const badges = [
-    { name: "Regional Champ", icon: "workspace_premium", color: "hover:bg-accent-yellow", active: true },
-    { name: "100 Wins", icon: "stars", color: "hover:bg-accent-blue hover:text-white", active: false },
-    { name: "Tactician", icon: "psychology", color: "hover:bg-accent-red hover:text-white", active: false },
-    { name: "Grand Master", icon: "trophy", color: "bg-gray-100 opacity-30", active: false },
-    { name: "Collector", icon: "eco", color: "hover:bg-green-500 hover:text-white", active: false },
-    { name: "On Fire", icon: "local_fire_department", color: "bg-primary text-white hover:bg-accent-red", active: false },
-  ];
 
   const fetchProfile = () => {
     fetch("/api/profile")
@@ -37,18 +20,7 @@ export default function Profile() {
         if (data.user) {
           setProfileData(data.user);
           
-          // Parse active team from DB
-          const activeTeam = data.user.teams?.find((t: any) => t.active);
-          if (activeTeam) {
-            try {
-              const parsed = JSON.parse(activeTeam.pokemonJson);
-              setSquad(Array.isArray(parsed) ? parsed : []);
-            } catch (e) {
-              setSquad([]);
-            }
-          } else {
-            setSquad([]);
-          }
+
 
           // Parse match history from DB
           if (data.matches && data.matches.length > 0) {
@@ -80,39 +52,7 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  const handleAddMember = async () => {
-    const name = prompt("Enter Pokémon name:");
-    if (!name) return;
-    const typeString = prompt("Enter type (comma separated, e.g. Dragon, Flying):", "Dragon");
-    if (!typeString) return;
-    const types = typeString.split(",").map((t) => t.trim());
 
-    const newPokemon: Pokemon = {
-      name,
-      types,
-      imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXu2yTz_FoqBcl3-wQte7pgq_j6H17YmkZLNHDXbWX7pLiofwbWVXOdF7tDYCWpI-kg0eYUeu1C-KhFfWUslN1eNIxIsfb7Qk5F4s-AO11CqGOaE7GtFv1Kp0tDAQPUSkRyRpGVOyP6riTNis-nUtE48RbqKxoLf2T1xlMoWBmB3vWmvN5ecGJEMXMvy6nEnvlUyXDw07PfPtz9lHErtiS1FTtbFXgAmFMlBmO2jocuQqp3OFz2g1n7XWm59N3gHTnDoLehE3GbWAMA",
-      imgAlt: name,
-    };
-
-    const updatedSquad = [...squad.slice(0, 5), newPokemon]; // Keep max 6
-    setSquad(updatedSquad);
-
-    // Save to backend
-    try {
-      await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "VGC Squad",
-          pokemon: updatedSquad,
-        }),
-      });
-      alert("Squad updated successfully!");
-      fetchProfile();
-    } catch (err) {
-      console.error("Failed to save team", err);
-    }
-  };
 
   const trainerName = profileData?.name || "Trainer";
   const trainerId = profileData?.trainerId?.slice(0, 8) || "—";
@@ -120,6 +60,13 @@ export default function Profile() {
   const wins = profileData?.wins ?? 0;
   const losses = profileData?.losses ?? 0;
   const image = profileData?.image || null;
+
+  const earnedBadges = profileData?.wonTournaments
+    ?.filter((t: any) => t.badgeName)
+    .map((t: any) => ({
+      name: t.badgeName,
+      icon: t.badgeIcon || "workspace_premium",
+    })) || [];
 
   return (
     <>
@@ -212,66 +159,6 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* ── Combat Squad Preview Section ── */}
-            <section className="space-y-md">
-              <div className="flex justify-between items-baseline border-b-4 border-primary pb-4">
-                <div>
-                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-primary">Combat Squad</h2>
-                  <p className="font-black text-xs uppercase tracking-widest text-primary opacity-60">Active VGC Championship Configuration</p>
-                </div>
-                <button 
-                  onClick={handleAddMember}
-                  className="bg-primary text-white border-2 border-primary px-6 py-2 font-black uppercase text-xs hover:bg-accent-red hover:-translate-y-0.5 transition-all duration-150 cursor-pointer"
-                >
-                  Modify Fleet
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-                {squad.map((pokemon, i) => (
-                  <div 
-                    key={i} 
-                    className="pokemon-slot border-4 border-primary neo-brutalist-shadow-sm p-md flex flex-col items-center gap-4 neo-brutalist-shadow-hover bg-white cursor-pointer group"
-                  >
-                    <div className="w-full aspect-square bg-surface-container-low border-2 border-primary flex items-center justify-center overflow-hidden relative select-none">
-                      <Image 
-                        src={pokemon.imgUrl} 
-                        alt={pokemon.imgAlt} 
-                        width={80}
-                        height={80}
-                        className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
-                      />
-                    </div>
-                    <div className="text-center w-full">
-                      <span className="text-xl font-black uppercase block mb-2 text-primary tracking-tighter">{pokemon.name}</span>
-                      <div className="flex gap-1 justify-center flex-wrap">
-                        {pokemon.types.map((t, idx) => (
-                          <span 
-                            key={idx} 
-                            className={`px-2 py-0.5 border-2 border-primary text-[10px] font-black uppercase select-none ${
-                              idx === 0 ? "bg-primary text-white" : "bg-white text-primary"
-                            }`}
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add Member Slot */}
-                {squad.length < 6 && (
-                  <div 
-                    onClick={handleAddMember}
-                    className="pokemon-slot border-4 border-dashed border-primary p-md flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-surface-container-low transition-colors duration-150 group min-h-[220px]"
-                  >
-                    <span className="material-symbols-outlined text-6xl group-hover:text-accent-red text-primary transition-colors">add_box</span>
-                    <span className="font-black uppercase text-xs text-primary">Append Member</span>
-                  </div>
-                )}
-              </div>
-            </section>
 
             {/* ── Accolades and Mission Log Bento Row ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-sm">
@@ -279,21 +166,30 @@ export default function Profile() {
               {/* Accolades (Badges) Column */}
               <div className="lg:col-span-1 space-y-md">
                 <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary">Accolades</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {badges.map((badge, idx) => (
-                    <div 
-                      key={idx}
-                      title={`${badge.name} - ${badge.active ? "Unlocked" : "Locked"}`}
-                      className={`aspect-square border-4 border-primary flex items-center justify-center transition-colors cursor-help group bg-white ${
-                        badge.active ? badge.color : "bg-surface-container-low opacity-40 grayscale"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">
-                        {badge.icon}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                {earnedBadges.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-4">
+                    {earnedBadges.map((badge: any, idx: number) => (
+                      <div 
+                        key={idx}
+                        title={`${badge.name} - Unlocked`}
+                        className="aspect-square border-4 border-primary flex flex-col items-center justify-center bg-accent-yellow neo-brutalist-shadow-sm hover:scale-105 transition-all cursor-help group p-1"
+                      >
+                        <span className="material-symbols-outlined text-3xl text-primary group-hover:rotate-12 transition-transform">
+                          {badge.icon}
+                        </span>
+                        <span className="text-[8px] font-black text-center uppercase tracking-tighter line-clamp-2 px-0.5 mt-1 text-primary break-words w-full leading-none">
+                          {badge.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-4 border-dashed border-primary/45 p-md text-center bg-surface-container-low text-primary select-none flex flex-col items-center justify-center min-h-[160px]">
+                    <span className="material-symbols-outlined text-5xl text-primary/30 mb-2">military_tech</span>
+                    <span className="text-xs font-black uppercase">No Badges Unlocked</span>
+                    <p className="text-[10px] text-primary/50 uppercase mt-1 font-bold">Win tournaments to earn accolades</p>
+                  </div>
+                )}
               </div>
 
               {/* Mission Log (Match History) Column */}

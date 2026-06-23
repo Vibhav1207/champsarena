@@ -80,6 +80,7 @@ model User {
   wonMatches    Match[]         @relation("MatchWinner")
   matchesAsP1   Match[]         @relation("MatchP1")
   matchesAsP2   Match[]         @relation("MatchP2")
+  wonTournaments Tournament[]   @relation("TournamentWinner")
 }
 
 model Account {
@@ -132,6 +133,10 @@ model Tournament {
   type                 TournamentType   @default(SINGLE_ELIMINATION)
   status               TournamentStatus @default(DRAFT)
   visibility           Boolean          @default(true)
+  badgeName            String?
+  badgeIcon            String?
+  winnerId             String?
+  winner               User?            @relation("TournamentWinner", fields: [winnerId], references: [id])
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 

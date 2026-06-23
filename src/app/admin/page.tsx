@@ -136,6 +136,7 @@ export default function AdminDashboard() {
     rules: "Standard Regulation rules apply.",
     entryFee: "0", prizePool: "5000", maxPlayers: "128",
     type: "SINGLE_ELIMINATION", status: "UPCOMING",
+    badgeName: "", badgeIcon: "workspace_premium",
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -229,7 +230,7 @@ export default function AdminDashboard() {
       if (data.error) { setCreateError(data.error); }
       else {
         setCreateSuccess(true);
-        setForm({ title: "", description: "", rules: "Standard Regulation rules apply.", entryFee: "0", prizePool: "5000", maxPlayers: "128", type: "SINGLE_ELIMINATION", status: "UPCOMING" });
+        setForm({ title: "", description: "", rules: "Standard Regulation rules apply.", entryFee: "0", prizePool: "5000", maxPlayers: "128", type: "SINGLE_ELIMINATION", status: "UPCOMING", badgeName: "", badgeIcon: "workspace_premium" });
         setTimeout(() => { setShowModal(false); setCreateSuccess(false); fetchData(); }, 1200);
       }
     } catch (err: any) { setCreateError("Failed: " + err.message); }
@@ -638,6 +639,28 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Custom Badge Name</label>
+                    <input type="text" placeholder="e.g. Lumiose Cup Badge" value={form.badgeName}
+                      onChange={e => setForm(f => ({ ...f, badgeName: e.target.value }))}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary placeholder:text-primary/40" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Badge Icon</label>
+                    <select value={form.badgeIcon} onChange={e => setForm(f => ({ ...f, badgeIcon: e.target.value }))}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary">
+                      <option value="workspace_premium">Premium Ribbon (workspace_premium)</option>
+                      <option value="emoji_events">Gold Trophy (emoji_events)</option>
+                      <option value="stars">Star badge (stars)</option>
+                      <option value="trophy">Trophy (trophy)</option>
+                      <option value="local_fire_department">Fire badge (local_fire_department)</option>
+                      <option value="eco">Leaf badge (eco)</option>
+                      <option value="military_tech">Military badge (military_tech)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: "Entry Fee ($)", key: "entryFee", type: "number" },
                     { label: "Prize Pool ($)", key: "prizePool", type: "number" },
@@ -889,6 +912,8 @@ function TournamentManagementPanel({
     entryFee: "",
     prizePool: "",
     maxPlayers: "",
+    badgeName: "",
+    badgeIcon: "workspace_premium",
   });
 
   useEffect(() => {
@@ -901,6 +926,8 @@ function TournamentManagementPanel({
         entryFee: String(managedTournament.entryFee ?? 0),
         prizePool: String(managedTournament.prizePool ?? 0),
         maxPlayers: String(managedTournament.maxPlayers ?? 128),
+        badgeName: managedTournament.badgeName || "",
+        badgeIcon: managedTournament.badgeIcon || "workspace_premium",
       });
     }
   }, [managedTournament]);
@@ -920,6 +947,8 @@ function TournamentManagementPanel({
           entryFee: parseFloat(editForm.entryFee),
           prizePool: parseFloat(editForm.prizePool),
           maxPlayers: parseInt(editForm.maxPlayers),
+          badgeName: editForm.badgeName || null,
+          badgeIcon: editForm.badgeIcon || null,
         }),
       });
       const data = await res.json();
@@ -1047,6 +1076,24 @@ function TournamentManagementPanel({
                 <span className="text-primary/60">Players:</span>
                 <span className="text-primary">{registrations.length} / {t.maxPlayers}</span>
               </div>
+              {t.badgeName && (
+                <div className="flex justify-between py-1.5 border-b border-primary/20 items-center">
+                  <span className="text-primary/60">Custom Badge:</span>
+                  <span className="text-accent-red flex items-center gap-1 font-black">
+                    <span className="material-symbols-outlined text-sm">{t.badgeIcon || "workspace_premium"}</span>
+                    {t.badgeName}
+                  </span>
+                </div>
+              )}
+              {t.status === "COMPLETED" && t.winner && (
+                <div className="flex justify-between py-1.5 border-b border-primary/20 items-center">
+                  <span className="text-primary/60">Grand Champion:</span>
+                  <span className="text-accent-blue font-black flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">emoji_events</span>
+                    {t.winner.name}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center py-2">
                 <span className="text-primary/60 font-bold uppercase">Current Status:</span>
                 <span className={`text-[10px] font-black px-2.5 py-1 border-2 border-primary shadow-[2px_2px_0px_0px_#1a1a1a] uppercase ${getStatusBadgeCls(t.status)}`}>
@@ -1707,6 +1754,35 @@ function TournamentManagementPanel({
                     onChange={(e) => setEditForm({ ...editForm, rules: e.target.value })}
                     className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10 resize-none"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Custom Badge Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Lumiose Cup Badge"
+                      value={editForm.badgeName}
+                      onChange={(e) => setEditForm({ ...editForm, badgeName: e.target.value })}
+                      className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Badge Icon</label>
+                    <select
+                      value={editForm.badgeIcon}
+                      onChange={(e) => setEditForm({ ...editForm, badgeIcon: e.target.value })}
+                      className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
+                    >
+                      <option value="workspace_premium">Premium Ribbon (workspace_premium)</option>
+                      <option value="emoji_events">Gold Trophy (emoji_events)</option>
+                      <option value="stars">Star badge (stars)</option>
+                      <option value="trophy">Trophy (trophy)</option>
+                      <option value="local_fire_department">Fire badge (local_fire_department)</option>
+                      <option value="eco">Leaf badge (eco)</option>
+                      <option value="military_tech">Military badge (military_tech)</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
