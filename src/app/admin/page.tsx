@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutTrainer } from "@/app/actions/authActions";
+import { usePopup } from "@/components/PopupProvider";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard", href: "/admin" },
@@ -23,6 +24,7 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
 };
 
 export default function AdminDashboard() {
+  const { confirm } = usePopup();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>({ metrics: {}, auditLogs: [], recentTournaments: [] });
   const [session, setSession] = useState<any>(null);
@@ -441,7 +443,7 @@ export default function AdminDashboard() {
                                   </button>
                                   <button
                                     onClick={async () => {
-                                      if (confirm(`Delete tournament "${t.title}"? This cannot be undone and will delete all registrations, payments, and bracket matches associated with it.`)) {
+                                      if (await confirm(`Delete tournament "${t.title}"? This cannot be undone and will delete all registrations, payments, and bracket matches associated with it.`)) {
                                         try {
                                           const res = await fetch(`/api/tournaments/${t.id}`, {
                                             method: "DELETE",
@@ -1246,12 +1248,12 @@ function TournamentManagementPanel({
 
               {(t.status === "REGISTRATION_OPEN" || t.status === "UPCOMING" || t.status === "DRAFT") && (
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (registrations.length < 2) {
                       alert("You need at least 2 registered and approved players to start the tournament!");
                       return;
                     }
-                    if (confirm(`Start the tournament now? This will generate the initial match brackets for ${registrations.length} players and transition status to ONGOING.`)) {
+                    if (await confirm(`Start the tournament now? This will generate the initial match brackets for ${registrations.length} players and transition status to ONGOING.`)) {
                       handleUpdateStatus("ONGOING");
                     }
                   }}
@@ -1264,8 +1266,8 @@ function TournamentManagementPanel({
 
               {t.status === "ONGOING" && (
                 <button
-                  onClick={() => {
-                    if (confirm("Conclude this tournament and lock brackets? This will crown the champion based on completed matches.")) {
+                  onClick={async () => {
+                    if (await confirm("Conclude this tournament and lock brackets? This will crown the champion based on completed matches.")) {
                       handleUpdateStatus("COMPLETED");
                     }
                   }}
@@ -1291,7 +1293,7 @@ function TournamentManagementPanel({
                   </div>
                   <button
                     onClick={async () => {
-                      if (confirm(`Are you sure you want to REGENERATE brackets using ${seedingType === "ELO" ? "ELO Rated" : "Random Shuffle"} seeding? This will delete all current matches and scores, and generate a new bracket using the current list of approved players. This CANNOT be undone.`)) {
+                      if (await confirm(`Are you sure you want to REGENERATE brackets using ${seedingType === "ELO" ? "ELO Rated" : "Random Shuffle"} seeding? This will delete all current matches and scores, and generate a new bracket using the current list of approved players. This CANNOT be undone.`)) {
                         try {
                           const res = await fetch(`/api/tournaments/${id}`, {
                             method: "PUT",
@@ -1335,7 +1337,7 @@ function TournamentManagementPanel({
               <div className="pt-4 border-t-2 border-primary">
                 <button
                   onClick={async () => {
-                    if (confirm(`Are you absolutely sure you want to delete the tournament "${t.title}"? This action CANNOT be undone and will delete all registrations, payments, and bracket matches associated with it.`)) {
+                    if (await confirm(`Are you absolutely sure you want to delete the tournament "${t.title}"? This action CANNOT be undone and will delete all registrations, payments, and bracket matches associated with it.`)) {
                       try {
                         const res = await fetch(`/api/tournaments/${id}`, {
                           method: "DELETE",

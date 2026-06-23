@@ -6,8 +6,22 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
-      disallow: ["/admin/", "/profile/", "/api/"],
+      allow: [
+        "/",
+        "/games",
+        "/tournaments",
+        "/blog",
+        "/leaderboards",
+        "/players"
+      ],
+      disallow: [
+        "/admin",
+        "/dashboard",
+        "/api",
+        "/auth/callback",
+        "/settings",
+        "/profile"
+      ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

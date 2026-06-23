@@ -57,9 +57,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Only the Team Captain can register the squad for tournaments." }, { status: 403 });
       }
 
-      // Validate squad size: standard 4 to 6 members
-      if (squad.members.length < 4 || squad.members.length > 6) {
-        return NextResponse.json({ error: `Your roster size is ${squad.members.length}. Free Fire squad tournaments require between 4 and 6 players.` }, { status: 400 });
+      // Validate squad size: standard 4 to 5 members
+      if (squad.members.length < 4 || squad.members.length > 5) {
+        return NextResponse.json({ error: `Your roster size is ${squad.members.length}. Free Fire squad tournaments require between 4 and 5 players.` }, { status: 400 });
       }
 
       // Check if squad already registered

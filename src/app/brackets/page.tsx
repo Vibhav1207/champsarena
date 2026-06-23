@@ -119,11 +119,24 @@ function BracketsContent() {
       return a - b;
     });
 
-  const getRoundName = (roundNum: number, type?: string) => {
+  const getSingleEliminationRoundName = (roundNum: number, totalPositiveRounds: number) => {
+    const roundsRemaining = totalPositiveRounds - roundNum;
+    if (roundsRemaining <= 0) return "Final";
+    if (roundsRemaining === 1) return "Semifinal";
+    if (roundsRemaining === 2) return "Quarterfinal";
+
+    const competitorsLeft = Math.pow(2, roundsRemaining + 1);
+    return `Round of ${competitorsLeft}`;
+  };
+
+  const getRoundName = (roundNum: number, type?: string, totalPositiveRounds: number = 0) => {
     if (roundNum === 99) return "Grand Finals";
     if (type === "DOUBLE_ELIMINATION") {
       if (roundNum < 0) return `Losers Round ${Math.abs(roundNum)}`;
       return `Winners Round ${roundNum}`;
+    }
+    if (type === "SINGLE_ELIMINATION") {
+      return getSingleEliminationRoundName(roundNum, totalPositiveRounds);
     }
     if (type === "ROUND_ROBIN") {
       return `Round ${roundNum}`;
@@ -143,6 +156,110 @@ function BracketsContent() {
   }
 
   const currencySymbol = tournament?.currency === "INR" ? "₹" : "$";
+  const positiveRounds = sortedRounds.filter((roundNum) => roundNum > 0 && roundNum !== 99);
+  const losersRounds = sortedRounds.filter((roundNum) => roundNum < 0);
+  const grandFinalsRounds = sortedRounds.filter((roundNum) => roundNum === 99);
+  const isTeamTournament = tournament?.game === "FREE_FIRE";
+  const registeredCount = isTeamTournament
+    ? tournament?.squadRegistrations?.length || 0
+    : tournament?.registrations?.length || 0;
+  const bracketShareUrl =
+    typeof window !== "undefined" && tournament?.id
+      ? `${window.location.origin}/tournaments/${tournament.id}/bracket`
+      : "";
+
+  const handleShareBracket = async () => {
+    if (!bracketShareUrl) return;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${tournament?.title || "Tournament"} Bracket`,
+          text: `Follow the live bracket for ${tournament?.title || "this tournament"}.`,
+          url: bracketShareUrl,
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(bracketShareUrl);
+      alert("Bracket link copied!");
+    } catch {
+      prompt("Copy this bracket link:", bracketShareUrl);
+    }
+  };
+
+  const renderRoundColumns = (roundNumbers: number[]) => (
+    <div className="flex gap-md md:gap-xl py-md relative">
+      {roundNumbers.map((roundNum) => {
+        const matches = roundsMatches[roundNum] || [];
+        const roundName = getRoundName(roundNum, tournament?.type, positiveRounds.length);
+
+        return (
+          <div key={roundNum} className="flex flex-col gap-md md:gap-lg min-w-[280px] w-[280px]">
+            <div className="text-center border-b-4 border-primary pb-xs mb-md select-none bg-surface-container-high p-xs">
+              <p className="text-xs font-black text-primary uppercase tracking-[0.2em] line-clamp-1">
+                {roundName}
+              </p>
+            </div>
+
+            <div className="flex flex-col justify-around h-full gap-md">
+              {matches.map((match) => (
+                <div key={match.id} className="relative group text-primary">
+                  <div className="match-card border-4 border-primary bg-white overflow-hidden neo-brutalist-shadow-sm hover:-translate-y-0.5 hover:translate-x-[-2px] hover:shadow-md transition-all">
+                    <div className="flex flex-col">
+                      <div
+                        className={`flex items-center justify-between p-sm border-b-2 border-primary ${
+                          match.team1.isWinner ? "bg-accent-yellow/20 font-black" : match.team2.isWinner ? "opacity-40" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-xs">
+                          <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase overflow-hidden">
+                            {match.team1.avatarUrl && match.team1.name !== "TBD" ? (
+                              <img src={match.team1.avatarUrl} alt={match.team1.imgAlt} className="w-full h-full object-cover" />
+                            ) : (
+                              match.team1.name.charAt(0)
+                            )}
+                          </div>
+                          <span className="text-xs uppercase line-clamp-1">
+                            {match.team1.name}
+                          </span>
+                        </div>
+                        <span className="text-sm font-black">
+                          {match.team1.score}
+                        </span>
+                      </div>
+
+                      <div
+                        className={`flex items-center justify-between p-sm ${
+                          match.team2.isWinner ? "bg-accent-yellow/20 font-black" : match.team1.isWinner ? "opacity-40" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-xs">
+                          <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase overflow-hidden">
+                            {match.team2.avatarUrl && match.team2.name !== "TBD" ? (
+                              <img src={match.team2.avatarUrl} alt={match.team2.imgAlt} className="w-full h-full object-cover" />
+                            ) : (
+                              match.team2.name.charAt(0)
+                            )}
+                          </div>
+                          <span className="text-xs uppercase line-clamp-1">
+                            {match.team2.name}
+                          </span>
+                        </div>
+                        <span className="text-sm font-black">
+                          {match.team2.score}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <>
@@ -163,7 +280,7 @@ function BracketsContent() {
                 </Link>
               )}
               <span className="px-2 py-1 bg-primary text-white text-xs font-bold uppercase">
-                {tournament?.type?.replace("_", " ") || "Master Class"}
+                {tournament?.type?.replaceAll("_", " ") || "Master Class"}
               </span>
               <span className="font-bold text-xs uppercase tracking-widest text-primary">
                 • {tournament?.title || "London Regional 2026"}
@@ -174,7 +291,10 @@ function BracketsContent() {
             </h2>
           </div>
           <div className="flex gap-sm">
-            <button className="flex items-center gap-xs px-sm py-xs border-4 border-primary bg-white font-bold uppercase text-sm neo-brutalist-shadow-sm active:translate-y-0.5 transition-all">
+            <button
+              onClick={handleShareBracket}
+              className="flex items-center gap-xs px-sm py-xs border-4 border-primary bg-white font-bold uppercase text-sm neo-brutalist-shadow-sm active:translate-y-0.5 transition-all"
+            >
               <span className="material-symbols-outlined">share</span> Share
             </button>
             <button className="flex items-center gap-xs px-sm py-xs border-4 border-primary bg-primary text-white font-bold uppercase text-sm neo-brutalist-shadow-sm active:translate-y-0.5 transition-all">
@@ -194,70 +314,39 @@ function BracketsContent() {
           </div>
         ) : (
           <section className="overflow-x-auto pb-lg select-none">
-            <div className="flex gap-md md:gap-xl py-md relative">
-              {sortedRounds.map((roundNum) => {
-                const matches = roundsMatches[roundNum] || [];
-                const roundName = getRoundName(roundNum, tournament?.type);
-
-                return (
-                  <div key={roundNum} className="flex flex-col gap-md md:gap-lg min-w-[280px] w-[280px]">
-                    <div className="text-center border-b-4 border-primary pb-xs mb-md select-none bg-surface-container-high p-xs">
-                      <p className="text-xs font-black text-primary uppercase tracking-[0.2em] line-clamp-1">
-                        {roundName}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col justify-around h-full gap-md">
-                      {matches.map((match) => (
-                        <div key={match.id} className="relative group text-primary">
-                          <div className="match-card border-4 border-primary bg-white overflow-hidden neo-brutalist-shadow-sm hover:-translate-y-0.5 hover:translate-x-[-2px] hover:shadow-md transition-all">
-                            <div className="flex flex-col">
-                              {/* Player 1 */}
-                              <div
-                                className={`flex items-center justify-between p-sm border-b-2 border-primary ${match.team1.isWinner ? "bg-accent-yellow/20 font-black" : match.team2.isWinner ? "opacity-40" : ""
-                                  }`}
-                              >
-                                <div className="flex items-center gap-xs">
-                                  <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
-                                    {match.team1.name.charAt(0)}
-                                  </div>
-                                  <span className="text-xs uppercase line-clamp-1">
-                                    {match.team1.name}
-                                  </span>
-                                </div>
-                                <span className="text-sm font-black">
-                                  {match.team1.score}
-                                </span>
-                              </div>
-
-                              {/* Player 2 */}
-                              <div
-                                className={`flex items-center justify-between p-sm ${match.team2.isWinner ? "bg-accent-yellow/20 font-black" : match.team1.isWinner ? "opacity-40" : ""
-                                  }`}
-                              >
-                                <div className="flex items-center gap-xs">
-                                  <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
-                                    {match.team2.name.charAt(0)}
-                                  </div>
-                                  <span className="text-xs uppercase line-clamp-1">
-                                    {match.team2.name}
-                                  </span>
-                                </div>
-                                <span className="text-sm font-black">
-                                  {match.team2.score}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+            {tournament?.type === "DOUBLE_ELIMINATION" ? (
+              <div className="space-y-lg">
+                <div>
+                  <div className="inline-flex items-center gap-xs px-sm py-xs border-4 border-primary bg-primary text-white font-black uppercase text-sm">
+                    Winners Bracket
                   </div>
-                );
-              })}
+                  {renderRoundColumns(positiveRounds)}
+                </div>
 
-              {/* Grand Champion Column */}
-              {grandChampion && (
+                {losersRounds.length > 0 && (
+                  <div>
+                    <div className="inline-flex items-center gap-xs px-sm py-xs border-4 border-primary bg-accent-red text-white font-black uppercase text-sm">
+                      Losers Bracket
+                    </div>
+                    {renderRoundColumns(losersRounds)}
+                  </div>
+                )}
+
+                {grandFinalsRounds.length > 0 && (
+                  <div>
+                    <div className="inline-flex items-center gap-xs px-sm py-xs border-4 border-primary bg-accent-yellow text-primary font-black uppercase text-sm">
+                      Grand Finals
+                    </div>
+                    {renderRoundColumns(grandFinalsRounds)}
+                  </div>
+                )}
+              </div>
+            ) : (
+              renderRoundColumns(sortedRounds)
+            )}
+
+            {grandChampion && (
+              <div className="mt-lg flex justify-center">
                 <div className="flex flex-col items-center justify-center min-w-[280px] w-[280px] bg-accent-yellow/10 border-4 border-primary border-dashed p-md neo-brutalist-shadow self-center">
                   <div className="w-20 h-20 bg-primary flex items-center justify-center border-4 border-primary mb-sm">
                     {grandChampion.logo || grandChampion.image ? (
@@ -276,8 +365,8 @@ function BracketsContent() {
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -292,7 +381,7 @@ function BracketsContent() {
             <div className="select-none">
               <p className="text-xs font-bold uppercase tracking-widest text-primary">Registered Players</p>
               <p className="text-4xl font-bold tracking-tighter">
-                {tournament?.registrations?.length || 0} Players
+                {registeredCount} {isTeamTournament ? "Teams" : "Players"}
               </p>
             </div>
           </div>
@@ -320,7 +409,7 @@ function BracketsContent() {
             <div className="select-none">
               <p className="text-xs font-bold uppercase tracking-widest text-primary">Format Type</p>
               <p className="text-4xl font-bold tracking-tighter capitalize">
-                {tournament?.type?.toLowerCase().replace("_", " ")}
+                {tournament?.type?.toLowerCase().replaceAll("_", " ")}
               </p>
             </div>
           </div>

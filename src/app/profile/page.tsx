@@ -7,10 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { logoutTrainer } from "@/app/actions/authActions";
+import { usePopup } from "@/components/PopupProvider";
 
 type TabId = "trainer" | "squad";
 
 export default function Profile() {
+  const { confirm } = usePopup();
   const [activeTab, setActiveTab] = useState<TabId>("trainer");
   const [profileData, setProfileData] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -319,7 +321,7 @@ export default function Profile() {
       LEAVE: "Are you sure you want to leave this squad?",
     };
 
-    if (!confirm(confirmationMsg[action] || "Confirm roster modification?")) return;
+    if (!await confirm(confirmationMsg[action] || "Confirm roster modification?")) return;
 
     try {
       const res = await fetch("/api/squads/roster", {
@@ -341,7 +343,7 @@ export default function Profile() {
 
   const handleDisbandSquad = async () => {
     if (!squadData) return;
-    if (!confirm("Are you absolutely sure you want to disband and delete your squad? This action is permanent and cannot be undone.")) return;
+    if (!await confirm("Are you absolutely sure you want to disband and delete your squad? This action is permanent and cannot be undone.")) return;
     
     try {
       const res = await fetch(`/api/squads/${squadData.id}`, {

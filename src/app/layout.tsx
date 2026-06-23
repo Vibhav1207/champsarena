@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { PopupProvider } from "@/components/PopupProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background min-h-full flex flex-col font-space-grotesk selection:bg-accent-yellow selection:text-primary">
-        {children}
+        <PopupProvider>
+          {children}
+        </PopupProvider>
       </body>
     </html>
   );
