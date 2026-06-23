@@ -409,7 +409,6 @@ export default function AuthPage() {
                           {loading ? "ENTERING..." : "Enter the Stadium"}
                         </button>
 
-                        {/* Admin Hint */}
 
                       </motion.form>
                     ) : tab === "signup" ? (
