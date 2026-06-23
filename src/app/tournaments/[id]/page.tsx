@@ -250,7 +250,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
       <main className="max-w-container-max mx-auto px-md py-xl text-left">
         {/* Tournament Hero Banner */}
-        <section className="relative border-4 border-primary neo-brutalist-shadow mb-xl bg-surface-container-high overflow-hidden h-[500px]">
+        <section className="relative border-4 border-primary neo-brutalist-shadow mb-xl bg-surface-container-high overflow-hidden min-h-[360px] md:h-[500px] flex flex-col justify-end">
           <div className="absolute inset-0 z-0 grayscale contrast-125 select-none">
             <div className="w-full h-full bg-cover bg-center opacity-60">
               <Image
@@ -263,8 +263,8 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
             </div>
             <div className="absolute inset-0 bg-accent-yellow/20 mix-blend-multiply"></div>
           </div>
-          <div className="absolute bottom-0 left-0 p-xl z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-xl bg-white/90 border-t-4 border-primary">
-            <div className="space-y-sm">
+          <div className="relative z-10 w-full p-md md:p-xl flex flex-col md:flex-row md:items-end justify-between gap-md md:gap-xl bg-white/90 border-t-4 border-primary">
+            <div className="space-y-sm text-left">
               <div className="flex flex-wrap items-center gap-sm mb-xs select-none">
                 <span className="px-sm py-1 bg-primary text-white text-label-lg font-black uppercase">
                   {tournament?.type?.replace("_", " ") || "REGIONAL QUALIFIER"}
@@ -274,10 +274,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                   {tournament?.status || "LIVE NOW"}
                 </span>
               </div>
-              <h1 className="font-bold text-[48px] md:text-[64px] uppercase leading-none text-primary tracking-tighter select-none">
+              <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl uppercase leading-none text-primary tracking-tighter select-none">
                 {tournament?.title}
               </h1>
-              <p className="text-primary font-body-lg max-w-[672px] font-bold uppercase">
+              <p className="text-primary font-body-lg max-w-[672px] font-bold uppercase text-xs sm:text-sm">
                 {tournament?.description || "The premier circuit tournament stage. Form follows function."}
               </p>
             </div>
@@ -337,7 +337,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
         {/* Active Match Card */}
         {activeMatch && (
-          <section className="border-4 border-primary bg-white p-xl neo-brutalist-shadow mb-xl relative overflow-hidden text-primary">
+          <section className="border-4 border-primary bg-white p-md md:p-xl neo-brutalist-shadow mb-xl relative overflow-hidden text-primary">
             {/* Top Bar Accent */}
             <div className="absolute top-0 left-0 right-0 h-3 bg-accent-blue" />
             
@@ -395,7 +395,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               </div>
 
               {/* Action Forms / Info */}
-              <div className="w-full lg:w-auto flex flex-col md:flex-row gap-md items-end">
+              <div className="w-full lg:w-auto flex flex-col md:flex-row gap-md items-stretch md:items-end">
                 {activeMatch.dispute ? (
                   <div className="w-full md:w-80 bg-accent-red/10 border-2 border-accent-red p-sm text-xs font-bold uppercase text-accent-red">
                     <p className="font-black mb-1">Dispute Reason:</p>
@@ -503,11 +503,11 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-12 gap-xl"
+                className="grid grid-cols-12 gap-md lg:gap-xl"
               >
                 {/* Rules List */}
-                <div className="col-span-12 lg:col-span-8 space-y-xl">
-                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                <div className="col-span-12 lg:col-span-8 space-y-md lg:space-y-xl">
+                  <div className="bg-white p-md md:p-xl border-4 border-primary neo-brutalist-shadow">
                     <h2 className="font-headline-lg uppercase mb-xl border-b-8 border-primary inline-block select-none">
                       Tournament Regulations
                     </h2>
@@ -559,8 +559,8 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 </div>
 
                 {/* Prize Pool Distribution */}
-                <div className="col-span-12 lg:col-span-4 space-y-xl">
-                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                <div className="col-span-12 lg:col-span-4 space-y-md lg:space-y-xl">
+                  <div className="bg-white p-md md:p-xl border-4 border-primary neo-brutalist-shadow">
                     <h2 className="font-headline-md uppercase mb-xl border-b-4 border-primary select-none">
                       Prize Distribution
                     </h2>
@@ -606,10 +606,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-12 gap-xl"
+                className="grid grid-cols-12 gap-md lg:gap-xl"
               >
                 <div className="col-span-12 max-w-[896px] mx-auto w-full">
-                  <div className="bg-white p-xl border-4 border-primary neo-brutalist-shadow">
+                  <div className="bg-white p-md md:p-xl border-4 border-primary neo-brutalist-shadow">
                     <h2 className="font-headline-lg uppercase mb-xl text-center select-none">
                       Event Timeline
                     </h2>
@@ -651,32 +651,32 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                           highlight: true,
                         },
                       ].map((item, index, arr) => (
-                        <div key={index} className="timeline-item flex gap-xl pb-xl relative">
+                        <div key={index} className="timeline-item flex gap-md pb-md md:pb-xl relative">
                           <div className="timeline-dot flex flex-col items-center relative select-none">
                             <span
-                              className={`w-16 h-16 flex items-center justify-center border-4 border-primary z-10 ${
+                              className={`w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-4 border-primary z-10 ${
                                 item.highlight
                                   ? "bg-primary text-white"
                                   : "bg-white text-primary"
                               }`}
                             >
-                              <span className="material-symbols-outlined scale-150">
+                              <span className="material-symbols-outlined scale-125 md:scale-150">
                                 {item.icon}
                               </span>
                             </span>
                             {index !== arr.length - 1 && (
-                              <div className="absolute top-16 bottom-0 w-[4px] bg-primary h-[calc(100%+8px)]" />
+                              <div className="absolute top-12 md:top-16 bottom-0 w-[4px] bg-primary h-[calc(100%+8px)]" />
                             )}
                           </div>
                           
-                          <div className="flex-1 pt-4 text-left">
-                            <span className="text-label-lg bg-accent-yellow border-2 border-primary px-2 py-1 font-black">
+                          <div className="flex-1 pt-0 md:pt-4 text-left">
+                            <span className="text-[10px] md:text-label-lg bg-accent-yellow border-2 border-primary px-2 py-1 font-black">
                               {item.time}
                             </span>
-                            <h3 className="font-headline-md uppercase mt-2">
+                            <h3 className="text-sm md:font-headline-md uppercase mt-1 md:mt-2">
                               {item.title}
                             </h3>
-                            <p className="text-primary font-bold uppercase text-sm mt-2">
+                            <p className="text-primary font-bold uppercase text-[10px] md:text-sm mt-1 md:mt-2">
                               {item.desc}
                             </p>
                           </div>
@@ -735,7 +735,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 className="space-y-xl font-bold"
               >
                 <div className="bg-white border-4 border-primary neo-brutalist-shadow overflow-hidden">
-                  <div className="p-xl bg-accent-yellow border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none">
+                  <div className="p-md md:p-xl bg-accent-yellow border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none">
                     <h2 className="font-headline-md uppercase">Current Swiss Standings</h2>
                     <div className="relative w-full md:w-auto">
                       <input
@@ -755,29 +755,29 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-primary text-white uppercase font-black select-none border-b-4 border-primary">
-                          <th className="px-xl py-md border-r-2 border-primary">Rank</th>
-                          <th className="px-xl py-md border-r-2 border-primary">Player</th>
-                          <th className="px-xl py-md border-r-2 border-primary">W-L-D</th>
-                          <th className="px-xl py-md border-r-2 border-primary">Pts</th>
-                          <th className="px-xl py-md">OMW%</th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Rank</th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Player</th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">W-L-D</th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Pts</th>
+                          <th className="px-md py-sm md:px-xl md:py-md text-xs md:text-sm">OMW%</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y-4 divide-primary">
                         {filteredStandings.length > 0 ? (
                           filteredStandings.map((player, index) => (
                             <tr key={index} className="hover:bg-accent-yellow transition-colors group">
-                              <td className="px-xl py-md font-black text-2xl border-r-2 border-primary select-none">{player.rank}</td>
-                              <td className="px-xl py-md border-r-2 border-primary">
-                                <div className="flex items-center gap-md">
-                                  <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
+                              <td className="px-md py-sm md:px-xl md:py-md font-black text-lg md:text-2xl border-r-2 border-primary select-none">{player.rank}</td>
+                              <td className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary">
+                                <div className="flex items-center gap-sm md:gap-md">
+                                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none text-xs md:text-sm">
                                     {player.name.charAt(0)}
                                   </div>
-                                  <span className="font-black uppercase text-xl">{player.name}</span>
+                                  <span className="font-black uppercase text-sm md:text-xl">{player.name}</span>
                                 </div>
                               </td>
-                              <td className="px-xl py-md font-bold border-r-2 border-primary select-none">{player.record}</td>
-                              <td className="px-xl py-md font-black border-r-2 border-primary select-none">{player.points}</td>
-                              <td className="px-xl py-md font-bold select-none">{player.omw}</td>
+                              <td className="px-md py-sm md:px-xl md:py-md font-bold border-r-2 border-primary select-none text-xs md:text-base">{player.record}</td>
+                              <td className="px-md py-sm md:px-xl md:py-md font-black border-r-2 border-primary select-none text-xs md:text-lg">{player.points}</td>
+                              <td className="px-md py-sm md:px-xl md:py-md font-bold select-none text-xs md:text-base">{player.omw}</td>
                             </tr>
                           ))
                         ) : (

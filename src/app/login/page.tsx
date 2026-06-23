@@ -102,59 +102,59 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-background text-primary selection:bg-accent-yellow selection:text-primary">
-      <main className="h-full w-full flex flex-col lg:flex-row items-stretch overflow-hidden relative">
+    <div className="min-h-screen lg:h-screen w-screen overflow-x-hidden lg:overflow-hidden bg-background text-primary selection:bg-accent-yellow selection:text-primary flex flex-col justify-stretch">
+      <main className="flex-1 w-full flex flex-col lg:flex-row items-stretch lg:overflow-hidden relative">
         
         {/* ── Left Illustration Section (Desktop Only) ── */}
         <div className="hidden lg:flex lg:w-1/2 h-full bg-surface-container-high relative overflow-hidden items-center justify-center border-r-[6px] border-primary">
-          <div className="relative z-10 w-full max-w-[576px] p-lg text-center flex flex-col items-center select-none">
+          <div className="relative z-10 w-full max-w-[576px] p-md lg:p-lg text-center flex flex-col items-center select-none">
             
-            <div className="mb-lg border-4 border-primary neo-brutalist-shadow bg-white p-2">
+            <div className="mb-md lg:mb-lg border-4 border-primary neo-brutalist-shadow bg-white p-2 max-h-[160px] xl:max-h-[260px] overflow-hidden flex items-center justify-center">
               <img 
-                className="w-full h-auto grayscale contrast-125" 
+                className="w-full h-auto grayscale contrast-125 object-cover" 
                 alt="ChampsArena Stadium" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_GGm1TdSujnJMPpV26nMMZ9ErqzNLiFieUPof4Wwl3D5ExarqL9tyrRvWXAJDP-fJPCvXmnGBSCmA38MuTs0JZ2hBh8-oDE0gSe7vARjHZ6POhuHOQcetNUJ5CzOBf5RUgBVY0wQp0RngnafcmCuotXRxGx3r9GdWq-KQW_ddzbhoiGiIpOx6BJCYEJBSw8KgaHVFnba8U3mgsGU9cEAmGP7XW_e407Z3ExFiI2GXMG8hi_qSBIJWwDvQ1qCRfLNL3yYaN0jjxB0" 
               />
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black text-primary mb-sm tracking-tighter uppercase italic leading-[0.9]">
+            <h1 className="text-4xl xl:text-7xl font-black text-primary mb-xs lg:mb-sm tracking-tighter uppercase italic leading-[0.9]">
               ChampsArena
             </h1>
 
-            <p className="text-lg font-bold text-primary bg-accent-yellow inline-block px-4 py-2 border-2 border-primary mb-xl">
+            <p className="text-base xl:text-lg font-bold text-primary bg-accent-yellow inline-block px-4 py-2 border-2 border-primary mb-md lg:mb-xl">
               The elite circuit for the Master Class.
             </p>
 
             {/* Decorative Stats Grid */}
-            <div className="mt-xl grid grid-cols-3 gap-0 w-full border-4 border-primary neo-brutalist-shadow overflow-hidden bg-white">
-              <div className="bg-white p-md border-r-2 border-primary">
-                <span className="block text-2xl font-black text-primary">2.4k</span>
-                <span className="font-black text-[10px] uppercase tracking-widest text-primary">Events</span>
+            <div className="mt-md lg:mt-xl grid grid-cols-3 gap-0 w-full border-4 border-primary neo-brutalist-shadow overflow-hidden bg-white">
+              <div className="bg-white p-sm xl:p-md border-r-2 border-primary">
+                <span className="block text-xl xl:text-2xl font-black text-primary">2.4k</span>
+                <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest text-primary">Events</span>
               </div>
-              <div className="bg-accent-blue text-white p-md border-r-2 border-primary">
-                <span className="block text-2xl font-black">
+              <div className="bg-accent-blue text-white p-sm xl:p-md border-r-2 border-primary">
+                <span className="block text-xl xl:text-2xl font-black">
                   {stats.totalUsers > 0 ? stats.totalUsers.toLocaleString() : "15k"}
                 </span>
-                <span className="font-black text-[10px] uppercase tracking-widest">Trainers</span>
+                <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest">Trainers</span>
               </div>
-              <div className="bg-accent-yellow text-primary p-md">
-                <span className="block text-2xl font-black text-primary">
+              <div className="bg-accent-yellow text-primary p-sm xl:p-md">
+                <span className="block text-xl xl:text-2xl font-black text-primary">
                   {stats.totalTournaments > 0 ? stats.totalTournaments.toLocaleString() : "89"}
                 </span>
-                <span className="font-black text-[10px] uppercase tracking-widest text-primary">Tournaments</span>
+                <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest text-primary">Tournaments</span>
               </div>
             </div>
 
           </div>
 
           {/* Geometric Bauhaus Art Details */}
-          <div className="absolute top-10 left-10 w-24 h-24 bg-accent-red border-4 border-primary"></div>
-          <div className="absolute bottom-20 right-10 w-32 h-32 rounded-full bg-accent-blue border-4 border-primary"></div>
-          <div className="absolute top-1/2 left-0 w-16 h-48 bg-accent-yellow border-4 border-primary -translate-y-1/2"></div>
+          <div className="absolute top-5 left-5 xl:top-10 xl:left-10 w-16 h-16 xl:w-24 xl:h-24 bg-accent-red border-4 border-primary"></div>
+          <div className="absolute bottom-10 right-5 xl:bottom-20 xl:right-10 w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-accent-blue border-4 border-primary"></div>
+          <div className="absolute top-1/2 left-0 w-12 h-36 xl:w-16 xl:h-48 bg-accent-yellow border-4 border-primary -translate-y-1/2"></div>
         </div>
 
         {/* ── Right Form Section ── */}
-        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-center p-sm md:p-xl">
+        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-start lg:justify-center py-xl px-sm md:p-xl">
           <div className="w-full max-w-[512px]">
             
             {/* Mobile Header (Hidden on Desktop) */}
@@ -168,7 +168,7 @@ export default function AuthPage() {
             </div>
 
             {/* Trainer Card Container */}
-            <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[600px] relative">
+            <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[520px] lg:min-h-[600px] relative">
               
               {/* Card Header / Tabs */}
               <div className="flex border-b-[3px] border-primary">
@@ -193,7 +193,8 @@ export default function AuthPage() {
               </div>
 
               {/* Form Body */}
-              <div className="p-lg flex-1 flex flex-col justify-between">
+              <div className="p-md lg:p-lg flex-1 flex flex-col justify-between">
+
                 
                 <div className="space-y-md">
                   

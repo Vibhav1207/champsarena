@@ -180,22 +180,22 @@ function BracketsContent() {
 
         {/* Warning banner or bracket tree depending on started status */}
         {isPreview ? (
-          <div className="border-4 border-primary p-xl text-center bg-white neo-brutalist-shadow select-none my-xl max-w-[896px] mx-auto text-primary">
-            <span className="material-symbols-outlined text-7xl text-primary mb-sm">account_tree</span>
-            <h3 className="text-3xl font-black uppercase italic mb-xs">No Brackets Generated Yet</h3>
-            <p className="font-bold text-primary max-w-[512px] mx-auto uppercase text-sm leading-tight text-primary/60">
+          <div className="border-4 border-primary p-md md:p-xl text-center bg-white neo-brutalist-shadow select-none my-lg md:my-xl max-w-[896px] mx-auto text-primary">
+            <span className="material-symbols-outlined text-5xl md:text-7xl text-primary mb-sm">account_tree</span>
+            <h3 className="text-2xl md:text-3xl font-black uppercase italic mb-xs">No Brackets Generated Yet</h3>
+            <p className="font-bold text-primary max-w-[512px] mx-auto uppercase text-xs md:text-sm leading-tight text-primary/60">
               Select an ongoing tournament or wait until tournament matches are officially generated to view brackets.
             </p>
           </div>
         ) : (
           <section className="overflow-x-auto pb-lg select-none">
-            <div className="flex gap-xl py-md relative">
+            <div className="flex gap-md md:gap-xl py-md relative">
               {sortedRounds.map((roundNum) => {
                 const matches = roundsMatches[roundNum] || [];
                 const roundName = getRoundName(roundNum, tournament?.type);
                 
                 return (
-                  <div key={roundNum} className="flex flex-col gap-lg min-w-[280px] w-[280px]">
+                  <div key={roundNum} className="flex flex-col gap-md md:gap-lg min-w-[280px] w-[280px]">
                     <div className="text-center border-b-4 border-primary pb-xs mb-md select-none bg-surface-container-high p-xs">
                       <p className="text-xs font-black text-primary uppercase tracking-[0.2em] line-clamp-1">
                         {roundName}

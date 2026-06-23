@@ -1,59 +1,63 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F5F5F5;
-  --color-on-background: #1a1a1a;
-  --color-primary: #1a1a1a;
+  --color-background: #fcf8f8;
+  --color-on-background: #1c1b1b;
+  --color-primary: #5d5f5f;
   --color-on-primary: #ffffff;
   --color-primary-container: #ffffff;
-  --color-on-primary-container: #1a1a1a;
-  --color-secondary: #1a1a1a;
+  --color-on-primary-container: #747676;
+  --color-secondary: #5d5f5f;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #1a1a1a;
-  --color-on-secondary-container: #ffffff;
-  --color-tertiary: #1a1a1a;
-  --color-on-tertiary: #1a1a1a;
+  --color-secondary-container: #dcdddd;
+  --color-on-secondary-container: #5f6161;
+  --color-tertiary: #3f50ce;
+  --color-on-tertiary: #ffffff;
   --color-tertiary-container: #ffffff;
-  --color-on-tertiary-container: #1a1a1a;
-  --color-error: #FF3B3B;
+  --color-on-tertiary-container: #5869e7;
+  --color-error: #ba1a1a;
   --color-on-error: #ffffff;
-  --color-error-container: #FF3B3B;
-  --color-on-error-container: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
   
-  --color-surface: #ffffff;
-  --color-surface-dim: #d1d1d1;
-  --color-surface-bright: #ffffff;
+  --color-surface: #fcf8f8;
+  --color-surface-dim: #ddd9d9;
+  --color-surface-bright: #fcf8f8;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #fafafa;
-  --color-surface-container: #ffffff;
-  --color-surface-container-high: #e5e5e5;
-  --color-surface-container-highest: #e5e5e5;
-  --color-on-surface: #1a1a1a;
-  --color-on-surface-variant: #1a1a1a;
-  --color-inverse-surface: #1a1a1a;
-  --color-inverse-on-surface: #F5F5F5;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f1edec;
+  --color-surface-container-high: #ebe7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #444748;
+  --color-inverse-surface: #313030;
+  --color-inverse-on-surface: #f4f0ef;
   
-  --color-outline: #1a1a1a;
-  --color-outline-variant: #1a1a1a;
+  --color-outline: #747878;
+  --color-outline-variant: #c4c7c8;
   
-  --color-primary-fixed: #1a1a1a;
-  --color-primary-fixed-dim: #333333;
-  --color-on-primary-fixed: #ffffff;
-  --color-on-primary-fixed-variant: #333333;
+  --color-primary-fixed: #e2e2e2;
+  --color-primary-fixed-dim: #c6c6c7;
+  --color-on-primary-fixed: #1a1c1c;
+  --color-on-primary-fixed-variant: #454747;
   
-  --color-secondary-fixed: #1a1a1a;
-  --color-secondary-fixed-dim: #333333;
-  --color-on-secondary-fixed: #ffffff;
-  --color-on-secondary-fixed-variant: #d1d1d1;
+  --color-secondary-fixed: #e2e2e2;
+  --color-secondary-fixed-dim: #c6c6c7;
+  --color-on-secondary-fixed: #1a1c1c;
+  --color-on-secondary-fixed-variant: #454747;
   
-  --color-tertiary-fixed: #FFD700;
-  --color-tertiary-fixed-dim: #e6c200;
-  --color-on-tertiary-fixed: #1a1a1a;
-  --color-on-tertiary-fixed-variant: #1a1a1a;
+  --color-tertiary-fixed: #dfe0ff;
+  --color-tertiary-fixed-dim: #bcc2ff;
+  --color-on-tertiary-fixed: #000b62;
+  --color-on-tertiary-fixed-variant: #2335b5;
   
-  --color-accent-blue: #0051FF;
-  --color-accent-red: #FF3B3B;
-  --color-accent-yellow: #FFD700;
+  --color-gold-accent: #FFD700;
+  --color-victory-gold: #FFCB05;
+
+  /* Custom Tailwind Color Mappings for user references */
+  --color-accent-blue: #3f50ce;
+  --color-accent-red: #ba1a1a;
+  --color-accent-yellow: #FFCB05;
 
   /* Custom Spacing Rules */
   --spacing-gutter: 24px;
@@ -65,12 +69,12 @@
   --spacing-xl: 64px;
   --spacing-base: 4px;
 
-  /* Custom Border Radius - Overridden to 0px for Bauhaus Edition */
-  --radius-sm: 0px;
-  --radius-DEFAULT: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  /* Custom Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
   /* Custom Fonts */
@@ -108,33 +112,35 @@
 
 /* Material symbols utility */
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
   vertical-align: middle;
 }
 
 .material-symbols-fill {
-  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
   vertical-align: middle;
 }
 
 /* Custom layout patterns */
 .glass-card {
-  background: #ffffff;
-  border: 4px solid #1a1a1a;
-  box-shadow: 8px 8px 0px 0px #1a1a1a;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .glass-panel {
-  background: #ffffff;
-  border-left: 4px solid #1a1a1a;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .pokeball-pattern {
-  background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+  background-color: #fcf8f8;
+  background-image: radial-gradient(#3f50ce 1px, transparent 1px), radial-gradient(#3f50ce 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.04;
+  background-position: 0 0, 20px 20px;
+  opacity: 0.03;
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -142,14 +148,15 @@
 
 /* Custom Scrollbar for profile team section */
 .custom-scroll::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
 .custom-scroll::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-left: 2px solid #1a1a1a;
+  background: transparent;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
+  background: #e2e2e2;
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -160,8 +167,8 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
-  border-radius: 0px;
+  background: #dfe0ff;
+  border-radius: 10px;
 }
 
 /* Marquee Animation */
@@ -171,7 +178,7 @@
 }
 .animate-marquee {
   display: flex;
-  animation: marquee 25s linear infinite;
+  animation: marquee 30s linear infinite;
   width: max-content;
 }
 .animate-marquee:hover {
@@ -180,45 +187,48 @@
 
 /* Bracket Connecting Lines */
 .bracket-line-vertical {
-  width: 4px;
-  background-color: #1a1a1a;
+  width: 2px;
+  background-color: #3f50ce;
+  opacity: 0.2;
 }
 .bracket-line-horizontal {
-  height: 4px;
-  background-color: #1a1a1a;
+  height: 2px;
+  background-color: #3f50ce;
+  opacity: 0.2;
 }
 .match-card:hover .bracket-line-active {
-  background-color: #FF3B3B;
+  opacity: 1;
 }
 .champion-glow {
-  box-shadow: 8px 8px 0px 0px #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 .trainer-card-shadow {
-  box-shadow: 8px 8px 0px 0px #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .trainer-card-gradient {
-  background: #ffffff;
-  border: 4px solid #1a1a1a;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f3f2 100%);
+  border-top: 6px solid #3f50ce;
 }
 
 .active-nav-bg {
-  background-color: #FFD700;
-  color: #1a1a1a;
+  background: linear-gradient(90deg, rgba(63, 80, 206, 0.1) 0%, rgba(63, 80, 206, 0) 100%);
 }
 
 .pokeball-checkbox {
   appearance: none;
-  width: 24px;
-  height: 24px;
-  border: 3px solid #1a1a1a;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #5d5f5f;
   position: relative;
   cursor: pointer;
-  background: white;
+  transition: all 0.2s ease;
 }
 .pokeball-checkbox:checked {
-  background-color: #FF3B3B;
+  background-color: #3f50ce;
+  border-color: #3f50ce;
 }
 .pokeball-checkbox:checked::after {
   content: '';
@@ -228,18 +238,18 @@
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background: #1a1a1a;
+  background: white;
   border-radius: 50%;
 }
 
 .active-tab-indicator {
-  height: 8px;
-  background-color: #FF3B3B;
+  height: 4px;
+  background-color: #3f50ce;
+  border-radius: 2px 2px 0 0;
   position: absolute;
-  bottom: -4px;
+  bottom: 0;
   left: 0;
   width: 100%;
-  z-index: 10;
 }
 
 /* Custom styling for body element */
@@ -262,26 +272,25 @@ body {
 
 /* Neo-brutalist theme specific styles */
 .neo-brutalist-shadow {
-  box-shadow: 8px 8px 0px 0px #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .neo-brutalist-shadow-sm {
-  box-shadow: 4px 4px 0px 0px #1a1a1a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 .neo-brutalist-shadow-hover {
   transition: all 0.2s ease;
 }
 .neo-brutalist-shadow-hover:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 12px 12px 0px 0px #1a1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 .neo-brutalist-button-active:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0px 0px #1a1a1a;
+  transform: translateY(1px);
 }
 .bauhaus-grid {
-  background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+  background-image: radial-gradient(#3f50ce 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.05;
+  opacity: 0.03;
 }
 
 /* ── M3 Typography utilities (font-* mirrors the size classes)  */

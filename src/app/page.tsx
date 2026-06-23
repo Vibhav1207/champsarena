@@ -115,7 +115,7 @@ export default function Home() {
 
       <main className="pt-0">
         {/* Hero Section */}
-        <section className="relative w-full h-[700px] flex items-center justify-center overflow-hidden border-b-4 border-primary bg-accent-yellow/10">
+        <section className="relative w-full min-h-[500px] md:h-[700px] py-xl md:py-0 flex items-center justify-center overflow-hidden border-b-4 border-primary bg-accent-yellow/10">
           <div className="absolute inset-0 z-0 opacity-50 grayscale contrast-125">
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo"
@@ -128,28 +128,28 @@ export default function Home() {
           </div>
           <div className="bauhaus-grid absolute inset-0"></div>
           <div className="relative z-20 text-center px-sm max-w-[896px]">
-            <div className="inline-block bg-accent-red text-white font-bold uppercase px-4 py-1 mb-md transform -rotate-1 text-xl select-none">
+            <div className="inline-block bg-accent-red text-white font-bold uppercase px-4 py-1 mb-md transform -rotate-1 text-lg sm:text-xl select-none">
               The Ultimate Stage
             </div>
-            <h1 className="font-bold text-[56px] md:text-[88px] text-primary mb-md leading-none uppercase tracking-tighter">
+            <h1 className="font-bold text-4xl sm:text-6xl md:text-7xl lg:text-[88px] text-primary mb-md leading-none uppercase tracking-tighter">
               <span className="block">ChampsArena</span>
               <span className="block bg-primary text-white inline-block px-4 py-2 transform rotate-1">League</span>
             </h1>
-            <p className="font-bold text-lg md:text-xl text-primary mb-xl max-w-[672px] mx-auto border-l-8 border-primary pl-6 bg-white/80 p-4">
+            <p className="font-bold text-sm sm:text-base md:text-xl text-primary mb-xl max-w-[672px] mx-auto border-l-8 border-primary pl-6 bg-white/80 p-4">
               Join the official tournament series and claim your place in the Hall of Fame. Form follows function.
             </p>
-            <div className="flex flex-col sm:flex-row gap-lg justify-center select-none">
-              <Link href="/login" className="bg-accent-yellow text-primary px-xl py-md border-4 border-primary font-black text-2xl uppercase tracking-widest neo-brutalist-shadow neo-brutalist-button-active transition-all block text-center hover:translate-x-1 hover:translate-y-1">
+            <div className="flex flex-col md:flex-row gap-md justify-center select-none w-full max-w-sm md:max-w-none mx-auto">
+              <Link href="/login" className="bg-accent-yellow text-primary px-lg py-sm md:px-xl md:py-md border-4 border-primary font-black text-lg md:text-2xl uppercase tracking-widest neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1">
                 Register Now
               </Link>
-              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-xl py-md font-black text-2xl uppercase tracking-widest neo-brutalist-shadow neo-brutalist-button-active transition-all block text-center hover:translate-x-1 hover:translate-y-1">
+              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-lg py-sm md:px-xl md:py-md font-black text-lg md:text-2xl uppercase tracking-widest neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1">
                 Schedule
               </Link>
             </div>
           </div>
           {/* Bauhaus Decorative Elements */}
-          <div className="absolute top-20 right-20 w-32 h-32 bg-accent-red rounded-full select-none pointer-events-none"></div>
-          <div className="absolute bottom-20 left-20 w-40 h-40 border-8 border-accent-blue select-none pointer-events-none"></div>
+          <div className="hidden md:block absolute top-20 right-20 w-32 h-32 bg-accent-red rounded-full select-none pointer-events-none"></div>
+          <div className="hidden md:block absolute bottom-20 left-20 w-40 h-40 border-8 border-accent-blue select-none pointer-events-none"></div>
         </section>
 
         {/* Winners Ticker */}
@@ -171,7 +171,7 @@ export default function Home() {
         </div>
 
         {/* Latest Announcement & Upcoming Events */}
-        <section className="max-w-container-max mx-auto px-md py-xl grid grid-cols-1 lg:grid-cols-12 gap-xl">
+        <section className="max-w-container-max mx-auto px-md py-lg md:py-xl grid grid-cols-1 lg:grid-cols-12 gap-md lg:gap-xl">
           {/* Latest Announcement Card */}
           <div className="lg:col-span-5 flex flex-col">
             <h2 className="font-black text-4xl text-primary mb-md uppercase tracking-tighter flex items-center gap-sm select-none">
@@ -305,14 +305,14 @@ export default function Home() {
                 <span className="material-symbols-outlined animate-spin text-primary text-5xl">progress_activity</span>
               </div>
             ) : topPlayers.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-xl items-end max-w-[896px] mx-auto pt-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-md md:gap-xl items-end max-w-[896px] mx-auto pt-sm">
                 
                 {/* Champion 2 (Left) */}
                 <div className="order-2 md:order-1 flex flex-col items-center">
                   {topPlayers[1] ? (
                     <>
                       <div className="relative mb-lg select-none">
-                        <div className="w-56 h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
+                        <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
                           {topPlayers[1].image ? (
                             <Image
                               src={topPlayers[1].image}
@@ -334,7 +334,7 @@ export default function Home() {
                       <span className="bg-primary text-white px-4 py-1 font-black uppercase text-xs tracking-widest select-none">Wins: {topPlayers[1].wins}</span>
                     </>
                   ) : (
-                    <div className="w-56 h-56 border-8 border-dashed border-primary flex items-center justify-center font-bold text-xl text-primary/40 select-none">
+                    <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-dashed border-primary flex items-center justify-center font-bold text-xl text-primary/40 select-none">
                       2nd Place
                     </div>
                   )}
@@ -345,7 +345,7 @@ export default function Home() {
                   {topPlayers[0] ? (
                     <>
                       <div className="relative mb-lg select-none">
-                        <div className="w-72 h-72 border-8 border-primary bg-accent-yellow overflow-hidden neo-brutalist-shadow transition-all relative">
+                        <div className="w-56 h-56 sm:w-72 sm:h-72 border-8 border-primary bg-accent-yellow overflow-hidden neo-brutalist-shadow transition-all relative">
                           {topPlayers[0].image ? (
                             <Image
                               src={topPlayers[0].image}
@@ -367,7 +367,7 @@ export default function Home() {
                       <span className="bg-accent-red text-white px-6 py-2 font-black uppercase text-sm tracking-widest select-none">Wins: {topPlayers[0].wins}</span>
                     </>
                   ) : (
-                    <div className="w-72 h-72 border-8 border-dashed border-primary flex items-center justify-center font-bold text-2xl text-primary/40 select-none">
+                    <div className="w-56 h-56 sm:w-72 sm:h-72 border-8 border-dashed border-primary flex items-center justify-center font-bold text-2xl text-primary/40 select-none">
                       Champion
                     </div>
                   )}
@@ -378,7 +378,7 @@ export default function Home() {
                   {topPlayers[2] ? (
                     <>
                       <div className="relative mb-lg select-none">
-                        <div className="w-56 h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
+                        <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
                           {topPlayers[2].image ? (
                             <Image
                               src={topPlayers[2].image}
@@ -400,7 +400,7 @@ export default function Home() {
                       <span className="bg-primary text-white px-4 py-1 font-black uppercase text-xs tracking-widest select-none">Wins: {topPlayers[2].wins}</span>
                     </>
                   ) : (
-                    <div className="w-56 h-56 border-8 border-dashed border-primary flex items-center justify-center font-bold text-xl text-primary/40 select-none">
+                    <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-dashed border-primary flex items-center justify-center font-bold text-xl text-primary/40 select-none">
                       3rd Place
                     </div>
                   )}
@@ -417,8 +417,8 @@ export default function Home() {
         </section>
 
         {/* Community Hub Section */}
-        <section className="max-w-container-max mx-auto px-md py-xl">
-          <div className="bg-white border-8 border-primary p-lg md:p-xl flex flex-col md:flex-row items-center gap-xl relative overflow-hidden neo-brutalist-shadow">
+        <section className="max-w-container-max mx-auto px-md py-lg md:py-xl">
+          <div className="bg-white border-4 md:border-8 border-primary p-md md:p-xl flex flex-col md:flex-row items-center gap-md md:gap-xl relative overflow-hidden neo-brutalist-shadow">
             <div className="absolute -top-10 -right-10 w-64 h-64 bg-accent-blue rounded-full opacity-20 select-none pointer-events-none"></div>
             <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-accent-red opacity-20 transform rotate-12 select-none pointer-events-none"></div>
             <div className="relative z-10 flex-1">
@@ -427,11 +427,11 @@ export default function Home() {
               <p className="font-bold text-xl md:text-2xl text-primary mb-xl max-w-[512px] uppercase">
                 Connect with thousands of trainers. Discuss meta, find partners, and get real-time support.
               </p>
-              <div className="flex flex-wrap gap-lg select-none">
-                <a href="#" className="bg-[#5865F2] text-white px-lg py-md border-4 border-primary font-black uppercase text-xl flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
+              <div className="flex flex-wrap gap-md md:gap-lg select-none">
+                <a href="#" className="bg-[#5865F2] text-white px-md py-sm md:px-lg md:py-md border-4 border-primary font-black uppercase text-base md:text-xl flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
                   Discord Community
                 </a>
-                <a href="#" className="bg-white text-primary px-lg py-md border-4 border-primary font-black uppercase text-xl flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
+                <a href="#" className="bg-white text-primary px-md py-sm md:px-lg md:py-md border-4 border-primary font-black uppercase text-base md:text-xl flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
                   Find Local Clubs
                 </a>
               </div>

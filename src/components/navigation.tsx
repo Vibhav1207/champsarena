@@ -101,7 +101,7 @@ export default function Navigation() {
             )}
 
             <Link href="/login"
-              className="bg-primary text-white px-sm py-2 border-2 border-primary font-bold uppercase tracking-widest text-[13px] neo-brutalist-shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-accent-blue transition-colors">
+              className="hidden sm:block bg-primary text-white px-sm py-2 border-2 border-primary font-bold uppercase tracking-widest text-[13px] neo-brutalist-shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-accent-blue transition-colors">
               {session ? "Dashboard" : "Register"}
             </Link>
 
@@ -129,6 +129,15 @@ export default function Navigation() {
             <Link href="/admin" onClick={() => setMobileMenuOpen(false)}
               className={getMobileLinkCls("/admin", "bg-accent-blue/20")}>
               Admin Panel
+            </Link>
+          )}
+          {session ? (
+            <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/profile", "bg-accent-blue/20")}>
+              Profile / Dashboard
+            </Link>
+          ) : (
+            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/login", "bg-accent-blue/20")}>
+              Register / Sign In
             </Link>
           )}
           {session && (

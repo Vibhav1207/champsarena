@@ -148,8 +148,8 @@ export default function Profile() {
                 </div>
 
                 {/* Left Side: Avatar & Name */}
-                <div className="md:w-2/5 p-lg flex flex-col items-start border-b-4 md:border-b-0 md:border-r-4 border-primary bg-white">
-                  <div className="relative w-full aspect-square border-4 border-primary mb-md overflow-hidden bg-surface-container-low select-none">
+                <div className="md:w-2/5 p-lg flex flex-col items-center md:items-start border-b-4 md:border-b-0 md:border-r-4 border-primary bg-white text-center md:text-left">
+                  <div className="relative w-full max-w-[280px] mx-auto md:max-w-none md:mx-0 aspect-square border-4 border-primary mb-md overflow-hidden bg-surface-container-low select-none">
                     {image ? (
                       <Image
                         src={image}
@@ -168,7 +168,7 @@ export default function Profile() {
                     </div>
                   </div>
                   
-                  <h1 className="text-5xl font-black uppercase leading-none tracking-tighter mb-2 text-primary">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-2 text-primary">
                     Trainer {trainerName}
                   </h1>
                   <p className="text-xl font-medium uppercase text-primary opacity-60">
@@ -220,13 +220,13 @@ export default function Profile() {
 
                   <div className="p-lg bg-surface-container-low border-t-4 border-primary">
                     <span className="font-black text-xs uppercase tracking-widest text-primary mb-6 block">Core Operational Units</span>
-                    <div className="flex flex-wrap gap-8">
+                    <div className="flex flex-wrap gap-md md:gap-lg justify-start">
                       {[
                         { name: favPokemon, icon: "electric_bolt" },
                         { name: "Charizard", icon: "local_fire_department" },
                         { name: "Greninja", icon: "water_drop" },
                       ].map((unit, i) => (
-                        <div key={i} className="flex items-center gap-4 group">
+                        <div key={i} className="flex items-center gap-2 sm:gap-4 group">
                           <div className="w-16 h-16 border-4 border-primary flex items-center justify-center bg-white group-hover:bg-accent-red group-hover:text-white transition-all duration-150 select-none">
                             <span className="material-symbols-outlined text-3xl">{unit.icon}</span>
                           </div>
