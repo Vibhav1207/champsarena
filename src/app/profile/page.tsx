@@ -384,7 +384,7 @@ export default function Profile() {
     <>
       <Navigation />
 
-      <main className="max-w-container-max mx-auto px-md py-xl space-y-xl">
+      <main className="max-w-container-max mx-auto px-md py-xl space-y-xl w-full overflow-x-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
             <span className="material-symbols-outlined animate-spin text-5xl">progress_activity</span>
@@ -393,16 +393,16 @@ export default function Profile() {
         ) : (
           <>
             {/* Header Tabs */}
-            <nav className="flex border-4 border-primary bg-white select-none overflow-x-auto whitespace-nowrap custom-scrollbar">
+            <nav className="flex border-4 border-primary bg-white select-none overflow-x-auto whitespace-nowrap custom-scrollbar w-full">
               <button 
                 onClick={() => setActiveTab("trainer")}
-                className={`flex-1 md:flex-none font-black uppercase py-md px-lg transition-all border-r-4 border-primary text-base cursor-pointer focus:outline-none ${activeTab === "trainer" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
+                className={`flex-1 md:flex-none shrink-0 font-black uppercase py-3 px-4 sm:py-md sm:px-lg transition-all border-r-4 border-primary text-sm sm:text-base cursor-pointer focus:outline-none ${activeTab === "trainer" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
               >
                 Trainer Profile
               </button>
               <button 
                 onClick={() => setActiveTab("squad")}
-                className={`flex-1 md:flex-none font-black uppercase py-md px-lg transition-all border-r-4 border-primary text-base cursor-pointer focus:outline-none ${activeTab === "squad" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
+                className={`flex-1 md:flex-none shrink-0 font-black uppercase py-3 px-4 sm:py-md sm:px-lg transition-all border-r-4 border-primary text-sm sm:text-base cursor-pointer focus:outline-none ${activeTab === "squad" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
               >
                 Squad Roster Center
               </button>
@@ -419,18 +419,18 @@ export default function Profile() {
                   transition={{ duration: 0.2 }}
                   className="space-y-xl"
                 >
-                  <section>
-                    <div className="border-4 border-primary neo-brutalist-shadow flex flex-col md:flex-row bg-white relative">
+                  <section className="w-full min-w-0">
+                    <div className="border-4 border-primary neo-brutalist-shadow flex flex-col md:flex-row bg-white relative w-full overflow-hidden">
                       
                       {/* ID Badge Tag */}
-                      <div className="absolute -top-4 -right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10 select-none">
+                      <div className="absolute -top-4 right-2 md:-right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10 select-none">
                         <span className="font-bold text-xs uppercase tracking-widest text-primary">
                           ID: {trainerId}
                         </span>
                       </div>
 
                       {/* Left Block: Avatar, Username, Basic Controls */}
-                      <div className="md:w-2/5 p-lg flex flex-col items-center md:items-start border-b-4 md:border-b-0 md:border-r-4 border-primary bg-white text-center md:text-left">
+                      <div className="md:w-2/5 p-md sm:p-lg flex flex-col items-center md:items-start border-b-4 md:border-b-0 md:border-r-4 border-primary bg-white text-center md:text-left w-full">
                         <div className="relative w-full max-w-[280px] mx-auto md:max-w-none md:mx-0 aspect-square border-4 border-primary mb-md overflow-hidden bg-surface-container-low select-none">
                           {image ? (
                             <Image
@@ -490,8 +490,8 @@ export default function Profile() {
                       </div>
 
                       {/* Right Block: Stats & Bio */}
-                      <div className="md:w-3/5 flex flex-col justify-between divide-y-4 divide-primary text-left">
-                        <div className="p-lg flex-grow space-y-md">
+                      <div className="md:w-3/5 flex flex-col justify-between divide-y-4 divide-primary text-left w-full min-w-0">
+                        <div className="p-md sm:p-lg flex-grow space-y-md">
                           <span className="font-black text-xs uppercase tracking-widest text-primary/60 block">Trainer Biography</span>
                           {profileData?.bio ? (
                             <p className="font-bold text-sm uppercase text-primary/80 leading-relaxed whitespace-pre-line">
@@ -511,7 +511,7 @@ export default function Profile() {
                           )}
                         </div>
 
-                        <div className="p-lg flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150 flex-grow select-none">
+                        <div className="p-md sm:p-lg flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150 flex-grow select-none">
                           <span className="font-black text-xs uppercase tracking-widest text-primary/60 mb-4 block">Rank Status</span>
                           <div className="space-y-4">
                             <span className="text-4xl sm:text-5xl font-black uppercase block italic text-primary leading-none">
@@ -536,9 +536,9 @@ export default function Profile() {
                   </section>
 
                   {/* Accolades and Mission Log Bento Row */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-sm text-left">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-sm text-left w-full min-w-0">
                     {/* Accolades Column */}
-                    <div className="lg:col-span-1 space-y-md">
+                    <div className="lg:col-span-1 space-y-md w-full min-w-0">
                       <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary select-none">Accolades</h3>
                       {earnedBadges.length > 0 ? (
                         <div className="grid grid-cols-3 gap-4 select-none">
@@ -567,10 +567,10 @@ export default function Profile() {
                     </div>
 
                     {/* Mission Log (Match History) Column */}
-                    <div className="lg:col-span-2 space-y-md">
+                    <div className="lg:col-span-2 space-y-md w-full min-w-0">
                       <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary select-none">Mission Log</h3>
-                      <div className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden">
-                        <div className="overflow-x-auto">
+                      <div className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden w-full">
+                        <div className="overflow-x-auto w-full">
                           <table className="w-full text-left border-collapse min-w-[500px]">
                             <thead>
                               <tr className="bg-primary text-white border-b-4 border-primary font-black uppercase text-xs tracking-wider select-none">
@@ -629,10 +629,10 @@ export default function Profile() {
                     </div>
                   ) : squadData ? (
                     /* ── Active Squad Layout ── */
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-md lg:gap-xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-md lg:gap-xl w-full min-w-0">
                       {/* Left: Squad Overview Info */}
-                      <div className="lg:col-span-4 space-y-md">
-                        <div className="border-4 border-primary bg-white p-md neo-brutalist-shadow space-y-md">
+                      <div className="lg:col-span-4 space-y-md w-full min-w-0">
+                        <div className="border-4 border-primary bg-white p-md neo-brutalist-shadow space-y-md w-full overflow-hidden">
                           <div className="relative w-full aspect-square border-4 border-primary bg-surface-container overflow-hidden flex items-center justify-center select-none">
                             {squadData.logo ? (
                               <img src={squadData.logo} alt={squadData.name} className="w-full h-full object-cover" />
@@ -701,9 +701,9 @@ export default function Profile() {
                       </div>
 
                       {/* Right: Roster Management & Invites */}
-                      <div className="lg:col-span-8 space-y-lg">
+                      <div className="lg:col-span-8 space-y-lg w-full min-w-0">
                         {/* Roster members list */}
-                        <div className="border-4 border-primary bg-white neo-brutalist-shadow overflow-hidden">
+                        <div className="border-4 border-primary bg-white neo-brutalist-shadow overflow-hidden w-full">
                           <div className="p-sm bg-surface-container-low border-b-2 border-primary select-none text-left">
                             <h3 className="font-black text-lg uppercase">Squad Roster</h3>
                           </div>

@@ -95,11 +95,11 @@ export default function HomeClient({
             <p className="font-bold text-sm sm:text-base md:text-xl text-primary mb-xl max-w-[672px] mx-auto border-l-8 border-primary pl-6 bg-white/80 p-4">
               Join the official tournament series and claim your place in the Hall of Fame. Form follows function.
             </p>
-            <div className="flex flex-col md:flex-row gap-md justify-center select-none w-full max-w-sm md:max-w-none mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
-              <Link href="/login" className="bg-accent-yellow text-primary px-lg py-sm md:px-xl md:py-md border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center select-none w-full max-w-xs sm:max-w-md md:max-w-none mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
+              <Link href="/login" className="bg-accent-yellow text-primary px-6 py-3 md:px-xl md:py-md border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1 whitespace-nowrap">
                 Register Now
               </Link>
-              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-lg py-sm md:px-xl md:py-md neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1">
+              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-6 py-3 md:px-xl md:py-md neo-brutalist-shadow neo-brutalist-button-active transition-all w-full md:w-auto text-center hover:translate-x-1 hover:translate-y-1 whitespace-nowrap">
                 Schedule
               </Link>
             </div>
