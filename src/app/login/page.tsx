@@ -11,7 +11,7 @@ const REGIONS = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Unova", "Kalos", "Alola",
 
 export default function AuthPage() {
   const [tab, setTab] = useState<Tab>("login");
-  const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0, totalMatches: 0 });
 
   // Login state
   const [email, setEmail] = useState("");
@@ -31,14 +31,15 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch live stats for the hero
-    fetch("/api/analytics")
+    // Fetch live stats for the hero from the public stats endpoint
+    fetch("/api/public-stats")
       .then(r => r.json())
       .then(d => {
-        if (d.metrics) {
+        if (d) {
           setStats({
-            totalUsers: d.metrics.totalUsers,
-            totalTournaments: d.metrics.totalTournaments
+            totalUsers: d.totalUsers || 0,
+            totalTournaments: d.totalTournaments || 0,
+            totalMatches: d.totalMatches || 0
           });
         }
       })
@@ -107,9 +108,9 @@ export default function AuthPage() {
         
         {/* ── Left Illustration Section (Desktop Only) ── */}
         <div className="hidden lg:flex lg:w-1/2 h-full bg-surface-container-high relative overflow-hidden items-center justify-center border-r-[6px] border-primary">
-          <div className="relative z-10 w-full max-w-[576px] p-md lg:p-lg text-center flex flex-col items-center select-none">
+          <div className="relative z-10 w-full max-w-[576px] p-md lg:p-md text-center flex flex-col items-center select-none">
             
-            <div className="mb-md lg:mb-lg border-4 border-primary neo-brutalist-shadow bg-white p-2 max-h-[160px] xl:max-h-[260px] overflow-hidden flex items-center justify-center">
+            <div className="mb-md lg:mb-md border-4 border-primary neo-brutalist-shadow bg-white p-2 max-h-[140px] xl:max-h-[220px] overflow-hidden flex items-center justify-center">
               <img 
                 className="w-full h-auto grayscale contrast-125 object-cover" 
                 alt="ChampsArena Stadium" 
@@ -117,27 +118,29 @@ export default function AuthPage() {
               />
             </div>
 
-            <h1 className="text-4xl xl:text-7xl font-black text-primary mb-xs lg:mb-sm tracking-tighter uppercase italic leading-[0.9]">
+            <h1 className="text-4xl xl:text-6xl font-black text-primary mb-xs lg:mb-xs tracking-tighter uppercase italic leading-[0.9]">
               ChampsArena
             </h1>
 
-            <p className="text-base xl:text-lg font-bold text-primary bg-accent-yellow inline-block px-4 py-2 border-2 border-primary mb-md lg:mb-xl">
+            <p className="text-base xl:text-md font-bold text-primary bg-accent-yellow inline-block px-4 py-1.5 border-2 border-primary mb-md lg:mb-md">
               The elite circuit for the Master Class.
             </p>
 
             {/* Decorative Stats Grid */}
-            <div className="mt-md lg:mt-xl grid grid-cols-3 gap-0 w-full border-4 border-primary neo-brutalist-shadow overflow-hidden bg-white">
-              <div className="bg-white p-sm xl:p-md border-r-2 border-primary">
-                <span className="block text-xl xl:text-2xl font-black text-primary">2.4k</span>
+            <div className="mt-md lg:mt-lg grid grid-cols-3 gap-0 w-full border-4 border-primary neo-brutalist-shadow overflow-hidden bg-white">
+              <div className="bg-white p-sm xl:p-sm border-r-2 border-primary">
+                <span className="block text-xl xl:text-2xl font-black text-primary">
+                  {stats.totalMatches > 0 ? stats.totalMatches.toLocaleString() : "2.4k"}
+                </span>
                 <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest text-primary">Events</span>
               </div>
-              <div className="bg-accent-blue text-white p-sm xl:p-md border-r-2 border-primary">
+              <div className="bg-accent-blue text-white p-sm xl:p-sm border-r-2 border-primary">
                 <span className="block text-xl xl:text-2xl font-black">
                   {stats.totalUsers > 0 ? stats.totalUsers.toLocaleString() : "15k"}
                 </span>
                 <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest">Trainers</span>
               </div>
-              <div className="bg-accent-yellow text-primary p-sm xl:p-md">
+              <div className="bg-accent-yellow text-primary p-sm xl:p-sm">
                 <span className="block text-xl xl:text-2xl font-black text-primary">
                   {stats.totalTournaments > 0 ? stats.totalTournaments.toLocaleString() : "89"}
                 </span>
@@ -154,7 +157,7 @@ export default function AuthPage() {
         </div>
 
         {/* ── Right Form Section ── */}
-        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-start lg:justify-center py-xl px-sm md:p-xl">
+        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-start lg:justify-center py-lg lg:py-md px-sm md:p-lg">
           <div className="w-full max-w-[512px]">
             
             {/* Mobile Header (Hidden on Desktop) */}
@@ -168,13 +171,13 @@ export default function AuthPage() {
             </div>
 
             {/* Trainer Card Container */}
-            <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[520px] lg:min-h-[600px] relative">
+            <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[440px] lg:min-h-0 relative">
               
               {/* Card Header / Tabs */}
               <div className="flex border-b-[3px] border-primary">
                 <button 
                   onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-md text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${
                     tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"
                   }`}
                 >
@@ -183,7 +186,7 @@ export default function AuthPage() {
                 </button>
                 <button 
                   onClick={() => { setTab("signup"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-md text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 border-l-[3px] border-primary ${
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 border-l-[3px] border-primary ${
                     tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
                   }`}
                 >
@@ -193,10 +196,10 @@ export default function AuthPage() {
               </div>
 
               {/* Form Body */}
-              <div className="p-md lg:p-lg flex-1 flex flex-col justify-between">
+              <div className="p-sm lg:p-md flex-1 flex flex-col justify-between">
 
                 
-                <div className="space-y-md">
+                <div className="space-y-sm">
                   
                   {/* Status Messages */}
                   <AnimatePresence>
@@ -218,7 +221,6 @@ export default function AuthPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-
                   <AnimatePresence mode="wait">
                     {tab === "login" ? (
                       /* ── LOGIN FORM ── */
@@ -229,11 +231,11 @@ export default function AuthPage() {
                         exit={{ opacity: 0, x: 12 }} 
                         transition={{ duration: 0.15 }} 
                         onSubmit={handleLogin} 
-                        className="space-y-md"
+                        className="space-y-sm"
                       >
-                        <div className="mb-md">
-                          <h2 className="text-xl font-black uppercase tracking-tighter">Enter the Circuit</h2>
-                          <p className="text-xs font-bold text-primary opacity-60 mt-1">Sign in to continue your championship journey.</p>
+                        <div className="mb-sm">
+                          <h2 className="text-lg font-black uppercase tracking-tighter">Enter the Circuit</h2>
+                          <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Sign in to continue your championship journey.</p>
                         </div>
 
                         {/* Social Logins */}
@@ -241,14 +243,14 @@ export default function AuthPage() {
                           <button 
                             type="button"
                             onClick={() => handleSocial("google")}
-                            className="flex items-center justify-center gap-xs p-sm bg-white hover:bg-accent-yellow border-r-2 border-primary transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
+                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-yellow border-r-2 border-primary transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
                           >
                             Google
                           </button>
                           <button 
                             type="button"
                             onClick={() => handleSocial("discord")}
-                            className="flex items-center justify-center gap-xs p-sm bg-white hover:bg-accent-blue hover:text-white transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
+                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-blue hover:text-white transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
                           >
                             Discord
                           </button>
@@ -262,8 +264,8 @@ export default function AuthPage() {
                         </div>
 
                         {/* Form Inputs */}
-                        <div className="space-y-sm">
-                          <div className="space-y-xs">
+                        <div className="space-y-xs">
+                          <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer ID / Email</label>
                             <input 
                               type="email"
@@ -272,11 +274,11 @@ export default function AuthPage() {
                               value={email}
                               onChange={e => setEmail(e.target.value)}
                               placeholder="ash.ketchum@pallet.com"
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
-                          <div className="space-y-xs">
+                          <div className="space-y-1">
                             <div className="flex justify-between items-center">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Security Key</label>
                               <Link href="#" className="text-accent-red font-black uppercase text-[10px] hover:underline">
@@ -290,7 +292,7 @@ export default function AuthPage() {
                               value={password}
                               onChange={e => setPassword(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
                         </div>
@@ -311,15 +313,15 @@ export default function AuthPage() {
                         <button 
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-primary text-white py-md text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red"
+                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red"
                         >
                           {loading ? "ENTERING..." : "Enter the Stadium"}
                         </button>
 
                         {/* Admin Hint */}
-                        <div className="border-2 border-primary p-sm flex items-start gap-sm bg-accent-yellow/20">
-                          <span className="material-symbols-outlined text-primary text-[20px]">info</span>
-                          <p className="text-[10px] uppercase font-black text-primary leading-tight">
+                        <div className="border-2 border-primary p-2 flex items-start gap-2 bg-accent-yellow/20">
+                          <span className="material-symbols-outlined text-primary text-[18px]">info</span>
+                          <p className="text-[9px] uppercase font-black text-primary leading-tight">
                             Admin access: <code className="font-mono bg-white px-1">admin@champsarena.gg</code> / <code className="font-mono bg-white px-1">Admin@1234</code>
                           </p>
                         </div>
@@ -333,15 +335,15 @@ export default function AuthPage() {
                         exit={{ opacity: 0, x: -12 }} 
                         transition={{ duration: 0.15 }} 
                         onSubmit={handleRegister} 
-                        className="space-y-md"
+                        className="space-y-sm"
                       >
-                        <div className="mb-md">
-                          <h2 className="text-xl font-black uppercase tracking-tighter">New Registration</h2>
-                          <p className="text-xs font-bold text-primary opacity-60 mt-1">Create your trainer profile and join the circuit.</p>
+                        <div className="mb-sm">
+                          <h2 className="text-lg font-black uppercase tracking-tighter">New Registration</h2>
+                          <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Create your trainer profile and join the circuit.</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-sm">
-                          <div className="space-y-xs">
+                          <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Name</label>
                             <input 
                               type="text"
@@ -350,10 +352,10 @@ export default function AuthPage() {
                               value={rName}
                               onChange={e => setRName(e.target.value)}
                               placeholder="Red"
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
-                          <div className="space-y-xs">
+                          <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Partner</label>
                             <input 
                               type="text"
@@ -361,25 +363,25 @@ export default function AuthPage() {
                               value={rFav}
                               onChange={e => setRFav(e.target.value)}
                               placeholder="Charizard"
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-sm">
-                          <div className="space-y-xs">
+                        <div className="space-y-xs">
+                          <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Home Region</label>
                             <select 
                               disabled={loading}
                               value={rRegion}
                               onChange={e => setRRegion(e.target.value)}
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors uppercase tracking-wider"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors uppercase tracking-wider"
                             >
                               {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                             </select>
                           </div>
 
-                          <div className="space-y-xs">
+                          <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Email</label>
                             <input 
                               type="email"
@@ -388,12 +390,12 @@ export default function AuthPage() {
                               value={rEmail}
                               onChange={e => setREmail(e.target.value)}
                               placeholder="champion@league.com"
-                              className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
                           <div className="grid grid-cols-2 gap-sm">
-                            <div className="space-y-xs">
+                            <div className="space-y-1">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Password</label>
                               <input 
                                 type="password"
@@ -402,10 +404,10 @@ export default function AuthPage() {
                                 value={rPass}
                                 onChange={e => setRPass(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-white border-2 border-primary p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                                className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                               />
                             </div>
-                            <div className="space-y-xs">
+                            <div className="space-y-1">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Confirm</label>
                               <input 
                                 type="password"
@@ -414,7 +416,7 @@ export default function AuthPage() {
                                 value={rPassConfirm}
                                 onChange={e => setRPassConfirm(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 p-sm text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${
+                                className={`w-full bg-white border-2 py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${
                                   rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"
                                 }`}
                               />
@@ -423,9 +425,9 @@ export default function AuthPage() {
                         </div>
 
                         {/* Notice */}
-                        <div className="bg-accent-yellow border-2 border-primary p-sm flex items-start gap-sm">
-                          <span className="material-symbols-outlined text-primary text-[20px]">info</span>
-                          <p className="text-[10px] uppercase font-black text-primary leading-tight">
+                        <div className="bg-accent-yellow border-2 border-primary p-2 flex items-start gap-2">
+                          <span className="material-symbols-outlined text-primary text-[18px]">info</span>
+                          <p className="text-[9px] uppercase font-black text-primary leading-tight">
                             Identifier will be public in tournament brackets and league rankings.
                           </p>
                         </div>
@@ -448,7 +450,7 @@ export default function AuthPage() {
                         <button 
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-md text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary"
                         >
                           {loading ? "REGISTERING..." : "Register Trainer"}
                         </button>
@@ -459,8 +461,8 @@ export default function AuthPage() {
                 </div>
 
                 {/* Trainer Card Footer inside box */}
-                <div className="mt-xl text-left border-t-[3px] border-primary pt-md">
-                  <p className="text-[9px] font-black uppercase text-primary leading-none mb-3">
+                <div className="mt-md text-left border-t-[3px] border-primary pt-3">
+                  <p className="text-[9px] font-black uppercase text-primary leading-none mb-2">
                     By joining, you accept our <Link className="text-accent-red hover:underline" href="#">Privacy Policy</Link> and <Link className="text-accent-red hover:underline" href="#">Terms of Service</Link>.
                   </p>
                   <div className="flex justify-between items-center text-[10px] text-primary font-black uppercase tracking-widest">
@@ -477,7 +479,7 @@ export default function AuthPage() {
             </div>
 
             {/* Back to Hub button */}
-            <div className="mt-lg text-center select-none">
+            <div className="mt-md text-center select-none">
               <Link href="/" className="inline-flex items-center gap-xs font-black uppercase text-xs text-primary hover:text-accent-red transition-colors">
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                 Return to Hub
