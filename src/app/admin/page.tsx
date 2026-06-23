@@ -145,6 +145,10 @@ export default function AdminDashboard() {
     type: "SINGLE_ELIMINATION", status: "UPCOMING",
     badgeName: "", badgeIcon: "",
     game: "POKEMON_VGC",
+    registrationDeadline: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 16),
+    startDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 16),
+    endDate: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16),
+    watchLiveUrl: "",
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -257,16 +261,31 @@ export default function AdminDashboard() {
           entryFee: parseFloat(form.entryFee),
           prizePool: parseFloat(form.prizePool),
           maxPlayers: parseInt(form.maxPlayers),
-          registrationDeadline: new Date(Date.now() + 10 * 86400000).toISOString(),
-          startDate: new Date(Date.now() + 12 * 86400000).toISOString(),
-          endDate: new Date(Date.now() + 15 * 86400000).toISOString(),
+          registrationDeadline: new Date(form.registrationDeadline).toISOString(),
+          startDate: new Date(form.startDate).toISOString(),
+          endDate: new Date(form.endDate).toISOString(),
+          watchLiveUrl: form.watchLiveUrl || null,
         }),
       });
       const data = await res.json();
       if (data.error) { setCreateError(data.error); }
       else {
         setCreateSuccess(true);
-        setForm({ title: "", description: "", rules: "Standard Regulation rules apply.", entryFee: "0", prizePool: "5000", currency: "USD", prizeDistribution: "TOP_8", maxPlayers: "128", type: "SINGLE_ELIMINATION", status: "UPCOMING", badgeName: "", badgeIcon: "", game: "POKEMON_VGC" });
+        setForm({
+          title: "", description: "",
+          rules: "Standard Regulation rules apply.",
+          entryFee: "0", prizePool: "5000",
+          currency: "USD",
+          prizeDistribution: "TOP_8",
+          maxPlayers: "128",
+          type: "SINGLE_ELIMINATION", status: "UPCOMING",
+          badgeName: "", badgeIcon: "",
+          game: "POKEMON_VGC",
+          registrationDeadline: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 16),
+          startDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 16),
+          endDate: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16),
+          watchLiveUrl: "",
+        });
         setTimeout(() => { setShowModal(false); setCreateSuccess(false); fetchData(); }, 1200);
       }
     } catch (err: any) { setCreateError("Failed: " + err.message); }
@@ -769,6 +788,32 @@ export default function AdminDashboard() {
                       <option value="FREE_FIRE">Free Fire</option>
                     </select>
                   </div>
+                  <div className="col-span-2 grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Reg Close *</label>
+                      <input type="datetime-local" required value={form.registrationDeadline}
+                        onChange={e => setForm(f => ({ ...f, registrationDeadline: e.target.value }))}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Start Date *</label>
+                      <input type="datetime-local" required value={form.startDate}
+                        onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">End Date *</label>
+                      <input type="datetime-local" required value={form.endDate}
+                        onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[10px] font-black uppercase tracking-wider mb-1.5 text-primary">Watch Live URL (Stream Link)</label>
+                    <input type="url" placeholder="e.g. https://twitch.tv/..." value={form.watchLiveUrl}
+                      onChange={e => setForm(f => ({ ...f, watchLiveUrl: e.target.value }))}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary placeholder:text-primary/40" />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -1004,6 +1049,10 @@ function TournamentManagementPanel({
     badgeName: "",
     badgeIcon: "",
     game: "",
+    registrationDeadline: "",
+    startDate: "",
+    endDate: "",
+    watchLiveUrl: "",
   });
 
   useEffect(() => {
@@ -1021,6 +1070,10 @@ function TournamentManagementPanel({
         badgeName: managedTournament.badgeName || "",
         badgeIcon: managedTournament.badgeIcon || "",
         game: managedTournament.game || "POKEMON_VGC",
+        registrationDeadline: managedTournament.registrationDeadline ? new Date(managedTournament.registrationDeadline).toISOString().slice(0, 16) : "",
+        startDate: managedTournament.startDate ? new Date(managedTournament.startDate).toISOString().slice(0, 16) : "",
+        endDate: managedTournament.endDate ? new Date(managedTournament.endDate).toISOString().slice(0, 16) : "",
+        watchLiveUrl: managedTournament.watchLiveUrl || "",
       });
     }
   }, [managedTournament]);
@@ -1075,6 +1128,10 @@ function TournamentManagementPanel({
           badgeName: editForm.badgeName || null,
           badgeIcon: editForm.badgeIcon || null,
           game: editForm.game,
+          registrationDeadline: editForm.registrationDeadline ? new Date(editForm.registrationDeadline).toISOString() : undefined,
+          startDate: editForm.startDate ? new Date(editForm.startDate).toISOString() : undefined,
+          endDate: editForm.endDate ? new Date(editForm.endDate).toISOString() : undefined,
+          watchLiveUrl: editForm.watchLiveUrl || null,
         }),
       });
       const data = await res.json();
@@ -2041,6 +2098,32 @@ function TournamentManagementPanel({
                       <option value="POKEMON_SHOWDOWN">Pokémon Showdown</option>
                       <option value="FREE_FIRE">Free Fire</option>
                     </select>
+                  </div>
+                  <div className="col-span-2 grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Reg Close *</label>
+                      <input type="datetime-local" required value={editForm.registrationDeadline}
+                        onChange={e => setEditForm({ ...editForm, registrationDeadline: e.target.value })}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Start Date *</label>
+                      <input type="datetime-local" required value={editForm.startDate}
+                        onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">End Date *</label>
+                      <input type="datetime-local" required value={editForm.endDate}
+                        onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
+                        className="w-full border-3 border-primary p-2 text-xs font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[10px] font-black uppercase tracking-wider mb-1.5 text-primary">Watch Live URL (Stream Link)</label>
+                    <input type="url" placeholder="e.g. https://twitch.tv/..." value={editForm.watchLiveUrl}
+                      onChange={e => setEditForm({ ...editForm, watchLiveUrl: e.target.value })}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary placeholder:text-primary/40" />
                   </div>
                 </div>
 

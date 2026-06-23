@@ -137,6 +137,7 @@ model Tournament {
   title                String
   description          String           @db.Text
   banner               String?          // URL to banner image
+  watchLiveUrl         String?          // URL to live stream (optional)
   rules                String           @db.Text
   entryFee             Float            @default(0.0)
   prizePool            Float            @default(0.0)

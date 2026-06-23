@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
       badgeName,
       badgeIcon,
       game,
+      watchLiveUrl,
     } = body;
 
     if (!title || !description || !rules || !registrationDeadline || !startDate || !endDate) {
@@ -110,6 +111,7 @@ export async function POST(req: NextRequest) {
         badgeName: badgeName || null,
         badgeIcon: badgeIcon || null,
         game: game || "POKEMON_VGC",
+        watchLiveUrl: watchLiveUrl || null,
       },
     });
 

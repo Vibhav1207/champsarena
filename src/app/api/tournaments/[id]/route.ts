@@ -149,8 +149,52 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         badgeIcon: body.badgeIcon,
         winnerId: body.winnerId,
         game: body.game,
+        watchLiveUrl: body.watchLiveUrl !== undefined ? body.watchLiveUrl : undefined,
       },
     });
+
+    // Send live notifications to all approved players and squad members when the tournament starts (ONGOING)
+    if (body.status === "ONGOING" && tourBefore && tourBefore.status !== "ONGOING") {
+      try {
+        const [regs, squadRegs] = await Promise.all([
+          prisma.registration.findMany({
+            where: { tournamentId: id, status: "APPROVED" },
+            select: { userId: true },
+          }),
+          prisma.squadRegistration.findMany({
+            where: { tournamentId: id, status: "APPROVED" },
+            select: {
+              squad: {
+                select: {
+                  members: {
+                    select: { id: true },
+                  },
+                },
+              },
+            },
+          }),
+        ]);
+
+        const userIds = new Set<string>();
+        regs.forEach(r => userIds.add(r.userId));
+        squadRegs.forEach(sr => {
+          sr.squad?.members?.forEach(m => userIds.add(m.id));
+        });
+
+        if (userIds.size > 0) {
+          const notificationsData = Array.from(userIds).map(uid => ({
+            userId: uid,
+            message: `Tournament "${tourBefore.title}" is now live! Watch it live or view your matchups.`,
+            type: "INFO",
+          }));
+          await prisma.notification.createMany({
+            data: notificationsData,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to send live notifications:", err);
+      }
+    }
 
     // Auto-generate brackets/matches if transitioning to ONGOING and matches don't exist yet
     if (body.status === "ONGOING" && tourBefore && tourBefore.status !== "ONGOING" && tourBefore.matches.length === 0) {

@@ -39,6 +39,43 @@ export default function TournamentDetailClient({
   const [paying, setPaying] = useState(false);
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [showRosterModal, setShowRosterModal] = useState(false);
+  const [registrationCountdown, setRegistrationCountdown] = useState<string>("");
+
+  useEffect(() => {
+    if (!tournament?.registrationDeadline || tournament.status !== "REGISTRATION_OPEN") {
+      setRegistrationCountdown("");
+      return;
+    }
+    const deadline = new Date(tournament.registrationDeadline).getTime();
+    
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = deadline - now;
+      if (diff <= 0) {
+        setRegistrationCountdown("REGISTRATION CLOSED");
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      let timeStr = "";
+      if (days > 0) {
+        timeStr = `CLOSING IN: ${days}d ${hours}h ${minutes}m`;
+      } else if (hours > 0) {
+        timeStr = `CLOSING IN: ${hours}h ${minutes}m ${seconds}s`;
+      } else {
+        timeStr = `CLOSING IN: ${minutes}m ${seconds}s`;
+      }
+      setRegistrationCountdown(timeStr);
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [tournament?.registrationDeadline, tournament?.status]);
 
   // Active match state
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -445,6 +482,17 @@ export default function TournamentDetailClient({
                   <span className="w-2.5 h-2.5 bg-white"></span>
                   {tournament?.status || "LIVE NOW"}
                 </span>
+                {tournament?.status === "ONGOING" && tournament?.watchLiveUrl && (
+                  <a
+                    href={tournament.watchLiveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-sm py-1 bg-accent-blue text-white text-label-lg font-black uppercase hover:bg-blue-600 transition-colors flex items-center gap-1 border-2 border-primary animate-pulse"
+                  >
+                    <span className="material-symbols-outlined text-xs">live_tv</span>
+                    Watch Live
+                  </a>
+                )}
               </div>
               <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl uppercase leading-none text-primary tracking-tighter select-none">
                 {tournament?.title}
@@ -470,12 +518,20 @@ export default function TournamentDetailClient({
                   {tournament?.entryFee > 0 ? formatEntryFee(tournament.entryFee) : "Free"}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-primary pb-xs">
+              <div className="flex items-center justify-between text-primary pb-xs border-b border-primary/20">
                 <span className="uppercase font-black text-sm">Prize Pool</span>
                 <span className="font-black text-2xl text-accent-red">
                   {formatPrizeMoney(tournament?.prizePool ?? 0)}
                 </span>
               </div>
+              {tournament?.status === "REGISTRATION_OPEN" && registrationCountdown && (
+                <div className="flex items-center justify-between text-primary pb-xs animate-pulse">
+                  <span className="uppercase font-black text-sm text-accent-red">Countdown</span>
+                  <span className="font-black text-sm text-accent-red bg-white border border-primary px-2 py-0.5">
+                    {registrationCountdown}
+                  </span>
+                </div>
+              )}
 
               {/* Action Button */}
               <div className="mt-xs">
@@ -545,6 +601,16 @@ export default function TournamentDetailClient({
                   )
                 )}
               </div>
+              {tournament?.status === "ONGOING" && tournament?.watchLiveUrl && (
+                <a
+                  href={tournament.watchLiveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full block bg-accent-blue text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform hover:bg-blue-600 shadow-[4px_4px_0px_0px_#1a1a1a] active:shadow-none animate-pulse mt-xs"
+                >
+                  📺 Watch Live Stream
+                </a>
+              )}
             </div>
           </div>
         </section>
@@ -885,43 +951,47 @@ export default function TournamentDetailClient({
                       Event Timeline
                     </h2>
                     <div className="space-y-0">
-                      {[
-                        {
-                          time: "08:00 AM - 09:30 AM",
-                          title: "Player Check-in",
-                          desc: "Verification of ID and Open Team Sheets at the Main Atrium.",
-                          icon: "how_to_reg",
-                          highlight: true,
-                        },
-                        {
-                          time: "10:00 AM - 01:00 PM",
-                          title: "Swiss Rounds 1-4",
-                          desc: "First half of the qualifying phase. Short break follows Round 4.",
-                          icon: "sports_esports",
-                          highlight: false,
-                        },
-                        {
-                          time: "01:00 PM - 02:00 PM",
-                          title: "Lunch Break",
-                          desc: "Complimentary refreshments provided for all Registered Masters.",
-                          icon: "restaurant",
-                          highlight: false,
-                        },
-                        {
-                          time: "02:00 PM - 06:00 PM",
-                          title: "Swiss Rounds 5-7 & Top 16",
-                          desc: "Concluding Swiss rounds and the start of the Single Elimination bracket.",
-                          icon: "stadium",
-                          highlight: false,
-                        },
-                        {
-                          time: "07:00 PM",
-                          title: "Grand Finals & Awards",
-                          desc: "The crowning of the Lumiose City Champion on the main stage.",
-                          icon: "emoji_events",
-                          highlight: true,
-                        },
-                      ].map((item, index, arr) => (
+                      {(() => {
+                        const formatDate = (dateString: string) => {
+                          if (!dateString) return "";
+                          try {
+                            const date = new Date(dateString);
+                            return date.toLocaleDateString(undefined, {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            });
+                          } catch {
+                            return dateString;
+                          }
+                        };
+                        return [
+                          {
+                            time: formatDate(tournament?.registrationDeadline),
+                            title: "Registration Close Date",
+                            desc: "Last opportunity for players and squads to register and complete entry payments.",
+                            icon: "how_to_reg",
+                            highlight: tournament?.status === "REGISTRATION_OPEN",
+                          },
+                          {
+                            time: formatDate(tournament?.startDate),
+                            title: "Starting Date",
+                            desc: "The tournament officially begins. Initial brackets and first round matchups are generated.",
+                            icon: "play_circle",
+                            highlight: tournament?.status === "ONGOING",
+                          },
+                          {
+                            time: formatDate(tournament?.endDate),
+                            title: "Match/End Date",
+                            desc: "Final tournament matches conclude, final standings are computed, and champions are crowned.",
+                            icon: "emoji_events",
+                            highlight: tournament?.status === "COMPLETED",
+                          },
+                        ];
+                      })().map((item, index, arr) => (
                         <div key={index} className="timeline-item flex gap-md pb-md md:pb-xl relative">
                           <div className="timeline-dot flex flex-col items-center relative select-none">
                             <span
