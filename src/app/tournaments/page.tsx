@@ -137,10 +137,14 @@ export default function Tournaments() {
                           <span className="font-bold text-[10px] uppercase tracking-tight text-primary">
                             {label}
                           </span>
-                          <span className={`material-symbols-outlined text-xs border-2 border-primary flex items-center justify-center w-5 h-5 shrink-0 ${
-                            isSelected ? "bg-primary text-white" : "bg-white text-transparent"
+                          <span className={`border-2 border-primary flex items-center justify-center w-5 h-5 shrink-0 ${
+                            isSelected ? "bg-primary text-white" : "bg-white"
                           }`}>
-                            check
+                            {isSelected && (
+                              <svg className="w-3.5 h-3.5 stroke-white stroke-[4] fill-none" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            )}
                           </span>
                         </div>
                       </button>
