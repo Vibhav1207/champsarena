@@ -44,7 +44,7 @@ export default function AuthPage() {
           setCaptchaToken(d.token);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AuthPage() {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -166,16 +166,16 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen lg:h-screen w-screen overflow-x-hidden lg:overflow-hidden bg-background text-primary selection:bg-accent-yellow selection:text-primary flex flex-col justify-stretch">
       <main className="flex-1 w-full flex flex-col lg:flex-row items-stretch lg:overflow-hidden relative">
-        
+
         {/* ── Left Illustration Section (Desktop Only) ── */}
         <div className="hidden lg:flex lg:w-1/2 h-full bg-surface-container-high relative overflow-hidden items-center justify-center border-r-[6px] border-primary">
           <div className="relative z-10 w-full max-w-[576px] p-md lg:p-md text-center flex flex-col items-center select-none">
-            
+
             <div className="mb-md lg:mb-md border-4 border-primary neo-brutalist-shadow bg-white p-2 max-h-[140px] xl:max-h-[220px] overflow-hidden flex items-center justify-center">
-              <img 
-                className="w-full h-auto grayscale contrast-125 object-cover" 
-                alt="ChampsArena Stadium" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_GGm1TdSujnJMPpV26nMMZ9ErqzNLiFieUPof4Wwl3D5ExarqL9tyrRvWXAJDP-fJPCvXmnGBSCmA38MuTs0JZ2hBh8-oDE0gSe7vARjHZ6POhuHOQcetNUJ5CzOBf5RUgBVY0wQp0RngnafcmCuotXRxGx3r9GdWq-KQW_ddzbhoiGiIpOx6BJCYEJBSw8KgaHVFnba8U3mgsGU9cEAmGP7XW_e407Z3ExFiI2GXMG8hi_qSBIJWwDvQ1qCRfLNL3yYaN0jjxB0" 
+              <img
+                className="w-full h-auto grayscale contrast-125 object-cover"
+                alt="ChampsArena Stadium"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_GGm1TdSujnJMPpV26nMMZ9ErqzNLiFieUPof4Wwl3D5ExarqL9tyrRvWXAJDP-fJPCvXmnGBSCmA38MuTs0JZ2hBh8-oDE0gSe7vARjHZ6POhuHOQcetNUJ5CzOBf5RUgBVY0wQp0RngnafcmCuotXRxGx3r9GdWq-KQW_ddzbhoiGiIpOx6BJCYEJBSw8KgaHVFnba8U3mgsGU9cEAmGP7XW_e407Z3ExFiI2GXMG8hi_qSBIJWwDvQ1qCRfLNL3yYaN0jjxB0"
               />
             </div>
 
@@ -220,7 +220,7 @@ export default function AuthPage() {
         {/* ── Right Form Section ── */}
         <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-start lg:justify-center py-lg lg:py-md px-sm md:p-lg">
           <div className="w-full max-w-[512px]">
-            
+
             {/* Mobile Header (Hidden on Desktop) */}
             <div className="lg:hidden text-center mb-xl">
               <h1 className="text-4xl md:text-5xl font-black text-primary tracking-tighter uppercase italic">
@@ -233,23 +233,21 @@ export default function AuthPage() {
 
             {/* Trainer Card Container */}
             <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[440px] lg:min-h-0 relative">
-              
+
               {/* Card Header / Tabs */}
               <div className="flex border-b-[3px] border-primary">
-                <button 
+                <button
                   onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${
-                    tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"
-                  }`}
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"
+                    }`}
                 >
                   Login
                   {tab === "login" && <div className="active-tab-indicator"></div>}
                 </button>
-                <button 
+                <button
                   onClick={() => { setTab("signup"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 border-l-[3px] border-primary ${
-                    tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
-                  }`}
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 border-l-[3px] border-primary ${tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
+                    }`}
                 >
                   Sign Up
                   {tab === "signup" && <div className="active-tab-indicator"></div>}
@@ -258,15 +256,15 @@ export default function AuthPage() {
 
               {/* Form Body */}
               <div className="p-sm lg:p-md flex-1 flex flex-col justify-between">
-                
+
                 <div className="space-y-sm">
-                  
+
                   {/* Status Messages */}
                   <AnimatePresence>
                     {(error || success) && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -8 }} 
-                        animate={{ opacity: 1, y: 0 }} 
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         className="p-3 border-2 border-primary font-black uppercase text-xs tracking-wider text-center"
                         style={{
@@ -281,17 +279,17 @@ export default function AuthPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  
+
                   <AnimatePresence mode="wait">
                     {tab === "login" ? (
                       /* ── LOGIN FORM ── */
-                      <motion.form 
-                        key="login" 
-                        initial={{ opacity: 0, x: -12 }} 
+                      <motion.form
+                        key="login"
+                        initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 12 }} 
-                        transition={{ duration: 0.15 }} 
-                        onSubmit={handleLogin} 
+                        exit={{ opacity: 0, x: 12 }}
+                        transition={{ duration: 0.15 }}
+                        onSubmit={handleLogin}
                         className="space-y-sm"
                       >
                         <div className="mb-sm text-left">
@@ -301,14 +299,14 @@ export default function AuthPage() {
 
                         {/* Social Logins */}
                         <div className="grid grid-cols-2 gap-0 border-2 border-primary">
-                          <button 
+                          <button
                             type="button"
                             onClick={() => handleSocial("google")}
                             className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-yellow border-r-2 border-primary transition-colors duration-100 font-black uppercase text-[10px] tracking-wider cursor-pointer"
                           >
                             Google
                           </button>
-                          <button 
+                          <button
                             type="button"
                             onClick={() => handleSocial("discord")}
                             className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-blue hover:text-white transition-colors duration-100 font-black uppercase text-[10px] tracking-wider cursor-pointer"
@@ -328,7 +326,7 @@ export default function AuthPage() {
                         <div className="space-y-xs text-left">
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
-                            <input 
+                            <input
                               type="email"
                               required
                               disabled={loading}
@@ -342,15 +340,15 @@ export default function AuthPage() {
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Security Key</label>
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => { setTab("forgot"); setError(null); setSuccess(null); }}
                                 className="text-accent-red font-black uppercase text-[10px] hover:underline cursor-pointer"
                               >
                                 Forgot?
                               </button>
                             </div>
-                            <input 
+                            <input
                               type="password"
                               required
                               disabled={loading}
@@ -377,7 +375,7 @@ export default function AuthPage() {
                               <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 required
                                 value={captchaAnswer}
@@ -392,9 +390,9 @@ export default function AuthPage() {
 
                         {/* Remember Me */}
                         <div className="flex items-center gap-sm select-none">
-                          <input 
-                            className="pokeball-checkbox" 
-                            id="remember" 
+                          <input
+                            className="pokeball-checkbox"
+                            id="remember"
                             type="checkbox"
                           />
                           <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer" htmlFor="remember">
@@ -403,7 +401,7 @@ export default function AuthPage() {
                         </div>
 
                         {/* Submit Button */}
-                        <button 
+                        <button
                           type="submit"
                           disabled={loading}
                           className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
@@ -412,22 +410,17 @@ export default function AuthPage() {
                         </button>
 
                         {/* Admin Hint */}
-                        <div className="border-2 border-primary p-2 flex items-start gap-2 bg-accent-yellow/20">
-                          <span className="material-symbols-outlined text-primary text-[18px]">info</span>
-                          <p className="text-[9px] uppercase font-black text-primary leading-tight text-left">
-                            Admin access: <code className="font-mono bg-white px-1">admin@champsarena.gg</code> / <code className="font-mono bg-white px-1">Admin@1234</code>
-                          </p>
-                        </div>
+
                       </motion.form>
                     ) : tab === "signup" ? (
                       /* ── SIGN UP FORM ── */
-                      <motion.form 
-                        key="signup" 
-                        initial={{ opacity: 0, x: 12 }} 
+                      <motion.form
+                        key="signup"
+                        initial={{ opacity: 0, x: 12 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -12 }} 
-                        transition={{ duration: 0.15 }} 
-                        onSubmit={handleRegister} 
+                        exit={{ opacity: 0, x: -12 }}
+                        transition={{ duration: 0.15 }}
+                        onSubmit={handleRegister}
                         className="space-y-sm"
                       >
                         <div className="mb-sm text-left">
@@ -438,7 +431,7 @@ export default function AuthPage() {
                         <div className="space-y-xs text-left">
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Name</label>
-                            <input 
+                            <input
                               type="text"
                               required
                               disabled={loading}
@@ -451,7 +444,7 @@ export default function AuthPage() {
 
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Email</label>
-                            <input 
+                            <input
                               type="email"
                               required
                               disabled={loading}
@@ -465,7 +458,7 @@ export default function AuthPage() {
                           <div className="grid grid-cols-2 gap-sm">
                             <div className="space-y-1">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Password</label>
-                              <input 
+                              <input
                                 type="password"
                                 required
                                 disabled={loading}
@@ -477,16 +470,15 @@ export default function AuthPage() {
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Confirm</label>
-                              <input 
+                              <input
                                 type="password"
                                 required
                                 disabled={loading}
                                 value={rPassConfirm}
                                 onChange={e => setRPassConfirm(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${
-                                  rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"
-                                }`}
+                                className={`w-full bg-white border-2 py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"
+                                  }`}
                               />
                             </div>
                           </div>
@@ -507,7 +499,7 @@ export default function AuthPage() {
                               <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 required
                                 value={captchaAnswer}
@@ -529,9 +521,9 @@ export default function AuthPage() {
 
                         {/* Terms */}
                         <div className="flex items-center gap-sm select-none">
-                          <input 
-                            className="pokeball-checkbox" 
-                            id="terms" 
+                          <input
+                            className="pokeball-checkbox"
+                            id="terms"
                             type="checkbox"
                             checked={rTerms}
                             onChange={e => setRTerms(e.target.checked)}
@@ -542,7 +534,7 @@ export default function AuthPage() {
                         </div>
 
                         {/* Submit */}
-                        <button 
+                        <button
                           type="submit"
                           disabled={loading}
                           className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
@@ -552,13 +544,13 @@ export default function AuthPage() {
                       </motion.form>
                     ) : (
                       /* ── FORGOT PASSWORD FORM ── */
-                      <motion.form 
-                        key="forgot" 
-                        initial={{ opacity: 0, x: -12 }} 
+                      <motion.form
+                        key="forgot"
+                        initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 12 }} 
-                        transition={{ duration: 0.15 }} 
-                        onSubmit={handleRequestReset} 
+                        exit={{ opacity: 0, x: 12 }}
+                        transition={{ duration: 0.15 }}
+                        onSubmit={handleRequestReset}
                         className="space-y-sm"
                       >
                         <div className="mb-sm text-left">
@@ -569,7 +561,7 @@ export default function AuthPage() {
                         <div className="space-y-xs text-left">
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
-                            <input 
+                            <input
                               type="email"
                               required
                               disabled={loading}
@@ -596,7 +588,7 @@ export default function AuthPage() {
                               <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 required
                                 value={captchaAnswer}
@@ -608,7 +600,7 @@ export default function AuthPage() {
                           </div>
                         </div>
 
-                        <button 
+                        <button
                           type="submit"
                           disabled={loading}
                           className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
@@ -616,7 +608,7 @@ export default function AuthPage() {
                           {loading ? "SENDING KEY..." : "Send Reset link"}
                         </button>
 
-                        <button 
+                        <button
                           type="button"
                           onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
                           className="w-full bg-white text-primary border-2 border-primary py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
