@@ -4,18 +4,33 @@
     "title": "Pokémon VGC Regulation G Ultimate Guide: Best Teams & Strategies",
     "metaTitle": "Pokémon VGC Regulation G Guide | Best Teams & Strategies | ChampsArena",
     "metaDescription": "Master Pokémon VGC Regulation G with our ultimate strategy guide. Learn the best restricted legendary Pokémon, team architectures, and movesets to dominate the arena.",
-    "keywords": ["pokemon vgc tournaments", "pokemon competition", "pokemon battle tournaments", "regulation g guide", "pokemon strategy"],
+    "keywords": [
+      "pokemon vgc tournaments",
+      "pokemon competition",
+      "pokemon battle tournaments",
+      "regulation g guide",
+      "pokemon strategy"
+    ],
     "category": "Pokemon VGC Guides",
     "excerpt": "The definitive guide to competing in Pokémon VGC Regulation G tournaments. Discover the top teams, legendary choices, and counter-strategies.",
-    "author": "Trainer Red",
+    "author": "Red",
     "authorImage": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120",
     "publishedAt": "2026-06-01T10:00:00.000Z",
     "readTime": "6 min read",
     "content": "Regulation G has officially shaken up the Pokémon VGC landscape by permitting one restricted Legendary Pokémon per team. This guide outlines everything you need to know to adapt, construct optimal team structures, and win tournament games.\n\n### The Rise of Restricted Legendaries\nWith restricted legendaries allowed, team building revolves around supporting your central powerhouse. The top three restricted choices dominating the current metagame are:\n\n1. **Calyrex-Shadow:** Boasting incredible speed and Sp. Attack, Astral Barrage spreads immense pressure across opposing teams.\n2. **Koraidon:** Sets up harsh sunlight with Orichalcum Pulse, fueling its own Flare Blitz and boosting teammates like Flutter Mane.\n3. **Miraidon:** Electrifies the battlefield with Hadron Engine, turning Electro Drift into an unstoppable attack.\n\n### Core Team Templates\nSuccessful Regulation G teams balance offensive legendary pressure with utility support. Common support choices include:\n- **Incineroar:** Essential for Intimidate, Fake Out support, and Parting Shot pivot plays.\n- **Amoonguss:** Provides crucial redirection with Rage Powder and sleeps threats using Spore.\n- **Tornadus:** Sets up Tailwind speed control and triggers sun weather manually.",
     "toc": [
-      { "id": "restricted", "title": "The Rise of Restricted Legendaries" },
-      { "id": "templates", "title": "Core Team Templates" },
-      { "id": "counters", "title": "Common Metagame Counterplays" }
+      {
+        "id": "restricted",
+        "title": "The Rise of Restricted Legendaries"
+      },
+      {
+        "id": "templates",
+        "title": "Core Team Templates"
+      },
+      {
+        "id": "counters",
+        "title": "Common Metagame Counterplays"
+      }
     ],
     "faqs": [
       {
@@ -33,7 +48,12 @@
     "title": "Free Fire Squad Tournament Tactics: Essential Rotations & Strategy",
     "metaTitle": "Free Fire Squad Tactics & Rotations Guide | ChampsArena",
     "metaDescription": "Unlock competitive Garena Free Fire strategies. Learn team role distributions, custom room rotation tactics, and survival positioning for tournament success.",
-    "keywords": ["free fire tournament", "free fire squad tournaments", "free fire esports", "free fire tactics"],
+    "keywords": [
+      "free fire tournament",
+      "free fire squad tournaments",
+      "free fire esports",
+      "free fire tactics"
+    ],
     "category": "Free Fire Guides",
     "excerpt": "A comprehensive guide on squad play, character combinations, zone control, and map rotations for competitive Free Fire tournaments.",
     "author": "Alok Kumar",
@@ -42,9 +62,18 @@
     "readTime": "8 min read",
     "content": "Competing in custom room Free Fire tournaments requires high-level squad synergy and precise rotation planning. Unlike casual matches, every team in a tournament lobby plays defensively to secure placement points. Here is how you can optimize your gameplay.\n\n### Squad Roles & Composition\nA balanced competitive Free Fire squad should divide tasks clearly:\n- **The IGL (In-Game Leader):** Makes critical rotation calls and decides when to push or retreat.\n- **The Sniper:** Controls high-ground angles, scouts enemy movements, and chips down shields from distance.\n- **The Rusher:** Leads close-quarter combat pushes using SMGs and Shotguns, utilizing Gloo Walls defensively.\n- **The Support:** Carries extra utility, revives fallen teammates, and coordinates crossfire angles.\n\n### Zone Rotation & Edge Play\nRotation is the single most important factor for surviving late-game circles:\n- **Center Positioning:** Securing building compounds near the middle of the zone early minimizes rotation risks, though you will be targeted by surrounding teams.\n- **Edge Play:** Moving along the blue zone border allows you to clear out teams behind you, minimizing backstabs, but puts pressure on your movement speed.",
     "toc": [
-      { "id": "roles", "title": "Squad Roles & Composition" },
-      { "id": "rotation", "title": "Zone Rotation & Edge Play" },
-      { "id": "meta", "title": "Top Character Combos for Tournaments" }
+      {
+        "id": "roles",
+        "title": "Squad Roles & Composition"
+      },
+      {
+        "id": "rotation",
+        "title": "Zone Rotation & Edge Play"
+      },
+      {
+        "id": "meta",
+        "title": "Top Character Combos for Tournaments"
+      }
     ],
     "faqs": [
       {
@@ -62,7 +91,12 @@
     "title": "BGMI Drop Tactics & Loot Routing: Mastering Competitive Maps",
     "metaTitle": "BGMI Drop Tactics & Loot Routing Guide | ChampsArena",
     "metaDescription": "Boost your competitive BGMI rank. Study drop point analysis, early-game looting rotations, and vehicles spawn locations to secure early control in tournaments.",
-    "keywords": ["bgmi tournaments", "battlegrounds mobile india tournaments", "bgmi tactics", "esports routing"],
+    "keywords": [
+      "bgmi tournaments",
+      "battlegrounds mobile india tournaments",
+      "bgmi tactics",
+      "esports routing"
+    ],
     "category": "BGMI Guides",
     "excerpt": "Learn competitive drop planning, looting routes, and map layouts on Erangel and Miramar for Battlegrounds Mobile India tournaments.",
     "author": "Dynamo Ji",
@@ -71,9 +105,18 @@
     "readTime": "5 min read",
     "content": "Dropping onto the battlefield in BGMI tournaments is not just about landing; it is a calculated tactical drop that determines your team's early survival probability. A botched drop can send your squad back to the lobby in 20th place with zero points.\n\n### Analyzing Drop Priorities\nYour drop coordinates should depend on the flight path:\n- **Hot Drops (Pochinki, Military Base):** Rich in tier-3 loot, but high risk. Only push these drops if your squad excels in early spawn fights.\n- **Split Drops (Yasnaya Polyana splits):** Looting adjacent compounds safely. Requires vehicles to group up quickly.\n- **Cold Drops:** Drops far away from the flight path. Safest, but requires early car spawns to beat the blue zone timer.",
     "toc": [
-      { "id": "drops", "title": "Analyzing Drop Priorities" },
-      { "id": "loot", "title": "Effective Loot Routing" },
-      { "id": "vehicles", "title": "Securing Vehicle Spawns" }
+      {
+        "id": "drops",
+        "title": "Analyzing Drop Priorities"
+      },
+      {
+        "id": "loot",
+        "title": "Effective Loot Routing"
+      },
+      {
+        "id": "vehicles",
+        "title": "Securing Vehicle Spawns"
+      }
     ],
     "faqs": [
       {
