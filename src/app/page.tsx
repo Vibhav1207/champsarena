@@ -330,7 +330,7 @@ export default function Home() {
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-blue text-white px-4 py-2 font-black text-3xl border-4 border-primary">2</div>
                       </div>
                       <h3 className="font-black text-3xl text-primary uppercase mb-1">{topPlayers[1].name}</h3>
-                      <p className="text-primary font-bold uppercase mb-4">{topPlayers[1].homeRegion || "Kanto"} • {topPlayers[1].elo} CP</p>
+                      <p className="text-primary font-bold uppercase mb-4">{topPlayers[1].elo} CP</p>
                       <span className="bg-primary text-white px-4 py-1 font-black uppercase text-xs tracking-widest select-none">Wins: {topPlayers[1].wins}</span>
                     </>
                   ) : (
@@ -363,7 +363,7 @@ export default function Home() {
                         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent-yellow text-primary px-8 py-3 font-black text-5xl border-8 border-primary">1</div>
                       </div>
                       <h3 className="font-black text-4xl text-primary uppercase mb-1">{topPlayers[0].name}</h3>
-                      <p className="text-primary font-black text-xl uppercase mb-4">{topPlayers[0].homeRegion || "Kanto"} • {topPlayers[0].elo} CP</p>
+                      <p className="text-primary font-black text-xl uppercase mb-4">{topPlayers[0].elo} CP</p>
                       <span className="bg-accent-red text-white px-6 py-2 font-black uppercase text-sm tracking-widest select-none">Wins: {topPlayers[0].wins}</span>
                     </>
                   ) : (
@@ -396,7 +396,7 @@ export default function Home() {
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-red text-white px-4 py-2 font-black text-3xl border-4 border-primary">3</div>
                       </div>
                       <h3 className="font-black text-3xl text-primary uppercase mb-1">{topPlayers[2].name}</h3>
-                      <p className="text-primary font-bold uppercase mb-4">{topPlayers[2].homeRegion || "Kanto"} • {topPlayers[2].elo} CP</p>
+                      <p className="text-primary font-bold uppercase mb-4">{topPlayers[2].elo} CP</p>
                       <span className="bg-primary text-white px-4 py-1 font-black uppercase text-xs tracking-widest select-none">Wins: {topPlayers[2].wins}</span>
                     </>
                   ) : (

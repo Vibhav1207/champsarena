@@ -1202,7 +1202,6 @@ function TournamentManagementPanel({
                       </div>
                       <div>
                         <p className="text-primary truncate max-w-[120px]">{reg.user.name}</p>
-                        <p className="text-[9px] text-primary/50 normal-case font-medium">Pokemon: {reg.user.favPokemon || "—"}</p>
                       </div>
                     </div>
                     <div className="text-right">

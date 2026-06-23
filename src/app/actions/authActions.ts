@@ -28,7 +28,7 @@ export async function loginTrainer(formData: any) {
 }
 
 export async function registerTrainer(formData: any) {
-  const { name, email, password, favPokemon, homeRegion } = formData;
+  const { name, email, password } = formData;
   try {
     const existing = await prisma.user.findUnique({
       where: { email },
@@ -44,8 +44,8 @@ export async function registerTrainer(formData: any) {
         name,
         email,
         password: hashedPassword,
-        favPokemon: favPokemon || null,
-        homeRegion: homeRegion || "Kanto",
+        favPokemon: null,
+        homeRegion: "Kanto",
       },
     });
 

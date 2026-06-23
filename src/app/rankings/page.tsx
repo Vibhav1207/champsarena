@@ -37,7 +37,6 @@ const TIERS = [
 ];
 
 export default function Rankings() {
-  const [selectedRegion, setSelectedRegion] = useState("All Regions");
   const [sortBy, setSortBy] = useState("Highest ELO");
   const [searchQuery, setSearchQuery] = useState("");
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -63,7 +62,6 @@ export default function Rankings() {
   // Client-side filter + sort
   const filtered = [...allPlayers]
     .filter(p => {
-      if (selectedRegion !== "All Regions" && p.homeRegion !== selectedRegion) return false;
       if (searchQuery && !p.name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     })
@@ -317,50 +315,29 @@ export default function Rankings() {
 
             {/* ── Leaderboard Table Section ── */}
             <section className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden mb-xl">
-              {/* Filters / Regions / Sort */}
-              <div className="p-md border-b-4 border-primary flex flex-col lg:flex-row justify-between items-center gap-md select-none bg-white">
-                <div className="flex gap-sm overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 custom-scrollbar">
-                  {["All Regions", "North America", "Europe", "Asia Pacific"].map(r => {
-                    const isSelected = selectedRegion === r;
-                    return (
-                      <button
-                        key={r}
-                        onClick={() => setSelectedRegion(r)}
-                        className={`px-6 py-2 font-black uppercase tracking-tighter border-2 border-primary transition-all whitespace-nowrap text-sm ${
-                          isSelected
-                            ? "bg-primary text-white shadow-none translate-x-0 translate-y-0"
-                            : "bg-white text-primary hover:bg-accent-yellow hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[2px_2px_0px_0px_#1a1a1a]"
-                        }`}
-                      >
-                        {r}
-                      </button>
-                    );
-                  })}
+              {/* Filters / Search / Sort */}
+              <div className="p-md border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none bg-white">
+                <div className="relative w-full md:w-80 border-2 border-primary bg-white flex items-center px-sm py-1">
+                  <span className="material-symbols-outlined text-primary text-[20px]">search</span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="SEARCH TRAINERS..."
+                    className="w-full ml-xs border-none outline-none focus:ring-0 text-sm font-bold uppercase placeholder:opacity-50"
+                  />
                 </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-md justify-between w-full lg:w-auto">
-                  <div className="relative w-full sm:w-64 border-2 border-primary bg-white flex items-center px-sm py-1">
-                    <span className="material-symbols-outlined text-primary text-[20px]">search</span>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="SEARCH TRAINERS..."
-                      className="w-full ml-xs border-none outline-none focus:ring-0 text-sm font-bold uppercase placeholder:opacity-50"
-                    />
-                  </div>
-                  <div className="flex items-center gap-xs text-primary shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                    <span className="text-xs font-black uppercase tracking-widest">Sort:</span>
-                    <select
-                      value={sortBy}
-                      onChange={e => setSortBy(e.target.value)}
-                      className="bg-white border-2 border-primary font-black uppercase tracking-widest text-xs px-4 py-2 focus:ring-0 outline-none"
-                    >
-                      <option>Highest ELO</option>
-                      <option>Most Wins</option>
-                      <option>Win Rate</option>
-                    </select>
-                  </div>
+                <div className="flex items-center gap-xs text-primary shrink-0 w-full md:w-auto justify-between md:justify-start">
+                  <span className="text-xs font-black uppercase tracking-widest">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    className="bg-white border-2 border-primary font-black uppercase tracking-widest text-xs px-4 py-2 focus:ring-0 outline-none"
+                  >
+                    <option>Highest ELO</option>
+                    <option>Most Wins</option>
+                    <option>Win Rate</option>
+                  </select>
                 </div>
               </div>
 
@@ -408,9 +385,6 @@ export default function Rankings() {
                                   <p className="font-black text-xl uppercase tracking-tighter text-primary">
                                     {p.name || "Trainer"}
                                   </p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">
-                                    {p.homeRegion || "Unknown Region"}
-                                  </p>
                                 </div>
                               </div>
                             </td>
@@ -445,7 +419,7 @@ export default function Rankings() {
                     ) : (
                       <tr>
                         <td colSpan={6} className="text-center py-12 text-primary font-black uppercase italic">
-                          {searchQuery || selectedRegion !== "All Regions"
+                          {searchQuery
                             ? "No trainers match your filters."
                             : "Only the top 3 trainers — no additional entries yet."}
                         </td>

@@ -7,8 +7,6 @@ import { loginTrainer, registerTrainer, socialLogin } from "@/app/actions/authAc
 
 type Tab = "login" | "signup";
 
-const REGIONS = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Unova", "Kalos", "Alola", "Galar", "Paldea"];
-
 export default function AuthPage() {
   const [tab, setTab] = useState<Tab>("login");
   const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0, totalMatches: 0 });
@@ -19,8 +17,6 @@ export default function AuthPage() {
 
   // Register state
   const [rName, setRName] = useState("");
-  const [rFav, setRFav] = useState("");
-  const [rRegion, setRRegion] = useState("Kanto");
   const [rEmail, setREmail] = useState("");
   const [rPass, setRPass] = useState("");
   const [rPassConfirm, setRPassConfirm] = useState("");
@@ -80,9 +76,7 @@ export default function AuthPage() {
       const res = await registerTrainer({
         name: rName,
         email: rEmail,
-        password: rPass,
-        favPokemon: rFav,
-        homeRegion: rRegion
+        password: rPass
       });
       if (res?.error) setError(res.error);
       else setSuccess("Trainer registered! Signing you in…");
@@ -342,7 +336,7 @@ export default function AuthPage() {
                           <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Create your trainer profile and join the circuit.</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-sm">
+                        <div className="space-y-xs">
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Name</label>
                             <input 
@@ -354,31 +348,6 @@ export default function AuthPage() {
                               placeholder="Red"
                               className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Partner</label>
-                            <input 
-                              type="text"
-                              disabled={loading}
-                              value={rFav}
-                              onChange={e => setRFav(e.target.value)}
-                              placeholder="Charizard"
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-xs">
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Home Region</label>
-                            <select 
-                              disabled={loading}
-                              value={rRegion}
-                              onChange={e => setRRegion(e.target.value)}
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors uppercase tracking-wider"
-                            >
-                              {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                            </select>
                           </div>
 
                           <div className="space-y-1">

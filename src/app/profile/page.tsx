@@ -119,8 +119,6 @@ export default function Profile() {
   const elo = profileData?.elo ?? 1000;
   const wins = profileData?.wins ?? 0;
   const losses = profileData?.losses ?? 0;
-  const homeRegion = profileData?.homeRegion || "Unknown Region";
-  const favPokemon = profileData?.favPokemon || "—";
   const image = profileData?.image || null;
 
   return (
@@ -190,49 +188,22 @@ export default function Profile() {
                 </div>
 
                 {/* Right Side: Stats & Info */}
-                <div className="md:w-3/5 flex flex-col">
+                <div className="md:w-3/5 flex flex-col justify-stretch">
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 flex-grow">
-                    <div className="p-lg border-b-4 sm:border-r-4 border-primary flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150">
-                      <span className="font-black text-xs uppercase tracking-widest text-primary mb-4 block">Rank Status</span>
-                      <div className="space-y-2">
-                        <span className="text-4xl font-black uppercase block italic text-primary">
-                          {elo > 1500 ? "Grand Master" : elo > 1200 ? "Veteran Tier" : "Ace Tier"}
-                        </span>
-                        <span className="bg-primary text-white inline-block px-2 py-1 text-xs font-bold uppercase">
+                  <div className="p-lg flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150 flex-grow">
+                    <span className="font-black text-xs uppercase tracking-widest text-primary mb-4 block">Rank Status</span>
+                    <div className="space-y-4">
+                      <span className="text-4xl sm:text-5xl font-black uppercase block italic text-primary leading-none">
+                        {elo > 1500 ? "Grand Master" : elo > 1200 ? "Veteran Tier" : "Ace Tier"}
+                      </span>
+                      <div className="flex flex-wrap gap-sm pt-2">
+                        <span className="bg-primary text-white inline-block px-3 py-1.5 text-xs font-bold uppercase">
                           ELO Rating: {elo.toLocaleString()}
                         </span>
-                      </div>
-                    </div>
-
-                    <div className="p-lg border-b-4 border-primary flex flex-col justify-between hover:bg-accent-blue hover:text-white transition-colors duration-150 group">
-                      <span className="font-black text-xs uppercase tracking-widest text-primary group-hover:text-white mb-4 block">Deployment Region</span>
-                      <div className="space-y-2">
-                        <span className="text-4xl font-black uppercase block italic">
-                          {homeRegion} Dist.
-                        </span>
-                        <span className="border-2 border-primary group-hover:border-white inline-block px-2 py-1 text-xs font-bold uppercase">
+                        <span className="border-2 border-primary inline-block px-3 py-1.5 text-xs font-bold uppercase">
                           Badges: {wins > 10 ? "08/08" : "04/08"}
                         </span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="p-lg bg-surface-container-low border-t-4 border-primary">
-                    <span className="font-black text-xs uppercase tracking-widest text-primary mb-6 block">Core Operational Units</span>
-                    <div className="flex flex-wrap gap-md md:gap-lg justify-start">
-                      {[
-                        { name: favPokemon, icon: "electric_bolt" },
-                        { name: "Charizard", icon: "local_fire_department" },
-                        { name: "Greninja", icon: "water_drop" },
-                      ].map((unit, i) => (
-                        <div key={i} className="flex items-center gap-2 sm:gap-4 group">
-                          <div className="w-16 h-16 border-4 border-primary flex items-center justify-center bg-white group-hover:bg-accent-red group-hover:text-white transition-all duration-150 select-none">
-                            <span className="material-symbols-outlined text-3xl">{unit.icon}</span>
-                          </div>
-                          <span className="font-black uppercase tracking-tighter text-primary">{unit.name}</span>
-                        </div>
-                      ))}
                     </div>
                   </div>
 
