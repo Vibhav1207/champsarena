@@ -923,7 +923,7 @@ export default function Profile() {
 
             <form onSubmit={handleUpdateProfile} className="space-y-sm">
               <div className="space-y-1">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Username *</label>
+                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer *</label>
                 <input 
                   type="text"
                   required

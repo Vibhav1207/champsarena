@@ -78,7 +78,7 @@ export default function ContactPage() {
             <h2 className="font-headline-md uppercase border-b-4 border-primary pb-xs inline-block">Dispatch Message</h2>
             <form className="space-y-sm font-bold text-xs uppercase pt-xs">
               <div className="flex flex-col gap-1">
-                <label className="tracking-wide">Name / Trainer Username</label>
+                <label className="tracking-wide">Name / Trainer</label>
                 <input
                   type="text"
                   required
