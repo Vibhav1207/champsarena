@@ -1867,13 +1867,7 @@ function SidebarContent({ nav, session, onLogout, loggingOut, onClose }: {
       {/* Brand Logo */}
       <div className="p-5 border-b-4 border-primary bg-accent-yellow">
         <Link href="/" className="group flex items-center gap-2" onClick={onClose}>
-          <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0">
-            <circle cx="50" cy="50" r="48" fill="white" stroke="#1a1a1a" strokeWidth="6" />
-            <path d="M 3 50 Q 3 3 50 3 Q 97 3 97 50 Z" fill="#FF3B3B" />
-            <line x1="3" y1="50" x2="97" y2="50" stroke="#1a1a1a" strokeWidth="6" />
-            <circle cx="50" cy="50" r="14" fill="white" stroke="#1a1a1a" strokeWidth="6" />
-            <circle cx="50" cy="50" r="6" fill="#FFD700" />
-          </svg>
+          <img src="/logo.png" alt="ChampsArena Logo" className="w-8 h-8 object-contain flex-shrink-0" />
           <div className="text-left">
             <p className="font-bold text-primary text-md leading-tight uppercase group-hover:opacity-85 transition-opacity">ChampsArena</p>
             <p className="text-[9px] font-bold uppercase tracking-widest text-primary/60 mt-0.5">Admin Console</p>

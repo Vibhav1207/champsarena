@@ -14,7 +14,7 @@ export default function Navigation() {
     fetch("/api/auth/session")
       .then(r => r.json())
       .then(data => { if (data?.user) setSession(data.user); })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const isAdmin = session?.role === "ADMIN" || session?.role === "SUPER_ADMIN";
@@ -46,13 +46,7 @@ export default function Navigation() {
 
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-xs hover:opacity-95 transition-all">
-          <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0">
-            <circle cx="50" cy="50" r="48" fill="white" stroke="#1a1a1a" strokeWidth="6" />
-            <path d="M 3 50 Q 3 3 50 3 Q 97 3 97 50 Z" fill="#FF3B3B" />
-            <line x1="3" y1="50" x2="97" y2="50" stroke="#1a1a1a" strokeWidth="6" />
-            <circle cx="50" cy="50" r="14" fill="white" stroke="#1a1a1a" strokeWidth="6" />
-            <circle cx="50" cy="50" r="6" fill="#FFD700" />
-          </svg>
+          <img src="/logo.png" alt="ChampsArena Logo" className="w-20 h-20 object-contain flex-shrink-0" />
           <span className="font-bold text-[22px] md:text-[26px] uppercase tracking-tighter bg-primary text-white px-3 py-1 select-none">
             ChampsArena
           </span>
@@ -61,7 +55,7 @@ export default function Navigation() {
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-md">
           <Link href="/tournaments" className={getLinkCls("/tournaments", "border-accent-red")}>Tournaments</Link>
-          <Link href="/rankings"    className={getLinkCls("/rankings", "border-accent-yellow")}>Rankings</Link>
+          <Link href="/rankings" className={getLinkCls("/rankings", "border-accent-yellow")}>Rankings</Link>
           {isAdmin && (
             <Link href="/admin" className={getLinkCls("/admin", "border-accent-blue")}>
               Admin
