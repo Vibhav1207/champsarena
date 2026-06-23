@@ -46,10 +46,26 @@ export async function POST(req: NextRequest) {
         });
 
         // Update registration status
-        await tx.registration.update({
+        const updatedReg = await tx.registration.update({
           where: { id: regId },
           data: { status: "APPROVED" },
         });
+
+        // If user is a captain of a squad, approve squad registration
+        const squad = await tx.squad.findFirst({
+          where: { captainId: userId },
+        });
+
+        if (squad && updatedReg.tournamentId) {
+          await tx.squadRegistration.updateMany({
+            where: {
+              squadId: squad.id,
+              tournamentId: updatedReg.tournamentId,
+              status: "PENDING",
+            },
+            data: { status: "APPROVED" },
+          });
+        }
 
         // Create notification
         await tx.notification.create({

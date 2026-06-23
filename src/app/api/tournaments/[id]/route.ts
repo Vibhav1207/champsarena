@@ -22,12 +22,31 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             },
           },
         },
+        squadRegistrations: {
+          where: { status: "APPROVED" },
+          include: {
+            squad: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+                captainId: true,
+                members: {
+                  select: { id: true, name: true, username: true },
+                },
+              },
+            },
+          },
+        },
         winner: { select: { id: true, name: true, image: true } },
         matches: {
           include: {
             p1: { select: { id: true, name: true, image: true } },
             p2: { select: { id: true, name: true, image: true } },
             winner: { select: { id: true, name: true, image: true } },
+            s1: { select: { id: true, name: true, logo: true } },
+            s2: { select: { id: true, name: true, logo: true } },
+            winnerSquad: { select: { id: true, name: true, logo: true } },
             attachments: true,
             dispute: true,
           },
@@ -41,6 +60,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // Determine user's registration status
     let userRegistration = null;
+    let squadRegistration = null;
     if (session?.user?.id) {
       userRegistration = await prisma.registration.findUnique({
         where: {
@@ -51,11 +71,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         },
         include: { payments: true },
       });
+
+      const userDetails = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { squadId: true },
+      });
+
+      if (userDetails?.squadId) {
+        squadRegistration = await prisma.squadRegistration.findUnique({
+          where: {
+            squadId_tournamentId: {
+              squadId: userDetails.squadId,
+              tournamentId: id,
+            },
+          },
+          include: {
+            squad: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+                captainId: true,
+              },
+            },
+          },
+        });
+      }
     }
 
     return NextResponse.json({
       tournament,
       userRegistration,
+      squadRegistration,
     });
   } catch (error: any) {
     console.error("Failed to fetch tournament details:", error);
@@ -89,6 +136,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         rules: body.rules,
         entryFee: body.entryFee !== undefined ? parseFloat(body.entryFee) : undefined,
         prizePool: body.prizePool !== undefined ? parseFloat(body.prizePool) : undefined,
+        currency: body.currency,
+        prizeDistribution: body.prizeDistribution,
         maxPlayers: body.maxPlayers !== undefined ? parseInt(body.maxPlayers) : undefined,
         registrationDeadline: body.registrationDeadline ? new Date(body.registrationDeadline) : undefined,
         startDate: body.startDate ? new Date(body.startDate) : undefined,
@@ -99,6 +148,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         badgeName: body.badgeName,
         badgeIcon: body.badgeIcon,
         winnerId: body.winnerId,
+        game: body.game,
       },
     });
 

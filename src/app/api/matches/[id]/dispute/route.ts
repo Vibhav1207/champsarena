@@ -27,8 +27,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Verify user is a participant
-    const userId = session.user.id;
-    if (match.p1Id !== userId && match.p2Id !== userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, squadId: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const isParticipant = match.s1Id !== null
+      ? (user.squadId === match.s1Id || user.squadId === match.s2Id)
+      : (match.p1Id === user.id || match.p2Id === user.id);
+
+    if (!isParticipant) {
       return NextResponse.json({ error: "You are not a participant in this match" }, { status: 403 });
     }
 
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await tx.matchDispute.create({
         data: {
           matchId: id,
-          raisedById: userId,
+          raisedById: user.id,
           reason: reason.trim(),
           status: "OPEN",
         },
@@ -62,8 +73,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await tx.auditLog.create({
         data: {
           action: "MATCH_DISPUTE_RAISED",
-          userId,
-          details: `Dispute raised on match ${id} by user ${userId}. Reason: ${reason}`,
+          userId: user.id,
+          details: `Dispute raised on match ${id} by user ${user.id}. Reason: ${reason}`,
         },
       });
     });

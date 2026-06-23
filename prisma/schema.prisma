@@ -50,21 +50,35 @@ enum TicketStatus {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String?         @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?         // Hashed password for credentials auth
-  role          Role            @default(USER)
-  elo           Int             @default(1000)
-  wins          Int             @default(0)
-  losses        Int             @default(0)
-  trainerId     String          @unique @default(uuid())
-  homeRegion    String          @default("Kanto")
-  favPokemon    String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                  String          @id @default(cuid())
+  name                String?
+  email               String?         @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?         // Hashed password for credentials auth
+  role                Role            @default(USER)
+  elo                 Int             @default(1000)
+  wins                Int             @default(0)
+  losses              Int             @default(0)
+  trainerId           String          @unique @default(uuid())
+  homeRegion          String          @default("Kanto")
+  favPokemon          String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  username            String?         @unique
+  bio                 String?         @db.Text
+  country             String?
+  discordUsername     String?
+  socialLinks         String?         @db.Text // Serialized JSON
+  failedLoginAttempts Int             @default(0)
+  lockoutUntil        DateTime?
+
+  squadId             String?
+  squad               Squad?          @relation("SquadMembers", fields: [squadId], references: [id])
+  captainOf           Squad[]         @relation("SquadCaptain")
+  coCaptainOf         Squad[]         @relation("SquadCoCaptain")
+  squadInvitations    SquadInvitation[]
 
   accounts      Account[]
   sessions      Session[]
@@ -126,6 +140,8 @@ model Tournament {
   rules                String           @db.Text
   entryFee             Float            @default(0.0)
   prizePool            Float            @default(0.0)
+  currency             String           @default("USD")
+  prizeDistribution    String           @default("TOP_8")
   maxPlayers           Int              @default(64)
   registrationDeadline DateTime
   startDate            DateTime
@@ -135,12 +151,16 @@ model Tournament {
   visibility           Boolean          @default(true)
   badgeName            String?
   badgeIcon            String?
+  game                 String           @default("POKEMON_VGC")
   winnerId             String?
   winner               User?            @relation("TournamentWinner", fields: [winnerId], references: [id])
+  winnerSquadId        String?
+  winnerSquad          Squad?           @relation("TournamentSquadWinner", fields: [winnerSquadId], references: [id])
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
   registrations        Registration[]
+  squadRegistrations   SquadRegistration[]
   matches              Match[]
   brackets             Bracket[]
 }
@@ -161,29 +181,45 @@ model Registration {
 }
 
 model Match {
-  id           String     @id @default(cuid())
-  tournamentId String
-  round        Int
-  p1Id         String?
-  p2Id         String?
-  p1Score      Int        @default(0)
-  p2Score      Int        @default(0)
-  winnerId     String?
-  status       String     @default("PENDING") // PENDING, ONGOING, COMPLETED, BYE
-  scheduledAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                    String     @id @default(cuid())
+  tournamentId          String
+  round                 Int
+  p1Id                  String?
+  p2Id                  String?
+  p1Score               Int        @default(0)
+  p2Score               Int        @default(0)
+  winnerId              String?
+  status                String     @default("PENDING") // PENDING, ONGOING, COMPLETED, BYE, REPORTED, DISPUTED
+  scheduledAt           DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  s1Id                  String?
+  s2Id                  String?
+  winnerSquadId         String?
+  reportedById          String?
+  reportedP1Score       Int?
+  reportedP2Score       Int?
+  reportedS1Score       Int?
+  reportedS2Score       Int?
+  reportedWinnerId      String?
+  reportedWinnerSquadId String?
 
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   p1           User?      @relation("MatchP1", fields: [p1Id], references: [id])
   p2           User?      @relation("MatchP2", fields: [p2Id], references: [id])
   winner       User?      @relation("MatchWinner", fields: [winnerId], references: [id])
+  s1           Squad?     @relation("MatchS1", fields: [s1Id], references: [id])
+  s2           Squad?     @relation("MatchS2", fields: [s2Id], references: [id])
+  winnerSquad  Squad?     @relation("MatchSquadWinner", fields: [winnerSquadId], references: [id])
   attachments  MatchAttachment[]
   dispute      MatchDispute?
 
   @@index([tournamentId])
   @@index([p1Id])
   @@index([p2Id])
+  @@index([s1Id])
+  @@index([s2Id])
 }
 
 model Bracket {
@@ -251,6 +287,8 @@ model AuditLog {
   action    String
   userId    String?
   details   String   @db.Text
+  prevValue String?  @db.Text
+  newValue  String?  @db.Text
   ipAddress String?
   createdAt DateTime @default(now())
 
@@ -313,4 +351,51 @@ model MatchDispute {
   updatedAt    DateTime      @updatedAt
 
   match        Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model Squad {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  logo        String?  // URL to logo
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     User[]   @relation("SquadMembers")
+  captainId   String
+  captain     User     @relation("SquadCaptain", fields: [captainId], references: [id])
+  coCaptainId String?
+  coCaptain   User?    @relation("SquadCoCaptain", fields: [coCaptainId], references: [id])
+
+  invitations SquadInvitation[]
+  registrations SquadRegistration[]
+  matchesAsS1   Match[]  @relation("MatchS1")
+  matchesAsS2   Match[]  @relation("MatchS2")
+  wonMatches    Match[]  @relation("MatchSquadWinner")
+  wonTournaments Tournament[] @relation("TournamentSquadWinner")
+}
+
+model SquadInvitation {
+  id        String   @id @default(cuid())
+  squadId   String
+  squad     Squad    @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt DateTime @default(now())
+
+  @@unique([squadId, userId])
+}
+
+model SquadRegistration {
+  id           String             @id @default(cuid())
+  squadId      String
+  squad        Squad              @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  tournamentId String
+  tournament   Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  status       RegistrationStatus @default(PENDING)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@unique([squadId, tournamentId])
 }

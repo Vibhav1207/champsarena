@@ -126,6 +126,8 @@ export default function TournamentBracket({ params }: { params: Promise<{ id: st
     );
   }
 
+  const currencySymbol = tournament?.currency === "INR" ? "₹" : "$";
+
   return (
     <>
       <Navigation />
@@ -286,7 +288,7 @@ export default function TournamentBracket({ params }: { params: Promise<{ id: st
             <div className="select-none">
               <p className="text-xs font-bold uppercase tracking-widest opacity-70">Prize Pool</p>
               <p className="text-4xl font-bold tracking-tighter text-accent-yellow">
-                ${tournament?.prizePool?.toLocaleString()}
+                {currencySymbol}{tournament?.prizePool?.toLocaleString()}
               </p>
             </div>
           </div>

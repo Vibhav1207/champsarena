@@ -24,15 +24,18 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
   const [searchPlayer, setSearchPlayer] = useState("");
   const [tournament, setTournament] = useState<any>(null);
   const [userRegistration, setUserRegistration] = useState<any>(null);
+  const [squadRegistration, setSquadRegistration] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [showGatewayModal, setShowGatewayModal] = useState(false);
+  const [showRosterModal, setShowRosterModal] = useState(false);
 
   // Active match state
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [reportP1Score, setReportP1Score] = useState("");
   const [reportP2Score, setReportP2Score] = useState("");
   const [reportScreenshot, setReportScreenshot] = useState("");
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
   const [reportingMatch, setReportingMatch] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
@@ -45,6 +48,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
         if (data.tournament) {
           setTournament(data.tournament);
           setUserRegistration(data.userRegistration);
+          setSquadRegistration(data.squadRegistration);
         }
       })
       .catch((err) => console.log("Failed to fetch tournament detail", err))
@@ -65,7 +69,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
   const handleReportMatch = async (matchId: string) => {
     if (!reportP1Score || !reportP2Score) {
-      alert("Please enter scores for both players.");
+      alert("Please enter scores for both sides.");
       return;
     }
     try {
@@ -83,7 +87,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
       if (data.error) {
         alert(data.error);
       } else {
-        alert("Scores submitted successfully!");
+        alert("Scores submitted successfully! Awaiting opponent's confirmation.");
         setReportP1Score("");
         setReportP2Score("");
         setReportScreenshot("");
@@ -96,6 +100,57 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
     }
   };
 
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingScreenshot(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "match_proof");
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setReportScreenshot(data.url);
+      } else {
+        alert(data.error || "Failed to upload screenshot.");
+      }
+    } catch {
+      alert("Failed to upload screenshot.");
+    } finally {
+      setUploadingScreenshot(false);
+    }
+  };
+
+  const handleAcceptResult = async (matchId: string) => {
+    try {
+      setReportingMatch(true);
+      const res = await fetch(`/api/matches/${matchId}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ACCEPT",
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Results confirmed! Brackets have updated.");
+        fetchDetails();
+      }
+    } catch (err: any) {
+      alert("Failed to accept results: " + err.message);
+    } finally {
+      setReportingMatch(false);
+    }
+  };
+
   const handleRaiseDispute = async (matchId: string) => {
     if (!disputeReason.trim()) {
       alert("Please provide a reason for the dispute.");
@@ -103,18 +158,25 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
     }
     try {
       setSubmittingDispute(true);
-      const res = await fetch(`/api/matches/${matchId}/dispute`, {
+      const isReported = activeMatch?.status === "REPORTED";
+      const endpoint = isReported
+        ? `/api/matches/${matchId}/confirm`
+        : `/api/matches/${matchId}/dispute`;
+
+      const body = isReported
+        ? { action: "REJECT", reason: disputeReason }
+        : { reason: disputeReason };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reason: disputeReason,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.error) {
         alert(data.error);
       } else {
-        alert("Dispute filed successfully. A judge will review your match.");
+        alert(isReported ? "Match results disputed. An administrator will review your logs." : "Dispute filed successfully. A judge will review your match.");
         setDisputeReason("");
         setShowDisputeModal(false);
         fetchDetails();
@@ -187,32 +249,144 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
   };
 
   // Standings data mapping from tournament registrations
-  const standingsData: StandingsPlayer[] = tournament?.registrations?.map((reg: any, idx: number) => {
-    const userMatches = tournament.matches.filter(
-      (m: any) => (m.p1Id === reg.userId || m.p2Id === reg.userId) && m.status === "COMPLETED"
-    );
-    const wins = userMatches.filter((m: any) => m.winnerId === reg.userId).length;
-    const losses = userMatches.length - wins;
+  const rawStandingsData: ({ name: string; wins: number; losses: number; points: number; omw: string; logo?: string | null })[] =
+    tournament?.game === "FREE_FIRE"
+      ? tournament?.squadRegistrations?.map((reg: any) => {
+          const squadMatches = tournament.matches.filter(
+            (m: any) =>
+              (m.s1Id === reg.squadId || m.s2Id === reg.squadId) &&
+              (m.status === "COMPLETED" || m.status === "BYE")
+          );
+          const wins = squadMatches.filter(
+            (m: any) => m.winnerSquadId === reg.squadId
+          ).length;
+          const losses = squadMatches.filter(
+            (m: any) =>
+              m.status === "COMPLETED" &&
+              (m.s1Id === reg.squadId || m.s2Id === reg.squadId) &&
+              m.winnerSquadId !== reg.squadId
+          ).length;
 
-    return {
+          return {
+            name: reg.squad.name || "Squad",
+            wins,
+            losses,
+            points: wins,
+            omw: "50.0%",
+            logo: reg.squad.logo,
+          };
+        }) || []
+      : tournament?.registrations?.map((reg: any) => {
+          const userMatches = tournament.matches.filter(
+            (m: any) =>
+              (m.p1Id === reg.userId || m.p2Id === reg.userId) &&
+              (m.status === "COMPLETED" || m.status === "BYE")
+          );
+          const wins = userMatches.filter((m: any) => m.winnerId === reg.userId).length;
+          const losses = userMatches.filter(
+            (m: any) =>
+              m.status === "COMPLETED" &&
+              (m.p1Id === reg.userId || m.p2Id === reg.userId) &&
+              m.winnerId !== reg.userId
+          ).length;
+
+          return {
+            name: reg.user.name || "Trainer",
+            wins,
+            losses,
+            points: wins,
+            omw: "50.0%",
+            logo: null,
+          };
+        }) || [];
+
+  const standingsData: (StandingsPlayer & { logo?: string | null })[] = [...rawStandingsData]
+    .sort((a, b) => b.wins - a.wins || a.losses - b.losses || a.name.localeCompare(b.name))
+    .map((player, idx) => ({
       rank: `#${idx + 1}`,
-      name: reg.user.name || "Trainer",
-      record: `${wins}-${losses}-0`,
-      points: wins * 3,
-      omw: "50.0%",
-    };
-  }) || [];
+      name: player.name,
+      record: `${player.wins}-${player.losses}`,
+      points: player.points,
+      omw: player.omw,
+      logo: player.logo,
+    }));
 
   const filteredStandings = standingsData.filter((player) =>
     player.name.toLowerCase().includes(searchPlayer.toLowerCase())
   );
 
   const activeMatch = tournament?.matches?.find(
-    (m: any) =>
-      (m.p1Id === currentUser?.id || m.p2Id === currentUser?.id) &&
-      m.status !== "COMPLETED" &&
-      m.status !== "BYE"
+    (m: any) => {
+      const isFreeFire = tournament?.game === "FREE_FIRE";
+      if (isFreeFire) {
+        return (
+          (m.s1Id === currentUser?.squadId || m.s2Id === currentUser?.squadId) &&
+          m.status !== "COMPLETED" &&
+          m.status !== "BYE"
+        );
+      } else {
+        return (
+          (m.p1Id === currentUser?.id || m.p2Id === currentUser?.id) &&
+          m.status !== "COMPLETED" &&
+          m.status !== "BYE"
+        );
+      }
+    }
   );
+
+  const isSquadMatch = activeMatch?.s1Id !== null && activeMatch?.s1Id !== undefined;
+  const comp1Name = isSquadMatch ? (activeMatch?.s1?.name || "Squad 1") : (activeMatch?.p1?.name || "Player 1");
+  const comp2Name = isSquadMatch ? (activeMatch?.s2?.name || "Squad 2") : (activeMatch?.p2?.name || "Player 2");
+  
+  const comp1Logo = isSquadMatch ? activeMatch?.s1?.logo : activeMatch?.p1?.image;
+  const comp2Logo = isSquadMatch ? activeMatch?.s2?.logo : activeMatch?.p2?.image;
+
+  const isComp1User = isSquadMatch
+    ? (activeMatch?.s1Id === currentUser?.squadId)
+    : (activeMatch?.p1Id === currentUser?.id);
+
+  const isComp2User = isSquadMatch
+    ? (activeMatch?.s2Id === currentUser?.squadId)
+    : (activeMatch?.p2Id === currentUser?.id);
+  
+  const userSideReported = activeMatch?.reportedById === currentUser?.id || 
+    (tournament?.game === "FREE_FIRE" && currentUser?.squad?.members?.some((m: any) => m.id === activeMatch?.reportedById));
+
+  const reportedScore1 = isSquadMatch ? activeMatch?.reportedS1Score : activeMatch?.reportedP1Score;
+  const reportedScore2 = isSquadMatch ? activeMatch?.reportedS2Score : activeMatch?.reportedP2Score;
+
+  const currencyCode = tournament?.currency === "INR" ? "INR" : "USD";
+  const currencySymbol = currencyCode === "INR" ? "₹" : "$";
+  const formatEntryFee = (fee: number) =>
+    `${currencySymbol}${fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatPrizeMoney = (amount: number) => `${currencySymbol}${amount.toLocaleString()}`;
+
+  const prizeDistributionItems = (() => {
+    const dist = tournament?.prizeDistribution || "TOP_8";
+    if (dist === "TOP_1") {
+      return [{ rank: "1st Place", title: "CHAMPION", pct: 1, highlight: true }];
+    }
+    if (dist === "TOP_3") {
+      return [
+        { rank: "1st Place", title: "CHAMPION", pct: 0.6, highlight: true },
+        { rank: "2nd Place", title: "FINALIST", pct: 0.3, highlight: false },
+        { rank: "3rd Place", title: "SEMI-FINAL", pct: 0.1, highlight: false },
+      ];
+    }
+    if (dist === "TOP_4") {
+      return [
+        { rank: "1st Place", title: "CHAMPION", pct: 0.5, highlight: true },
+        { rank: "2nd Place", title: "FINALIST", pct: 0.25, highlight: false },
+        { rank: "3rd - 4th", title: "SEMI-FINAL", pct: 0.125, highlight: false },
+      ];
+    }
+    return [
+      { rank: "1st Place", title: "CHAMPION", pct: 0.5, highlight: true },
+      { rank: "2nd Place", title: "FINALIST", pct: 0.2, highlight: false },
+      { rank: "3rd - 4th", title: "SEMI-FINAL", pct: 0.1, highlight: false },
+      { rank: "5th - 8th", title: "QUARTER-FINAL", pct: 0.025, highlight: false },
+    ];
+  })();
 
   return (
     <>
@@ -236,8 +410,8 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               "offers": {
                 "@type": "Offer",
                 "price": tournament.entryFee,
-                "priceCurrency": "USD",
-                "availability": tournament.registrations?.length >= tournament.maxPlayers ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
+                "priceCurrency": currencyCode,
+                "availability": (tournament.game === "FREE_FIRE" ? (tournament.squadRegistrations?.length || 0) : (tournament.registrations?.length || 0)) >= tournament.maxPlayers ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
               }
             })
           }}
@@ -287,48 +461,90 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between text-primary border-b-2 border-primary pb-xs">
                 <span className="uppercase font-black text-sm">Participants</span>
                 <span className="font-black text-lg">
-                  {tournament?.registrations?.length || 0} / {tournament?.maxPlayers || 128}
+                  {tournament?.game === "FREE_FIRE"
+                    ? `${tournament?.squadRegistrations?.length || 0} / ${tournament?.maxPlayers || 128}`
+                    : `${tournament?.registrations?.length || 0} / ${tournament?.maxPlayers || 128}`}
                 </span>
               </div>
               <div className="flex items-center justify-between text-primary border-b-2 border-primary pb-xs">
                 <span className="uppercase font-black text-sm">Entry Fee</span>
                 <span className="font-black text-lg">
-                  {tournament?.entryFee > 0 ? `$${tournament.entryFee.toFixed(2)}` : "Free"}
+                  {tournament?.entryFee > 0 ? formatEntryFee(tournament.entryFee) : "Free"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-primary pb-xs">
                 <span className="uppercase font-black text-sm">Prize Pool</span>
                 <span className="font-black text-2xl text-accent-red">
-                  ${tournament?.prizePool?.toLocaleString()}
+                  {formatPrizeMoney(tournament?.prizePool ?? 0)}
                 </span>
               </div>
 
               {/* Action Button */}
               <div className="mt-xs">
-                {userRegistration && userRegistration.status === "APPROVED" ? (
-                  <button disabled className="w-full bg-primary text-white py-3 border-2 border-primary font-black uppercase text-sm cursor-default tracking-wider select-none text-center">
-                    ✓ Registered & Paid
-                  </button>
-                ) : (tournament?.registrations?.length || 0) >= (tournament?.maxPlayers || 64) ? (
-                  <button disabled className="w-full bg-surface-container-high border-2 border-primary text-primary/40 py-3 font-black uppercase text-sm cursor-not-allowed select-none text-center">
-                    Tournament Full
-                  </button>
-                ) : userRegistration ? (
-                  <button
-                    onClick={handleRegister}
-                    disabled={paying}
-                    className="w-full bg-accent-red text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
-                  >
-                    {paying ? "Processing..." : "Complete Payment"}
-                  </button>
+                {tournament?.game === "FREE_FIRE" ? (
+                  squadRegistration && squadRegistration.status === "APPROVED" ? (
+                    <button disabled className="w-full bg-primary text-white py-3 border-2 border-primary font-black uppercase text-sm cursor-default tracking-wider select-none text-center">
+                      ✓ Registered: {squadRegistration.squad?.name || "Squad"}
+                    </button>
+                  ) : (tournament?.squadRegistrations?.length || 0) >= (tournament?.maxPlayers || 64) ? (
+                    <button disabled className="w-full bg-surface-container-high border-2 border-primary text-primary/40 py-3 font-black uppercase text-sm cursor-not-allowed select-none text-center">
+                      Tournament Full
+                    </button>
+                  ) : !currentUser?.squadId ? (
+                    <Link
+                      href="/profile"
+                      className="w-full block bg-accent-yellow text-primary border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform hover:bg-primary hover:text-white"
+                    >
+                      Create/Join Squad to Register
+                    </Link>
+                  ) : currentUser?.squad?.captainId !== currentUser?.id ? (
+                    <button disabled className="w-full bg-surface-container-high border-2 border-primary text-primary/40 py-3 font-black uppercase text-sm cursor-default select-none text-center">
+                      Wait for Captain to Register
+                    </button>
+                  ) : (
+                    squadRegistration && squadRegistration.status === "PENDING" ? (
+                      <button
+                        onClick={handleRegister}
+                        disabled={paying}
+                        className="w-full bg-accent-red text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
+                      >
+                        {paying ? "Processing..." : "Complete Payment"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowRosterModal(true)}
+                        className="w-full bg-primary text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
+                      >
+                        Register Squad
+                      </button>
+                    )
+                  )
                 ) : (
-                  <button
-                    onClick={handleRegister}
-                    disabled={paying}
-                    className="w-full bg-primary text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
-                  >
-                    {paying ? "Processing..." : "Register Now"}
-                  </button>
+                  userRegistration && userRegistration.status === "APPROVED" ? (
+                    <button disabled className="w-full bg-primary text-white py-3 border-2 border-primary font-black uppercase text-sm cursor-default tracking-wider select-none text-center">
+                      ✓ Registered & Paid
+                    </button>
+                  ) : (tournament?.registrations?.length || 0) >= (tournament?.maxPlayers || 64) ? (
+                    <button disabled className="w-full bg-surface-container-high border-2 border-primary text-primary/40 py-3 font-black uppercase text-sm cursor-not-allowed select-none text-center">
+                      Tournament Full
+                    </button>
+                  ) : userRegistration ? (
+                    <button
+                      onClick={handleRegister}
+                      disabled={paying}
+                      className="w-full bg-accent-red text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
+                    >
+                      {paying ? "Processing..." : "Complete Payment"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRegister}
+                      disabled={paying}
+                      className="w-full bg-primary text-white border-2 border-primary py-3 font-black uppercase text-sm text-center active:translate-y-0.5 transition-transform"
+                    >
+                      {paying ? "Processing..." : "Register Now"}
+                    </button>
+                  )
                 )}
               </div>
             </div>
@@ -360,34 +576,42 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
 
                 {/* Matchup visualizer */}
                 <div className="flex flex-col sm:flex-row items-center gap-md sm:gap-xl">
-                  {/* Player 1 */}
+                  {/* Competitor 1 */}
                   <div className="flex items-center gap-sm bg-surface-container-high border-2 border-primary p-xs pr-md min-w-[200px]">
-                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
-                      {activeMatch.p1?.name?.charAt(0) || "P"}
+                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none overflow-hidden relative">
+                      {comp1Logo ? (
+                        <img src={comp1Logo} alt={comp1Name} className="w-full h-full object-cover" />
+                      ) : (
+                        comp1Name.charAt(0)
+                      )}
                     </div>
                     <div className="text-left">
                       <div className="font-black text-sm uppercase text-primary line-clamp-1">
-                        {activeMatch.p1?.name || "Player 1"}
+                        {comp1Name}
                       </div>
                       <div className="text-[10px] font-black text-primary/60">
-                        {activeMatch.p1?.id === currentUser?.id ? "YOU" : "OPPONENT"}
+                        {isComp1User ? "YOUR SIDE" : "OPPONENT"}
                       </div>
                     </div>
                   </div>
 
                   <span className="font-black text-xl text-primary">VS</span>
 
-                  {/* Player 2 */}
+                  {/* Competitor 2 */}
                   <div className="flex items-center gap-sm bg-surface-container-high border-2 border-primary p-xs pr-md min-w-[200px]">
-                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none">
-                      {activeMatch.p2?.name?.charAt(0) || "P"}
+                    <div className="w-10 h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none overflow-hidden relative">
+                      {comp2Logo ? (
+                        <img src={comp2Logo} alt={comp2Name} className="w-full h-full object-cover" />
+                      ) : (
+                        comp2Name.charAt(0)
+                      )}
                     </div>
                     <div className="text-left">
                       <div className="font-black text-sm uppercase text-primary line-clamp-1">
-                        {activeMatch.p2?.name || "Player 2"}
+                        {comp2Name}
                       </div>
                       <div className="text-[10px] font-black text-primary/60">
-                        {activeMatch.p2?.id === currentUser?.id ? "YOU" : "OPPONENT"}
+                        {isComp2User ? "YOUR SIDE" : "OPPONENT"}
                       </div>
                     </div>
                   </div>
@@ -402,6 +626,37 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                     <p className="line-clamp-3 italic">"{activeMatch.dispute.reason}"</p>
                     <p className="mt-2 text-[10px] text-primary/70">Our moderation team is investigating this match. Stand by for the final ruling.</p>
                   </div>
+                ) : activeMatch.status === "REPORTED" ? (
+                  userSideReported ? (
+                    <div className="w-full md:w-80 bg-accent-yellow/10 border-2 border-primary p-sm text-xs font-bold uppercase text-primary">
+                      <p className="font-black mb-1">Result Reported!</p>
+                      <p className="text-sm">You reported: <span className="font-black">{reportedScore1} - {reportedScore2}</span></p>
+                      <p className="mt-2 text-[10px] text-primary/70">Waiting for opponent to confirm or dispute the scores.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-md w-full lg:w-auto">
+                      <div className="bg-accent-yellow border-4 border-primary p-sm text-xs font-bold uppercase text-primary">
+                        <p className="font-black mb-1">Opponent Reported Result</p>
+                        <p className="text-sm">Score: <span className="font-black">{reportedScore1} - {reportedScore2}</span></p>
+                        <p className="mt-1 text-[10px] text-primary/70">Verify and accept or dispute this result.</p>
+                      </div>
+                       <div className="flex flex-col sm:flex-row gap-sm select-none w-full sm:w-auto">
+                        <button
+                          onClick={() => handleAcceptResult(activeMatch.id)}
+                          disabled={reportingMatch}
+                          className="w-full sm:w-auto bg-primary text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                        >
+                          {reportingMatch ? "Confirming..." : "Accept Result"}
+                        </button>
+                        <button
+                          onClick={() => setShowDisputeModal(true)}
+                          className="w-full sm:w-auto bg-accent-red text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                        >
+                          Dispute
+                        </button>
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <>
                     {/* Score Reporting Inputs */}
@@ -410,7 +665,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                       <div className="flex items-center gap-sm">
                         <div className="flex flex-col gap-1 w-24">
                           <label className="text-[9px] font-black uppercase text-primary/70 line-clamp-1">
-                            {activeMatch.p1?.name || "P1"}
+                            {comp1Name}
                           </label>
                           <input
                             type="number"
@@ -424,7 +679,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                         <span className="font-black text-xs text-primary mt-4">-</span>
                         <div className="flex flex-col gap-1 w-24">
                           <label className="text-[9px] font-black uppercase text-primary/70 line-clamp-1">
-                            {activeMatch.p2?.name || "P2"}
+                            {comp2Name}
                           </label>
                           <input
                             type="number"
@@ -437,31 +692,56 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                         </div>
                       </div>
 
-                      {/* Screenshot Url input */}
-                      <div className="flex flex-col gap-1 pt-xs">
-                        <label className="text-[9px] font-black uppercase text-primary/70">Screenshot Proof (URL)</label>
-                        <input
-                          type="text"
-                          placeholder="https://..."
-                          value={reportScreenshot}
-                          onChange={(e) => setReportScreenshot(e.target.value)}
-                          className="w-full p-xs bg-white border-2 border-primary text-xs font-bold focus:bg-accent-yellow focus:outline-none placeholder:text-primary/30"
-                        />
+                      {/* Screenshot Proof upload */}
+                      <div className="flex flex-col gap-1 pt-xs select-none">
+                        <label className="text-[9px] font-black uppercase text-primary/70 block mb-0.5">Screenshot Proof</label>
+                        {reportScreenshot ? (
+                          <div className="flex items-center gap-xs border-2 border-primary p-xs bg-surface-container-low">
+                            <div className="w-10 h-10 border-2 border-primary overflow-hidden relative flex-shrink-0">
+                              <img src={reportScreenshot} alt="Proof Preview" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="space-y-0.5">
+                              <span className="text-[8px] text-primary/60 font-black uppercase block">Uploaded</span>
+                              <button
+                                type="button"
+                                onClick={() => setReportScreenshot("")}
+                                className="bg-accent-red text-white border border-primary px-1.5 py-0.5 text-[8px] font-black hover:bg-red-700 cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="border-2 border-dashed border-primary/50 hover:border-primary p-xs text-center bg-surface-container-low cursor-pointer flex flex-col items-center justify-center min-h-[60px] relative transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleScreenshotUpload}
+                              disabled={uploadingScreenshot}
+                              className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                            />
+                            <span className="material-symbols-outlined text-xl text-primary/60">upload_file</span>
+                            <span className="text-[9px] font-black uppercase text-primary">
+                              {uploadingScreenshot ? "Uploading..." : "Click to upload proof"}
+                            </span>
+                            <span className="text-[7px] text-primary/50 font-bold uppercase">PNG, JPG, or GIF</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex gap-sm w-full md:w-auto select-none">
+                    <div className="flex flex-col sm:flex-row gap-sm w-full md:w-auto select-none">
                       <button
                         onClick={() => handleReportMatch(activeMatch.id)}
                         disabled={reportingMatch}
-                        className="flex-1 md:flex-none bg-primary text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                        className="w-full sm:w-auto bg-primary text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
                       >
                         {reportingMatch ? "Submitting..." : "Submit Result"}
                       </button>
                       <button
                         onClick={() => setShowDisputeModal(true)}
-                        className="bg-accent-red text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                        className="w-full sm:w-auto bg-accent-red text-white border-2 border-primary px-md py-3 font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
                       >
                         Dispute
                       </button>
@@ -564,12 +844,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                       Prize Distribution
                     </h2>
                     <div className="space-y-0 border-2 border-primary">
-                      {[
-                        { rank: "1st Place", title: "CHAMPION", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.5).toLocaleString()}` : "$7,500", highlight: true },
-                        { rank: "2nd Place", title: "FINALIST", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.2).toLocaleString()}` : "$3,000", highlight: false },
-                        { rank: "3rd - 4th", title: "SEMI-FINAL", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.1).toLocaleString()}` : "$1,500", highlight: false },
-                        { rank: "5th - 8th", title: "QUARTER-FINAL", prize: tournament?.prizePool ? `$${(tournament.prizePool * 0.025).toLocaleString()}` : "$375", highlight: false },
-                      ].map((item, index) => (
+                      {prizeDistributionItems.map((item, index) => (
                         <div
                           key={index}
                           className={`flex justify-between items-center p-md border-b-2 last:border-b-0 border-primary ${item.highlight
@@ -584,7 +859,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                             </span>
                           </div>
                           <span className="font-display-lg text-2xl font-black">
-                            {item.prize}
+                            {formatPrizeMoney((tournament?.prizePool ?? 0) * item.pct)}
                           </span>
                         </div>
                       ))}
@@ -753,8 +1028,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                       <thead>
                         <tr className="bg-primary text-white uppercase font-black select-none border-b-4 border-primary">
                           <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Rank</th>
-                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Player</th>
-                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">W-L-D</th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">
+                            {tournament?.game === "FREE_FIRE" ? "Squad" : "Player"}
+                          </th>
+                          <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">W-L</th>
                           <th className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary text-xs md:text-sm">Pts</th>
                           <th className="px-md py-sm md:px-xl md:py-md text-xs md:text-sm">OMW%</th>
                         </tr>
@@ -766,8 +1043,12 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                               <td className="px-md py-sm md:px-xl md:py-md font-black text-lg md:text-2xl border-r-2 border-primary select-none">{player.rank}</td>
                               <td className="px-md py-sm md:px-xl md:py-md border-r-2 border-primary">
                                 <div className="flex items-center gap-sm md:gap-md">
-                                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none text-xs md:text-sm">
-                                    {player.name.charAt(0)}
+                                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary flex items-center justify-center font-bold text-white uppercase select-none text-xs md:text-sm overflow-hidden relative">
+                                    {player.logo ? (
+                                      <img src={player.logo} alt={player.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      player.name.charAt(0)
+                                    )}
                                   </div>
                                   <span className="font-black uppercase text-sm md:text-xl">{player.name}</span>
                                 </div>
@@ -801,23 +1082,27 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 Select Payment
               </h3>
               <p className="text-primary font-bold uppercase text-center border-2 border-primary p-sm bg-accent-yellow text-sm">
-                Entry Fee: <span className="font-black text-lg text-accent-red">${tournament?.entryFee.toFixed(2)}</span>
+                Entry Fee: <span className="font-black text-lg text-accent-red">{formatEntryFee(tournament?.entryFee ?? 0)}</span>
               </p>
-              <div className="grid grid-cols-2 gap-sm">
-                <button
-                  onClick={() => processCheckout("STRIPE")}
-                  className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
-                >
-                  <span className="material-symbols-outlined text-[32px] text-primary">credit_card</span>
-                  <span>Stripe</span>
-                </button>
-                <button
-                  onClick={() => processCheckout("RAZORPAY")}
-                  className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
-                >
-                  <span className="material-symbols-outlined text-[32px] text-primary">payments</span>
-                  <span>Razorpay</span>
-                </button>
+              <div className="grid grid-cols-1 gap-sm">
+                {currencyCode !== "INR" && (
+                  <button
+                    onClick={() => processCheckout("STRIPE")}
+                    className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
+                  >
+                    <span className="material-symbols-outlined text-[32px] text-primary">credit_card</span>
+                    <span>Stripe</span>
+                  </button>
+                )}
+                {currencyCode === "INR" && (
+                  <button
+                    onClick={() => processCheckout("RAZORPAY")}
+                    className="p-md border-4 border-primary bg-white hover:bg-accent-yellow flex flex-col items-center gap-xs font-black uppercase text-xs transition-all active:translate-y-0.5"
+                  >
+                    <span className="material-symbols-outlined text-[32px] text-primary">payments</span>
+                    <span>Razorpay</span>
+                  </button>
+                )}
               </div>
               <button
                 onClick={() => setShowGatewayModal(false)}
@@ -837,7 +1122,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 File Match Dispute
               </h3>
               <div className="bg-accent-yellow border-2 border-primary p-xs text-center text-xs font-black uppercase text-primary">
-                Match: {activeMatch.p1?.name || "Player 1"} vs {activeMatch.p2?.name || "Player 2"}
+                Match: {comp1Name} vs {comp2Name}
               </div>
               <p className="text-primary font-bold uppercase text-xs">
                 Provide a clear description of the issue (e.g. incorrect score reported by opponent, player didn't show up, connection issues, rules violation). Please also submit screenshot URL proof in the match lobby report if possible.
@@ -854,7 +1139,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-sm select-none">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm select-none">
                 <button
                   onClick={() => handleRaiseDispute(activeMatch.id)}
                   disabled={submittingDispute}
@@ -866,6 +1151,82 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                   onClick={() => {
                     setShowDisputeModal(false);
                     setDisputeReason("");
+                  }}
+                  className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Roster Validation Modal */}
+        {showRosterModal && currentUser?.squad && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary">
+              <h3 className="font-headline-md text-primary uppercase text-center font-black">
+                Squad Registration
+              </h3>
+              
+              {/* Squad Header */}
+              <div className="flex items-center gap-sm bg-accent-yellow border-4 border-primary p-xs select-none">
+                <div className="w-12 h-12 bg-primary flex items-center justify-center font-bold text-white uppercase select-none overflow-hidden relative">
+                  {currentUser.squad.logo ? (
+                    <img src={currentUser.squad.logo} alt={currentUser.squad.name} className="w-full h-full object-cover" />
+                  ) : (
+                    currentUser.squad.name.charAt(0)
+                  )}
+                </div>
+                <div className="text-left">
+                  <h4 className="font-black text-sm uppercase text-primary">{currentUser.squad.name}</h4>
+                  <p className="text-[10px] font-black text-primary/60">SQUAD ROSTER</p>
+                </div>
+              </div>
+
+              {/* Roster Member List */}
+              <div className="border-4 border-primary bg-surface-container-high p-sm max-h-[160px] overflow-y-auto space-y-xs">
+                {currentUser.squad.members.map((mem: any, idx: number) => (
+                  <div key={mem.id} className="flex justify-between items-center bg-white border-2 border-primary px-xs py-1 text-xs font-black uppercase">
+                    <span>{idx + 1}. {mem.name || mem.username || "Trainer"}</span>
+                    <span className="text-[9px] text-primary/50">{mem.id === currentUser.squad.captainId ? "CAPTAIN" : "MEMBER"}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Validation Status */}
+              {currentUser.squad.members.length < 4 || currentUser.squad.members.length > 6 ? (
+                <div className="bg-accent-red/10 border-2 border-accent-red p-sm text-xs font-bold uppercase text-accent-red text-center">
+                  ⚠️ Invalid roster size ({currentUser.squad.members.length} players). Free Fire tournaments require between 4 and 6 players. Please manage your roster in your profile page.
+                </div>
+              ) : (
+                <div className="bg-green-100 border-2 border-green-600 p-sm text-xs font-bold uppercase text-green-700 text-center">
+                  ✓ Roster size valid ({currentUser.squad.members.length} players). Ready to register.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm select-none">
+                {currentUser.squad.members.length >= 4 && currentUser.squad.members.length <= 6 ? (
+                  <button
+                    onClick={async () => {
+                      setShowRosterModal(false);
+                      await handleRegister();
+                    }}
+                    className="p-3 bg-primary text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+                  >
+                    Confirm & Register
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="p-3 bg-surface-container-high text-primary/30 border-2 border-primary font-black uppercase text-xs text-center cursor-not-allowed"
+                  >
+                    Confirm & Register
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setShowRosterModal(false);
                   }}
                   className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
                 >

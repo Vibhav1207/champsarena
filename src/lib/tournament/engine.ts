@@ -39,61 +39,95 @@ export async function generateMatchesForTournament(tournamentId: string, seeding
         where: { status: "APPROVED" },
         include: { user: true },
       },
+      squadRegistrations: {
+        where: { status: "APPROVED" },
+        include: {
+          squad: {
+            include: {
+              members: true,
+            },
+          },
+        },
+      },
     },
   });
 
   if (!tournament) throw new Error("Tournament not found");
-  const players = tournament.registrations.map((r) => r.user);
 
-  if (players.length < 2) {
-    throw new Error("Cannot generate brackets for less than 2 approved players");
+  const isTeam = tournament.game === "FREE_FIRE";
+
+  interface Competitor {
+    id: string;
+    name: string;
+    elo: number;
   }
 
-  // Seed players by ELO (highest to lowest) or Random Shuffle
-  let seededPlayers = [...players];
+  let competitors: Competitor[] = [];
+
+  if (isTeam) {
+    competitors = tournament.squadRegistrations.map((sr) => {
+      const s = sr.squad;
+      const averageElo = s.members.length > 0
+        ? Math.round(s.members.reduce((acc, m) => acc + m.elo, 0) / s.members.length)
+        : 1000;
+      return {
+        id: s.id,
+        name: s.name,
+        elo: averageElo,
+      };
+    });
+  } else {
+    competitors = tournament.registrations.map((r) => ({
+      id: r.user.id,
+      name: r.user.name || r.user.username || "Trainer",
+      elo: r.user.elo,
+    }));
+  }
+
+  if (competitors.length < 2) {
+    throw new Error(`Cannot generate brackets for less than 2 approved ${isTeam ? "squads" : "players"}`);
+  }
+
+  // Seed competitors by ELO or Random
+  let seeded = [...competitors];
   if (seedingType === "RANDOM") {
-    // Fisher-Yates shuffle
-    for (let i = seededPlayers.length - 1; i > 0; i--) {
+    for (let i = seeded.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [seededPlayers[i], seededPlayers[j]] = [seededPlayers[j], seededPlayers[i]];
+      [seeded[i], seeded[j]] = [seeded[j], seeded[i]];
     }
   } else {
-    seededPlayers.sort((a, b) => b.elo - a.elo);
+    seeded.sort((a, b) => b.elo - a.elo);
   }
 
   if (tournament.type === "SINGLE_ELIMINATION") {
-    await generateSingleElimination(tournamentId, seededPlayers);
+    await generateSingleElimination(tournamentId, seeded, isTeam);
   } else if (tournament.type === "SWISS") {
-    await generateSwissRound(tournamentId, 1, seededPlayers);
+    await generateSwissRound(tournamentId, 1, seeded, isTeam);
   } else if (tournament.type === "ROUND_ROBIN") {
-    await generateRoundRobin(tournamentId, seededPlayers);
+    await generateRoundRobin(tournamentId, seeded, isTeam);
   } else if (tournament.type === "DOUBLE_ELIMINATION") {
-    await generateDoubleElimination(tournamentId, seededPlayers);
+    await generateDoubleElimination(tournamentId, seeded, isTeam);
   }
 }
 
 // Single Elimination Bracket Generator
-async function generateSingleElimination(tournamentId: string, players: User[]) {
-  const numPlayers = players.length;
-  // Calculate next power of 2
-  const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
-  const numByes = nextPowerOfTwo - numPlayers;
+async function generateSingleElimination(tournamentId: string, competitors: any[], isTeam: boolean) {
+  const numCompetitors = competitors.length;
+  const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numCompetitors)));
 
-  // We pair top seeds with bottom seeds
-  const round1Matches: { p1Id: string | null; p2Id: string | null; status: string }[] = [];
+  const round1Matches: { c1Id: string | null; c2Id: string | null; status: string }[] = [];
 
   for (let i = 0; i < nextPowerOfTwo / 2; i++) {
-    const p1Idx = i;
-    const p2Idx = nextPowerOfTwo - 1 - i;
+    const c1Idx = i;
+    const c2Idx = nextPowerOfTwo - 1 - i;
 
-    const p1 = p1Idx < numPlayers ? players[p1Idx] : null;
-    const p2 = p2Idx < numPlayers ? players[p2Idx] : null;
+    const c1 = c1Idx < numCompetitors ? competitors[c1Idx] : null;
+    const c2 = c2Idx < numCompetitors ? competitors[c2Idx] : null;
 
-    if (p1 && p2) {
-      round1Matches.push({ p1Id: p1.id, p2Id: p2.id, status: "PENDING" });
-    } else if (p1) {
-      // Bye for player 1, auto advance
-      round1Matches.push({ p1Id: p1.id, p2Id: null, status: "BYE" });
+    if (c1 && c2) {
+      round1Matches.push({ c1Id: c1.id, c2Id: c2.id, status: "PENDING" });
+    } else if (c1) {
+      round1Matches.push({ c1Id: c1.id, c2Id: null, status: "BYE" });
     }
   }
 
@@ -103,10 +137,13 @@ async function generateSingleElimination(tournamentId: string, players: User[]) 
       data: {
         tournamentId,
         round: 1,
-        p1Id: m.p1Id,
-        p2Id: m.p2Id,
+        p1Id: !isTeam ? m.c1Id : null,
+        p2Id: !isTeam ? m.c2Id : null,
+        s1Id: isTeam ? m.c1Id : null,
+        s2Id: isTeam ? m.c2Id : null,
         status: m.status,
-        winnerId: m.status === "BYE" ? m.p1Id : null,
+        winnerId: !isTeam && m.status === "BYE" ? m.c1Id : null,
+        winnerSquadId: isTeam && m.status === "BYE" ? m.c1Id : null,
         p1Score: m.status === "BYE" ? 2 : 0,
         p2Score: 0,
       },
@@ -124,6 +161,8 @@ async function generateSingleElimination(tournamentId: string, players: User[]) 
           round: roundNum,
           p1Id: null,
           p2Id: null,
+          s1Id: null,
+          s2Id: null,
           status: "PENDING",
         },
       });
@@ -132,128 +171,158 @@ async function generateSingleElimination(tournamentId: string, players: User[]) 
     roundNum++;
   }
 
-  // Update tournament status
   await prisma.tournament.update({
     where: { id: tournamentId },
     data: { status: "ONGOING" },
   });
 }
 
+function getSwissState(prevMatches: Match[], competitors: any[], isTeam: boolean) {
+  const wins = new Map<string, number>();
+  const losses = new Map<string, number>();
+  const playedOpponents = new Map<string, Set<string>>();
+  const hadBye = new Set<string>();
+
+  for (const c of competitors) {
+    wins.set(c.id, 0);
+    losses.set(c.id, 0);
+    playedOpponents.set(c.id, new Set<string>());
+  }
+
+  for (const m of prevMatches) {
+    const c1Id = isTeam ? m.s1Id : m.p1Id;
+    const c2Id = isTeam ? m.s2Id : m.p2Id;
+
+    if (c1Id && c2Id) {
+      playedOpponents.get(c1Id)?.add(c2Id);
+      playedOpponents.get(c2Id)?.add(c1Id);
+    }
+
+    if (m.status === "BYE" && c1Id) {
+      hadBye.add(c1Id);
+      wins.set(c1Id, (wins.get(c1Id) || 0) + 1);
+      continue;
+    }
+
+    if (m.status !== "COMPLETED") continue;
+
+    const winner = isTeam ? m.winnerSquadId : m.winnerId;
+    if (!winner) continue;
+
+    const loser = winner === c1Id ? c2Id : winner === c2Id ? c1Id : null;
+    wins.set(winner, (wins.get(winner) || 0) + 1);
+
+    if (loser) {
+      losses.set(loser, (losses.get(loser) || 0) + 1);
+    }
+  }
+
+  return { wins, losses, playedOpponents, hadBye };
+}
+
 // Swiss Round Pairings Generator
-export async function generateSwissRound(tournamentId: string, round: number, players: User[]) {
-  // Get previous matches in this tournament to check history
+export async function generateSwissRound(tournamentId: string, round: number, competitors: any[], isTeam: boolean) {
   const prevMatches = await prisma.match.findMany({
     where: { tournamentId },
   });
 
-  // Calculate current score for each player
-  const playerScores = new Map<string, number>();
-  for (const p of players) {
-    playerScores.set(p.id, 0);
-  }
+  const { wins, losses, playedOpponents, hadBye } = getSwissState(prevMatches, competitors, isTeam);
 
-  for (const m of prevMatches) {
-    if (m.status === "COMPLETED" || m.status === "BYE") {
-      if (m.winnerId) {
-        playerScores.set(m.winnerId, (playerScores.get(m.winnerId) || 0) + 3); // 3 points for win
-      }
-      // If draw, both get 1 point (though we default to best-of-three win/loss here)
-    }
-  }
+  const sorted = [...competitors].sort((a, b) => {
+    const winsA = wins.get(a.id) || 0;
+    const winsB = wins.get(b.id) || 0;
+    if (winsA !== winsB) return winsB - winsA;
 
-  // Sort players by score, then ELO
-  const sortedPlayers = [...players].sort((a, b) => {
-    const scoreA = playerScores.get(a.id) || 0;
-    const scoreB = playerScores.get(b.id) || 0;
-    if (scoreA !== scoreB) return scoreB - scoreA;
+    const lossesA = losses.get(a.id) || 0;
+    const lossesB = losses.get(b.id) || 0;
+    if (lossesA !== lossesB) return lossesA - lossesB;
+
     return b.elo - a.elo;
   });
 
-  // Keep track of who has played whom
-  const playedOpponents = new Map<string, Set<string>>();
-  for (const p of players) {
-    playedOpponents.set(p.id, new Set<string>());
-  }
-  for (const m of prevMatches) {
-    if (m.p1Id && m.p2Id) {
-      playedOpponents.get(m.p1Id)?.add(m.p2Id);
-      playedOpponents.get(m.p2Id)?.add(m.p1Id);
-    }
-  }
+  const pairings: { c1Id: string; c2Id: string | null; status: string }[] = [];
+  let swissPool = [...sorted];
 
-  // Track who has had a bye
-  const hadBye = new Set<string>();
-  for (const m of prevMatches) {
-    if (m.status === "BYE" && m.p1Id) {
-      hadBye.add(m.p1Id);
-    }
-  }
-
-  const paired = new Set<string>();
-  const pairings: { p1Id: string; p2Id: string | null; status: string }[] = [];
-
-  // If odd number of players, assign a bye to the lowest rank who hasn't had one
-  if (sortedPlayers.length % 2 !== 0) {
-    for (let i = sortedPlayers.length - 1; i >= 0; i--) {
-      const p = sortedPlayers[i];
-      if (!hadBye.has(p.id)) {
-        pairings.push({ p1Id: p.id, p2Id: null, status: "BYE" });
-        paired.add(p.id);
-        break;
-      }
-    }
-  }
-
-  // Pair remaining players using greedy matching matching scores
-  for (let i = 0; i < sortedPlayers.length; i++) {
-    const p1 = sortedPlayers[i];
-    if (paired.has(p1.id)) continue;
-
-    let p2: User | null = null;
-    // Find first available opponent from the sorted list (closest score) that hasn't played p1 yet
-    for (let j = i + 1; j < sortedPlayers.length; j++) {
-      const candidate = sortedPlayers[j];
-      if (paired.has(candidate.id)) continue;
-      if (!playedOpponents.get(p1.id)?.has(candidate.id)) {
-        p2 = candidate;
+  if (swissPool.length % 2 !== 0) {
+    let byeIndex = -1;
+    for (let i = swissPool.length - 1; i >= 0; i--) {
+      if (!hadBye.has(swissPool[i].id)) {
+        byeIndex = i;
         break;
       }
     }
 
-    // Fallback if everyone has played everyone (pair with anyone unpaired)
-    if (!p2) {
-      for (let j = i + 1; j < sortedPlayers.length; j++) {
-        const candidate = sortedPlayers[j];
-        if (!paired.has(candidate.id)) {
-          p2 = candidate;
-          break;
-        }
-      }
+    if (byeIndex === -1) {
+      byeIndex = swissPool.length - 1;
     }
 
-    if (p2) {
-      pairings.push({ p1Id: p1.id, p2Id: p2.id, status: "PENDING" });
-      paired.add(p1.id);
-      paired.add(p2.id);
-    } else {
-      // Odd one out gets a bye if they didn't already, otherwise force match
-      if (!paired.has(p1.id)) {
-        pairings.push({ p1Id: p1.id, p2Id: null, status: "BYE" });
-        paired.add(p1.id);
-      }
+    const [byeCompetitor] = swissPool.splice(byeIndex, 1);
+    if (byeCompetitor) {
+      pairings.push({ c1Id: byeCompetitor.id, c2Id: null, status: "BYE" });
     }
   }
 
-  // Create matches in database
+  const groupedByWins = new Map<number, any[]>();
+  for (const competitor of swissPool) {
+    const competitorWins = wins.get(competitor.id) || 0;
+    const existingGroup = groupedByWins.get(competitorWins) || [];
+    existingGroup.push(competitor);
+    groupedByWins.set(competitorWins, existingGroup);
+  }
+
+  const winBuckets = [...groupedByWins.keys()].sort((a, b) => b - a);
+  let floatedCompetitor: any | null = null;
+
+  for (const winBucket of winBuckets) {
+    const currentGroup = [...(groupedByWins.get(winBucket) || [])];
+
+    if (floatedCompetitor) {
+      currentGroup.unshift(floatedCompetitor);
+      floatedCompetitor = null;
+    }
+
+    while (currentGroup.length > 1) {
+      const c1 = currentGroup.shift();
+      if (!c1) break;
+
+      let opponentIndex = currentGroup.findIndex(
+        (candidate) => !playedOpponents.get(c1.id)?.has(candidate.id)
+      );
+
+      if (opponentIndex === -1) {
+        opponentIndex = 0;
+      }
+
+      const [c2] = currentGroup.splice(opponentIndex, 1);
+      if (!c2) {
+        floatedCompetitor = c1;
+        break;
+      }
+
+      pairings.push({ c1Id: c1.id, c2Id: c2.id, status: "PENDING" });
+    }
+
+    if (currentGroup.length === 1) {
+      floatedCompetitor = currentGroup[0];
+    }
+  }
+
+  if (floatedCompetitor) {
+    pairings.push({ c1Id: floatedCompetitor.id, c2Id: null, status: "BYE" });
+  }
+
   for (const p of pairings) {
     await prisma.match.create({
       data: {
         tournamentId,
         round,
-        p1Id: p.p1Id,
-        p2Id: p.p2Id,
+        p1Id: !isTeam ? p.c1Id : null,
+        p2Id: !isTeam ? p.c2Id : null,
+        s1Id: isTeam ? p.c1Id : null,
+        s2Id: isTeam ? p.c2Id : null,
         status: p.status,
-        winnerId: p.status === "BYE" ? p.p1Id : null,
+        winnerId: !isTeam && p.status === "BYE" ? p.c1Id : null,
+        winnerSquadId: isTeam && p.status === "BYE" ? p.c1Id : null,
         p1Score: p.status === "BYE" ? 2 : 0,
         p2Score: 0,
       },
@@ -266,13 +335,12 @@ export async function generateSwissRound(tournamentId: string, round: number, pl
   });
 }
 
-// Round Robin Generator (simplified standard round robin schedules)
-async function generateRoundRobin(tournamentId: string, players: User[]) {
-  const numPlayers = players.length;
-  const list = [...players];
-  if (numPlayers % 2 !== 0) {
-    // Add a dummy player for Byes
-    list.push({ id: "BYE_DUMMY", name: "BYE" } as User);
+// Round Robin Generator
+async function generateRoundRobin(tournamentId: string, competitors: any[], isTeam: boolean) {
+  const numCompetitors = competitors.length;
+  const list = [...competitors];
+  if (numCompetitors % 2 !== 0) {
+    list.push({ id: "BYE_DUMMY", name: "BYE" });
   }
 
   const rounds = list.length - 1;
@@ -280,46 +348,53 @@ async function generateRoundRobin(tournamentId: string, players: User[]) {
 
   for (let r = 0; r < rounds; r++) {
     for (let i = 0; i < half; i++) {
-      const p1 = list[i];
-      const p2 = list[list.length - 1 - i];
+      const c1 = list[i];
+      const c2 = list[list.length - 1 - i];
 
-      if (p1.id !== "BYE_DUMMY" && p2.id !== "BYE_DUMMY") {
+      if (c1.id !== "BYE_DUMMY" && c2.id !== "BYE_DUMMY") {
         await prisma.match.create({
           data: {
             tournamentId,
             round: r + 1,
-            p1Id: p1.id,
-            p2Id: p2.id,
+            p1Id: !isTeam ? c1.id : null,
+            p2Id: !isTeam ? c2.id : null,
+            s1Id: isTeam ? c1.id : null,
+            s2Id: isTeam ? c2.id : null,
             status: "PENDING",
           },
         });
-      } else if (p1.id !== "BYE_DUMMY") {
+      } else if (c1.id !== "BYE_DUMMY") {
         await prisma.match.create({
           data: {
             tournamentId,
             round: r + 1,
-            p1Id: p1.id,
+            p1Id: !isTeam ? c1.id : null,
             p2Id: null,
+            s1Id: isTeam ? c1.id : null,
+            s2Id: null,
             status: "BYE",
-            winnerId: p1.id,
+            winnerId: !isTeam ? c1.id : null,
+            winnerSquadId: isTeam ? c1.id : null,
             p1Score: 2,
           },
         });
-      } else if (p2.id !== "BYE_DUMMY") {
+      } else if (c2.id !== "BYE_DUMMY") {
         await prisma.match.create({
           data: {
             tournamentId,
             round: r + 1,
-            p1Id: p2.id,
+            p1Id: !isTeam ? c2.id : null,
             p2Id: null,
+            s1Id: isTeam ? c2.id : null,
+            s2Id: null,
             status: "BYE",
-            winnerId: p2.id,
+            winnerId: !isTeam ? c2.id : null,
+            winnerSquadId: isTeam ? c2.id : null,
             p1Score: 2,
           },
         });
       }
     }
-    // Rotate list
     list.splice(1, 0, list.pop()!);
   }
 
@@ -330,28 +405,32 @@ async function generateRoundRobin(tournamentId: string, players: User[]) {
 }
 
 // Double Elimination Bracket Generator
-async function generateDoubleElimination(tournamentId: string, players: User[]) {
-  // Double elimination is complex, we will generate the initial Winners Round 1 bracket,
-  // and then create placeholder matches for subsequent rounds in Winners and Losers brackets.
-  const numPlayers = players.length;
-  const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
-  
+async function generateDoubleElimination(tournamentId: string, competitors: any[], isTeam: boolean) {
+  const numCompetitors = competitors.length;
+  const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numCompetitors)));
+
   // Winners Round 1 Matches
   for (let i = 0; i < nextPowerOfTwo / 2; i++) {
-    const p1Idx = i;
-    const p2Idx = nextPowerOfTwo - 1 - i;
-    const p1 = p1Idx < numPlayers ? players[p1Idx] : null;
-    const p2 = p2Idx < numPlayers ? players[p2Idx] : null;
+    const c1Idx = i;
+    const c2Idx = nextPowerOfTwo - 1 - i;
+    const c1 = c1Idx < numCompetitors ? competitors[c1Idx] : null;
+    const c2 = c2Idx < numCompetitors ? competitors[c2Idx] : null;
+
+    const status = c1 && c2 ? "PENDING" : c1 ? "BYE" : "PENDING";
+    const winnerId = c1 && !c2 ? c1.id : null;
 
     await prisma.match.create({
       data: {
         tournamentId,
         round: 1, // Winners Round 1
-        p1Id: p1?.id || null,
-        p2Id: p2?.id || null,
-        status: p1 && p2 ? "PENDING" : p1 ? "BYE" : "PENDING",
-        winnerId: p1 && !p2 ? p1.id : null,
-        p1Score: p1 && !p2 ? 2 : 0,
+        p1Id: !isTeam ? c1?.id : null,
+        p2Id: !isTeam ? c2?.id : null,
+        s1Id: isTeam ? c1?.id : null,
+        s2Id: isTeam ? c2?.id : null,
+        status,
+        winnerId: !isTeam && winnerId ? winnerId : null,
+        winnerSquadId: isTeam && winnerId ? winnerId : null,
+        p1Score: c1 && !c2 ? 2 : 0,
       },
     });
   }
@@ -367,6 +446,8 @@ async function generateDoubleElimination(tournamentId: string, players: User[]) 
           round: roundNum,
           p1Id: null,
           p2Id: null,
+          s1Id: null,
+          s2Id: null,
           status: "PENDING",
         },
       });
@@ -375,12 +456,10 @@ async function generateDoubleElimination(tournamentId: string, players: User[]) 
     roundNum++;
   }
 
-  // Create placeholders for Losers bracket rounds (denoted by negative rounds, e.g., -1, -2)
-  // Let's create matches for losers round -1, -2, -3, etc.
+  // Create placeholders for Losers bracket rounds
   let losersRoundSize = nextPowerOfTwo / 4;
   let losersRoundNum = -1;
   while (losersRoundSize >= 1) {
-    // Losers round has two stages: matching losers from Winners, then winners of Losers playing each other
     for (let stage = 0; stage < 2; stage++) {
       for (let i = 0; i < losersRoundSize; i++) {
         await prisma.match.create({
@@ -389,6 +468,8 @@ async function generateDoubleElimination(tournamentId: string, players: User[]) 
             round: losersRoundNum,
             p1Id: null,
             p2Id: null,
+            s1Id: null,
+            s2Id: null,
             status: "PENDING",
           },
         });
@@ -398,13 +479,15 @@ async function generateDoubleElimination(tournamentId: string, players: User[]) 
     losersRoundSize /= 2;
   }
 
-  // Grand Finals Match (Winners Champ vs Losers Champ)
+  // Grand Finals Match
   await prisma.match.create({
     data: {
       tournamentId,
-      round: 99, // Denote Grand Finals
+      round: 99,
       p1Id: null,
       p2Id: null,
+      s1Id: null,
+      s2Id: null,
       status: "PENDING",
     },
   });
@@ -435,74 +518,159 @@ export async function submitMatchResult(
       },
       p1: true,
       p2: true,
+      s1: true,
+      s2: true,
     },
   });
 
   if (!match) throw new Error("Match not found");
   if (match.status === "COMPLETED") throw new Error("Match already completed");
 
-  const p1 = match.p1;
-  const p2 = match.p2;
+  const isTeam = match.s1Id !== null;
 
-  if (!p1 || !p2) throw new Error("Match does not have both players set");
+  if (isTeam) {
+    const s1 = match.s1;
+    const s2 = match.s2;
+    if (!s1 || !s2) throw new Error("Match does not have both squads set");
 
-  // Calculate and update ELOs
-  const { p1NewElo, p2NewElo } = calculateNewElos(p1.elo, p2.elo, p1Score, p2Score);
+    // Fetch members to compute average ELO
+    const s1Members = await prisma.user.findMany({ where: { squadId: s1.id } });
+    const s2Members = await prisma.user.findMany({ where: { squadId: s2.id } });
 
-  await prisma.user.update({
-    where: { id: p1.id },
-    data: {
-      elo: p1NewElo,
-      wins: winnerId === p1.id ? { increment: 1 } : undefined,
-      losses: winnerId === p2.id ? { increment: 1 } : undefined,
-    },
-  });
+    const s1Elo = s1Members.length > 0
+      ? Math.round(s1Members.reduce((acc, m) => acc + m.elo, 0) / s1Members.length)
+      : 1000;
+    const s2Elo = s2Members.length > 0
+      ? Math.round(s2Members.reduce((acc, m) => acc + m.elo, 0) / s2Members.length)
+      : 1000;
 
-  await prisma.user.update({
-    where: { id: p2.id },
-    data: {
-      elo: p2NewElo,
-      wins: winnerId === p2.id ? { increment: 1 } : undefined,
-      losses: winnerId === p1.id ? { increment: 1 } : undefined,
-    },
-  });
+    const { p1NewElo: s1NewElo, p2NewElo: s2NewElo } = calculateNewElos(s1Elo, s2Elo, p1Score, p2Score);
 
-  // Update this match
-  await prisma.match.update({
-    where: { id: matchId },
-    data: {
-      p1Score,
-      p2Score,
-      winnerId,
-      status: "COMPLETED",
-    },
-  });
+    const s1Delta = s1NewElo - s1Elo;
+    const s2Delta = s2NewElo - s2Elo;
 
-  // Record Audit Log
-  await prisma.auditLog.create({
-    data: {
-      action: "SUBMIT_MATCH_RESULT",
-      details: `Match ${matchId} completed: ${p1.name} (${p1Score}) vs ${p2.name} (${p2Score}). Winner: ${winnerId}. ELO changes: ${p1.name} (${p1.elo} -> ${p1NewElo}), ${p2.name} (${p2.elo} -> ${p2NewElo})`,
-    },
-  });
+    // Apply ELO changes and increment wins/losses for squad members
+    for (const m of s1Members) {
+      await prisma.user.update({
+        where: { id: m.id },
+        data: {
+          elo: Math.max(100, m.elo + s1Delta),
+          wins: winnerId === s1.id ? { increment: 1 } : undefined,
+          losses: winnerId === s2.id ? { increment: 1 } : undefined,
+        },
+      });
+    }
 
-  // System Notifications
-  await prisma.notification.createMany({
-    data: [
-      {
-        userId: p1.id,
-        message: `Match completed! You played against ${p2.name}. Result: ${p1Score}-${p2Score}. Your new ELO is ${p1NewElo}.`,
-        type: "MATCH",
+    for (const m of s2Members) {
+      await prisma.user.update({
+        where: { id: m.id },
+        data: {
+          elo: Math.max(100, m.elo + s2Delta),
+          wins: winnerId === s2.id ? { increment: 1 } : undefined,
+          losses: winnerId === s1.id ? { increment: 1 } : undefined,
+        },
+      });
+    }
+
+    // Update this match
+    await prisma.match.update({
+      where: { id: matchId },
+      data: {
+        p1Score,
+        p2Score,
+        winnerSquadId: winnerId,
+        status: "COMPLETED",
       },
-      {
-        userId: p2.id,
-        message: `Match completed! You played against ${p1.name}. Result: ${p2Score}-${p1Score}. Your new ELO is ${p2NewElo}.`,
-        type: "MATCH",
-      },
-    ],
-  });
+    });
 
-  // Advance player in bracket
+    // Record Audit Log
+    await prisma.auditLog.create({
+      data: {
+        action: "SUBMIT_MATCH_RESULT",
+        details: `Squad Match ${matchId} completed: ${s1.name} (${p1Score}) vs ${s2.name} (${p2Score}). Winner: ${winnerId}. ELO changes: ${s1.name} (Avg ELO ${s1Elo} -> ${s1NewElo}), ${s2.name} (Avg ELO ${s2Elo} -> ${s2NewElo})`,
+      },
+    });
+
+    // System Notifications for members
+    const notifications = [
+      ...s1Members.map((m) => ({
+        userId: m.id,
+        message: `Match completed! Your squad "${s1.name}" played against "${s2.name}". Result: ${p1Score}-${p2Score}. Your new ELO is ${Math.max(100, m.elo + s1Delta)}.`,
+        type: "MATCH" as const,
+      })),
+      ...s2Members.map((m) => ({
+        userId: m.id,
+        message: `Match completed! Your squad "${s2.name}" played against "${s1.name}". Result: ${p2Score}-${p1Score}. Your new ELO is ${Math.max(100, m.elo + s2Delta)}.`,
+        type: "MATCH" as const,
+      })),
+    ];
+    if (notifications.length > 0) {
+      await prisma.notification.createMany({ data: notifications });
+    }
+  } else {
+    const p1 = match.p1;
+    const p2 = match.p2;
+
+    if (!p1 || !p2) throw new Error("Match does not have both players set");
+
+    // Calculate and update ELOs
+    const { p1NewElo, p2NewElo } = calculateNewElos(p1.elo, p2.elo, p1Score, p2Score);
+
+    await prisma.user.update({
+      where: { id: p1.id },
+      data: {
+        elo: p1NewElo,
+        wins: winnerId === p1.id ? { increment: 1 } : undefined,
+        losses: winnerId === p2.id ? { increment: 1 } : undefined,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: p2.id },
+      data: {
+        elo: p2NewElo,
+        wins: winnerId === p2.id ? { increment: 1 } : undefined,
+        losses: winnerId === p1.id ? { increment: 1 } : undefined,
+      },
+    });
+
+    // Update this match
+    await prisma.match.update({
+      where: { id: matchId },
+      data: {
+        p1Score,
+        p2Score,
+        winnerId,
+        status: "COMPLETED",
+      },
+    });
+
+    // Record Audit Log
+    await prisma.auditLog.create({
+      data: {
+        action: "SUBMIT_MATCH_RESULT",
+        details: `Match ${matchId} completed: ${p1.name} (${p1Score}) vs ${p2.name} (${p2Score}). Winner: ${winnerId}. ELO changes: ${p1.name} (${p1.elo} -> ${p1NewElo}), ${p2.name} (${p2.elo} -> ${p2NewElo})`,
+      },
+    });
+
+    // System Notifications
+    await prisma.notification.createMany({
+      data: [
+        {
+          userId: p1.id,
+          message: `Match completed! You played against ${p2.name}. Result: ${p1Score}-${p2Score}. Your new ELO is ${p1NewElo}.`,
+          type: "MATCH",
+        },
+        {
+          userId: p2.id,
+          message: `Match completed! You played against ${p1.name}. Result: ${p2Score}-${p1Score}. Your new ELO is ${p2NewElo}.`,
+          type: "MATCH",
+        },
+      ],
+    });
+  }
+
+  // Advance competitor in bracket
   const tType = match.tournament.type;
   if (tType === "SINGLE_ELIMINATION") {
     await advanceSingleElimination(match, winnerId);
@@ -519,6 +687,7 @@ export async function submitMatchResult(
 async function advanceSingleElimination(completedMatch: any, winnerId: string) {
   const tournamentId = completedMatch.tournamentId;
   const currentRound = completedMatch.round;
+  const isTeam = completedMatch.s1Id !== null;
 
   // Find all matches in this round to see if we can pair the next round
   const roundMatches = await prisma.match.findMany({
@@ -541,31 +710,14 @@ async function advanceSingleElimination(completedMatch: any, winnerId: string) {
     await prisma.match.update({
       where: { id: nextMatch.id },
       data: {
-        p1Id: isP1InNextRound ? winnerId : undefined,
-        p2Id: !isP1InNextRound ? winnerId : undefined,
+        p1Id: !isTeam && isP1InNextRound ? winnerId : undefined,
+        p2Id: !isTeam && !isP1InNextRound ? winnerId : undefined,
+        s1Id: isTeam && isP1InNextRound ? winnerId : undefined,
+        s2Id: isTeam && !isP1InNextRound ? winnerId : undefined,
       },
     });
 
-    // Check if the next match is now fully populated, then notify the players
-    const updatedNextMatch = await prisma.match.findUnique({
-      where: { id: nextMatch.id },
-    });
-    if (updatedNextMatch?.p1Id && updatedNextMatch?.p2Id) {
-      await prisma.notification.createMany({
-        data: [
-          {
-            userId: updatedNextMatch.p1Id,
-            message: `Your Round ${currentRound + 1} match has been assigned! Ready for battle.`,
-            type: "MATCH",
-          },
-          {
-            userId: updatedNextMatch.p2Id,
-            message: `Your Round ${currentRound + 1} match has been assigned! Ready for battle.`,
-            type: "MATCH",
-          },
-        ],
-      });
-    }
+    await checkAndNotifyMatchReady(nextMatch.id);
   } else {
     // No more matches in the next round, so the tournament is completed!
     await completeTournament(tournamentId, winnerId);
@@ -586,7 +738,6 @@ async function checkAndAdvanceSwissRound(tournamentId: string) {
     });
     const lastRound = Math.max(...allMatches.map((m) => m.round), 0);
 
-    // Let's say Swiss tournaments run for 3 rounds in this simple implementation
     const maxSwissRounds = 3;
 
     if (lastRound < maxSwissRounds) {
@@ -597,18 +748,52 @@ async function checkAndAdvanceSwissRound(tournamentId: string) {
             where: { status: "APPROVED" },
             include: { user: true },
           },
+          squadRegistrations: {
+            where: { status: "APPROVED" },
+            include: {
+              squad: {
+                include: {
+                  members: true,
+                },
+              },
+            },
+          },
         },
       });
+
       if (tournament) {
-        const players = tournament.registrations.map((r) => r.user);
-        await generateSwissRound(tournamentId, lastRound + 1, players);
+        const isTeam = tournament.game === "FREE_FIRE";
+        let competitors = [];
+
+        if (isTeam) {
+          competitors = tournament.squadRegistrations.map((sr) => {
+            const s = sr.squad;
+            const averageElo = s.members.length > 0
+              ? Math.round(s.members.reduce((acc, m) => acc + m.elo, 0) / s.members.length)
+              : 1000;
+            return {
+              id: s.id,
+              name: s.name,
+              elo: averageElo,
+            };
+          });
+        } else {
+          competitors = tournament.registrations.map((r) => ({
+            id: r.user.id,
+            name: r.user.name || r.user.username || "Trainer",
+            elo: r.user.elo,
+          }));
+        }
+
+        await generateSwissRound(tournamentId, lastRound + 1, competitors, isTeam);
       }
     } else {
       // Completed Swiss rounds, mark tournament as completed
       const winCounts = new Map<string, number>();
       allMatches.forEach((m) => {
-        if (m.winnerId) {
-          winCounts.set(m.winnerId, (winCounts.get(m.winnerId) || 0) + 1);
+        const winner = m.s1Id ? m.winnerSquadId : m.winnerId;
+        if (winner) {
+          winCounts.set(winner, (winCounts.get(winner) || 0) + 1);
         }
       });
 
@@ -642,6 +827,9 @@ export async function checkAndAutoGenerateBrackets(tournamentId: string) {
         registrations: {
           where: { status: "APPROVED" },
         },
+        squadRegistrations: {
+          where: { status: "APPROVED" },
+        },
         matches: {
           select: { id: true },
         },
@@ -650,7 +838,9 @@ export async function checkAndAutoGenerateBrackets(tournamentId: string) {
 
     if (!tournament) return;
 
-    const approvedCount = tournament.registrations.length;
+    const isTeam = tournament.game === "FREE_FIRE";
+    const approvedCount = isTeam ? tournament.squadRegistrations.length : tournament.registrations.length;
+
     if (
       approvedCount >= tournament.maxPlayers &&
       tournament.status !== "ONGOING" &&
@@ -665,39 +855,52 @@ export async function checkAndAutoGenerateBrackets(tournamentId: string) {
   }
 }
 
+// Double Elimination round progression helper
 async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
   const tournamentId = completedMatch.tournamentId;
   const currentRound = completedMatch.round;
-  const loserId = completedMatch.p1Id === winnerId ? completedMatch.p2Id : completedMatch.p1Id;
+  const isTeam = completedMatch.s1Id !== null;
+
+  const loserId = isTeam
+    ? (completedMatch.s1Id === winnerId ? completedMatch.s2Id : completedMatch.s1Id)
+    : (completedMatch.p1Id === winnerId ? completedMatch.p2Id : completedMatch.p1Id);
+
+  const c1Id = isTeam ? completedMatch.s1Id : completedMatch.p1Id;
+  const c2Id = isTeam ? completedMatch.s2Id : completedMatch.p2Id;
 
   if (currentRound === 99 || currentRound === 100) {
     if (currentRound === 99) {
-      if (winnerId === completedMatch.p1Id) {
+      if (winnerId === c1Id) {
         await completeTournament(tournamentId, winnerId);
       } else {
         await prisma.match.create({
           data: {
             tournamentId,
             round: 100,
-            p1Id: completedMatch.p1Id,
-            p2Id: completedMatch.p2Id,
+            p1Id: !isTeam ? c1Id : null,
+            p2Id: !isTeam ? c2Id : null,
+            s1Id: isTeam ? c1Id : null,
+            s2Id: isTeam ? c2Id : null,
             status: "PENDING",
           },
         });
-        await prisma.notification.createMany({
-          data: [
-            {
-              userId: completedMatch.p1Id,
-              message: "Grand Finals Bracket Reset! A final match is required to determine the Champion.",
-              type: "MATCH",
-            },
-            {
-              userId: completedMatch.p2Id,
-              message: "Grand Finals Bracket Reset! You won the first set. Prepare for the final match.",
-              type: "MATCH",
-            },
-          ],
-        });
+
+        if (isTeam) {
+          const s1Members = await prisma.user.findMany({ where: { squadId: c1Id } });
+          const s2Members = await prisma.user.findMany({ where: { squadId: c2Id } });
+          const notify = [
+            ...s1Members.map(u => ({ userId: u.id, message: "Grand Finals Reset! Prepare for the final squad showdown.", type: "MATCH" as const })),
+            ...s2Members.map(u => ({ userId: u.id, message: "Grand Finals Reset! You forced a bracket reset. Win this last match to take the trophy!", type: "MATCH" as const })),
+          ];
+          await prisma.notification.createMany({ data: notify });
+        } else {
+          await prisma.notification.createMany({
+            data: [
+              { userId: c1Id!, message: "Grand Finals Bracket Reset! A final match is required to determine the Champion.", type: "MATCH" },
+              { userId: c2Id!, message: "Grand Finals Bracket Reset! You won the first set. Prepare for the final match.", type: "MATCH" },
+            ],
+          });
+        }
       }
     } else {
       await completeTournament(tournamentId, winnerId);
@@ -725,15 +928,20 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
       await prisma.match.update({
         where: { id: nextMatch.id },
         data: {
-          p1Id: isP1InNextRound ? winnerId : undefined,
-          p2Id: !isP1InNextRound ? winnerId : undefined,
+          p1Id: !isTeam && isP1InNextRound ? winnerId : undefined,
+          p2Id: !isTeam && !isP1InNextRound ? winnerId : undefined,
+          s1Id: isTeam && isP1InNextRound ? winnerId : undefined,
+          s2Id: isTeam && !isP1InNextRound ? winnerId : undefined,
         },
       });
       await checkAndNotifyMatchReady(nextMatch.id);
     } else {
       await prisma.match.updateMany({
         where: { tournamentId, round: 99 },
-        data: { p1Id: winnerId },
+        data: {
+          p1Id: !isTeam ? winnerId : null,
+          s1Id: isTeam ? winnerId : null,
+        },
       });
       await checkAndNotifyMatchReadyForRound(tournamentId, 99);
     }
@@ -750,8 +958,10 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
           await prisma.match.update({
             where: { id: lMatch.id },
             data: {
-              p1Id: isP1InNextRound ? loserId : undefined,
-              p2Id: !isP1InNextRound ? loserId : undefined,
+              p1Id: !isTeam && isP1InNextRound ? loserId : undefined,
+              p2Id: !isTeam && !isP1InNextRound ? loserId : undefined,
+              s1Id: isTeam && isP1InNextRound ? loserId : undefined,
+              s2Id: isTeam && !isP1InNextRound ? loserId : undefined,
             },
           });
           await checkAndNotifyMatchReady(lMatch.id);
@@ -768,7 +978,8 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
           await prisma.match.update({
             where: { id: lMatch.id },
             data: {
-              p2Id: loserId,
+              p2Id: !isTeam ? loserId : null,
+              s2Id: isTeam ? loserId : null,
             },
           });
           await checkAndNotifyMatchReady(lMatch.id);
@@ -795,7 +1006,8 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
         await prisma.match.update({
           where: { id: nextMatch.id },
           data: {
-            p1Id: winnerId,
+            p1Id: !isTeam ? winnerId : null,
+            s1Id: isTeam ? winnerId : null,
           },
         });
         await checkAndNotifyMatchReady(nextMatch.id);
@@ -806,8 +1018,10 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
         await prisma.match.update({
           where: { id: nextMatch.id },
           data: {
-            p1Id: isP1InNextRound ? winnerId : undefined,
-            p2Id: !isP1InNextRound ? winnerId : undefined,
+            p1Id: !isTeam && isP1InNextRound ? winnerId : undefined,
+            p2Id: !isTeam && !isP1InNextRound ? winnerId : undefined,
+            s1Id: isTeam && isP1InNextRound ? winnerId : undefined,
+            s2Id: isTeam && !isP1InNextRound ? winnerId : undefined,
           },
         });
         await checkAndNotifyMatchReady(nextMatch.id);
@@ -815,7 +1029,10 @@ async function advanceDoubleElimination(completedMatch: any, winnerId: string) {
     } else {
       await prisma.match.updateMany({
         where: { tournamentId, round: 99 },
-        data: { p2Id: winnerId },
+        data: {
+          p2Id: !isTeam ? winnerId : null,
+          s2Id: isTeam ? winnerId : null,
+        },
       });
       await checkAndNotifyMatchReadyForRound(tournamentId, 99);
     }
@@ -826,49 +1043,42 @@ async function checkAndNotifyMatchReady(matchId: string) {
   const m = await prisma.match.findUnique({
     where: { id: matchId },
   });
-  if (m && m.p1Id && m.p2Id) {
+  if (!m) return;
+
+  const isTeam = m.s1Id !== null;
+
+  if ((!isTeam && m.p1Id && m.p2Id) || (isTeam && m.s1Id && m.s2Id)) {
     await prisma.match.update({
       where: { id: matchId },
       data: { status: "PENDING" },
     });
 
-    await prisma.notification.createMany({
-      data: [
-        {
-          userId: m.p1Id,
-          message: `Your next tournament match is ready! Report to the match room.`,
-          type: "MATCH",
-        },
-        {
-          userId: m.p2Id,
-          message: `Your next tournament match is ready! Report to the match room.`,
-          type: "MATCH",
-        },
-      ],
-    });
-  }
-}
-
-async function checkAndNotifyMatchReadyForRound(tournamentId: string, round: number) {
-  const matches = await prisma.match.findMany({
-    where: { tournamentId, round },
-  });
-  for (const m of matches) {
-    if (m.p1Id && m.p2Id) {
-      await prisma.match.update({
-        where: { id: m.id },
-        data: { status: "PENDING" },
+    if (isTeam) {
+      const squads = await prisma.squad.findMany({
+        where: { id: { in: [m.s1Id!, m.s2Id!] } },
+        include: { members: true },
       });
+      const notifications = squads.flatMap((s) =>
+        s.members.map((mem) => ({
+          userId: mem.id,
+          message: `Your squad "${s.name}" has a new match ready! Report to the match room.`,
+          type: "MATCH" as const,
+        }))
+      );
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    } else {
       await prisma.notification.createMany({
         data: [
           {
-            userId: m.p1Id,
-            message: `Your round ${round === 99 ? 'Grand Finals' : round} match is ready!`,
+            userId: m.p1Id!,
+            message: `Your next tournament match is ready! Report to the match room.`,
             type: "MATCH",
           },
           {
-            userId: m.p2Id,
-            message: `Your round ${round === 99 ? 'Grand Finals' : round} match is ready!`,
+            userId: m.p2Id!,
+            message: `Your next tournament match is ready! Report to the match room.`,
             type: "MATCH",
           },
         ],
@@ -877,25 +1087,104 @@ async function checkAndNotifyMatchReadyForRound(tournamentId: string, round: num
   }
 }
 
-async function completeTournament(tournamentId: string, winnerId: string) {
-  await prisma.tournament.update({
-    where: { id: tournamentId },
-    data: { status: "COMPLETED", winnerId },
+async function checkAndNotifyMatchReadyForRound(tournamentId: string, round: number) {
+  const matches = await prisma.match.findMany({
+    where: { tournamentId, round },
   });
+  for (const m of matches) {
+    const isTeam = m.s1Id !== null;
+    if ((!isTeam && m.p1Id && m.p2Id) || (isTeam && m.s1Id && m.s2Id)) {
+      await prisma.match.update({
+        where: { id: m.id },
+        data: { status: "PENDING" },
+      });
 
+      if (isTeam) {
+        const squads = await prisma.squad.findMany({
+          where: { id: { in: [m.s1Id!, m.s2Id!] } },
+          include: { members: true },
+        });
+        const notifications = squads.flatMap((s) =>
+          s.members.map((mem) => ({
+            userId: mem.id,
+            message: `Your squad "${s.name}" Round ${round === 99 ? "Grand Finals" : round} match is ready!`,
+            type: "MATCH" as const,
+          }))
+        );
+        if (notifications.length > 0) {
+          await prisma.notification.createMany({ data: notifications });
+        }
+      } else {
+        await prisma.notification.createMany({
+          data: [
+            {
+              userId: m.p1Id!,
+              message: `Your round ${round === 99 ? "Grand Finals" : round} match is ready!`,
+              type: "MATCH",
+            },
+            {
+              userId: m.p2Id!,
+              message: `Your round ${round === 99 ? "Grand Finals" : round} match is ready!`,
+              type: "MATCH",
+            },
+          ],
+        });
+      }
+    }
+  }
+}
+
+async function completeTournament(tournamentId: string, winnerId: string) {
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    include: { registrations: true },
+    include: { registrations: true, squadRegistrations: true },
   });
-  const winnerUser = await prisma.user.findUnique({ where: { id: winnerId } });
 
-  if (tournament && winnerUser) {
-    const notifications = tournament.registrations.map((reg) => ({
-      userId: reg.userId,
-      message: `Tournament "${tournament.title}" has completed! Congratulations to the Grand Champion: ${winnerUser.name}!`,
-      type: "INFO",
-    }));
-    await prisma.notification.createMany({ data: notifications });
+  if (!tournament) return;
+
+  const isTeam = tournament.game === "FREE_FIRE";
+
+  if (isTeam) {
+    await prisma.tournament.update({
+      where: { id: tournamentId },
+      data: { status: "COMPLETED", winnerSquadId: winnerId },
+    });
+
+    const winningSquad = await prisma.squad.findUnique({
+      where: { id: winnerId },
+    });
+
+    if (winningSquad) {
+      const registeredSquadIds = tournament.squadRegistrations.map((sr) => sr.squadId);
+      const members = await prisma.user.findMany({
+        where: { squadId: { in: registeredSquadIds } },
+      });
+
+      const notifications = members.map((u) => ({
+        userId: u.id,
+        message: `Tournament "${tournament.title}" has completed! Congratulations to the Squad Champions: ${winningSquad.name}!`,
+        type: "INFO" as const,
+      }));
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    }
+  } else {
+    await prisma.tournament.update({
+      where: { id: tournamentId },
+      data: { status: "COMPLETED", winnerId },
+    });
+
+    const winnerUser = await prisma.user.findUnique({ where: { id: winnerId } });
+
+    if (winnerUser) {
+      const notifications = tournament.registrations.map((reg) => ({
+        userId: reg.userId,
+        message: `Tournament "${tournament.title}" has completed! Congratulations to the Grand Champion: ${winnerUser.name}!`,
+        type: "INFO",
+      }));
+      await prisma.notification.createMany({ data: notifications });
+    }
   }
 }
 
@@ -908,11 +1197,12 @@ async function checkAndCompleteRoundRobin(tournamentId: string) {
     const allMatches = await prisma.match.findMany({
       where: { tournamentId },
     });
-    
+
     const winCounts = new Map<string, number>();
     allMatches.forEach((m) => {
-      if (m.winnerId) {
-        winCounts.set(m.winnerId, (winCounts.get(m.winnerId) || 0) + 1);
+      const winner = m.s1Id ? m.winnerSquadId : m.winnerId;
+      if (winner) {
+        winCounts.set(winner, (winCounts.get(winner) || 0) + 1);
       }
     });
 
@@ -935,4 +1225,3 @@ async function checkAndCompleteRoundRobin(tournamentId: string) {
     }
   }
 }
-

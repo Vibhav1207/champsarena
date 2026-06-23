@@ -33,13 +33,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Account Lockout check
+        if (user.lockoutUntil && new Date() < new Date(user.lockoutUntil)) {
+          throw new Error("LOCKOUT");
+        }
+
         const isValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
 
         if (!isValid) {
+          const attempts = user.failedLoginAttempts + 1;
+          const isLocked = attempts >= 5;
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: attempts,
+              lockoutUntil: isLocked ? new Date(Date.now() + 15 * 60 * 1000) : null,
+            },
+          });
+          
+          if (isLocked) {
+            throw new Error("LOCKED_NOW");
+          }
           return null;
+        }
+
+        // Reset failed login attempts on successful sign in
+        if (user.failedLoginAttempts > 0 || user.lockoutUntil) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: 0,
+              lockoutUntil: null,
+            },
+          });
         }
 
         return user;

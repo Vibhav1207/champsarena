@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
       rules,
       entryFee,
       prizePool,
+      currency,
+      prizeDistribution,
       maxPlayers,
       registrationDeadline,
       startDate,
@@ -81,6 +83,7 @@ export async function POST(req: NextRequest) {
       visibility,
       badgeName,
       badgeIcon,
+      game,
     } = body;
 
     if (!title || !description || !rules || !registrationDeadline || !startDate || !endDate) {
@@ -95,6 +98,8 @@ export async function POST(req: NextRequest) {
         rules,
         entryFee: parseFloat(entryFee || 0),
         prizePool: parseFloat(prizePool || 0),
+        currency: currency || "USD",
+        prizeDistribution: prizeDistribution || "TOP_8",
         maxPlayers: parseInt(maxPlayers || 64),
         registrationDeadline: new Date(registrationDeadline),
         startDate: new Date(startDate),
@@ -104,6 +109,7 @@ export async function POST(req: NextRequest) {
         visibility: visibility !== undefined ? visibility : true,
         badgeName: badgeName || null,
         badgeIcon: badgeIcon || null,
+        game: game || "POKEMON_VGC",
       },
     });
 

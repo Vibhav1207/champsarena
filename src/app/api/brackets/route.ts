@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
         p1: { select: { id: true, name: true, image: true, elo: true } },
         p2: { select: { id: true, name: true, image: true, elo: true } },
         winner: { select: { id: true, name: true, image: true } },
+        s1: { select: { id: true, name: true, logo: true } },
+        s2: { select: { id: true, name: true, logo: true } },
+        winnerSquad: { select: { id: true, name: true, logo: true } },
       },
       orderBy: [{ round: "asc" }, { id: "asc" }],
     });

@@ -55,11 +55,13 @@ export default function AdminDashboard() {
         // Initialize match scores state for forms
         const scores: any = {};
         data.tournament.matches?.forEach((m: any) => {
-          if (m.status === "PENDING" && m.p1Id && m.p2Id) {
+          const isTeam = m.s1Id !== null && m.s1Id !== undefined;
+          const hasCompetitors = isTeam ? (m.s1Id && m.s2Id) : (m.p1Id && m.p2Id);
+          if ((m.status === "PENDING" || m.status === "REPORTED" || m.status === "DISPUTED") && hasCompetitors) {
             scores[m.id] = {
-              p1Score: String(m.p1Score ?? 0),
-              p2Score: String(m.p2Score ?? 0),
-              winnerId: m.winnerId || m.p1Id,
+              p1Score: String(isTeam ? (m.reportedS1Score ?? m.p1Score ?? 0) : (m.reportedP1Score ?? m.p1Score ?? 0)),
+              p2Score: String(isTeam ? (m.reportedS2Score ?? m.p2Score ?? 0) : (m.reportedP2Score ?? m.p2Score ?? 0)),
+              winnerId: m.winnerId || m.winnerSquadId || (isTeam ? m.s1Id : m.p1Id),
             };
           }
         });
@@ -134,13 +136,45 @@ export default function AdminDashboard() {
   const [form, setForm] = useState({
     title: "", description: "",
     rules: "Standard Regulation rules apply.",
-    entryFee: "0", prizePool: "5000", maxPlayers: "128",
+    entryFee: "0", prizePool: "5000",
+    currency: "USD",
+    prizeDistribution: "TOP_8",
+    maxPlayers: "128",
     type: "SINGLE_ELIMINATION", status: "UPCOMING",
-    badgeName: "", badgeIcon: "workspace_premium",
+    badgeName: "", badgeIcon: "",
+    game: "POKEMON_VGC",
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
+  const [uploadingBadge, setUploadingBadge] = useState(false);
+
+  const handleBadgeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBadge(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "badge_image");
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setForm((prev) => ({ ...prev, badgeIcon: data.url }));
+      } else {
+        alert(data.error || "Failed to upload badge image.");
+      }
+    } catch {
+      alert("Failed to upload badge image.");
+    } finally {
+      setUploadingBadge(false);
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -230,7 +264,7 @@ export default function AdminDashboard() {
       if (data.error) { setCreateError(data.error); }
       else {
         setCreateSuccess(true);
-        setForm({ title: "", description: "", rules: "Standard Regulation rules apply.", entryFee: "0", prizePool: "5000", maxPlayers: "128", type: "SINGLE_ELIMINATION", status: "UPCOMING", badgeName: "", badgeIcon: "workspace_premium" });
+        setForm({ title: "", description: "", rules: "Standard Regulation rules apply.", entryFee: "0", prizePool: "5000", currency: "USD", prizeDistribution: "TOP_8", maxPlayers: "128", type: "SINGLE_ELIMINATION", status: "UPCOMING", badgeName: "", badgeIcon: "", game: "POKEMON_VGC" });
         setTimeout(() => { setShowModal(false); setCreateSuccess(false); fetchData(); }, 1200);
       }
     } catch (err: any) { setCreateError("Failed: " + err.message); }
@@ -326,7 +360,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2 mt-2">
                     <span className="inline-flex items-center gap-1 px-3 py-1 border-2 border-white bg-white/20 text-white text-xs font-bold uppercase tracking-wider">
                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>shield</span>
-                      {session?.role || "SUPER_ADMIN"}
+                      {(session?.role === "SUPER_ADMIN" ? "ADMIN" : session?.role) || "ADMIN"}
                     </span>
                     {session?.email && <span className="text-xs font-bold uppercase text-white/70 ml-2">{session.email}</span>}
                   </div>
@@ -395,7 +429,7 @@ export default function AdminDashboard() {
                                 {t._count?.registrations ?? 0} / {t.maxPlayers}
                               </td>
                               <td className="px-5 py-4 text-sm font-black text-accent-blue">
-                                ${(t.prizePool ?? 0).toLocaleString()}
+                                {t.currency === "INR" ? "₹" : "$"}{(t.prizePool ?? 0).toLocaleString()}
                               </td>
                               <td className="px-5 py-4">
                                 <div className="flex gap-2">
@@ -638,32 +672,73 @@ export default function AdminDashboard() {
                     className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary resize-none" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 select-none">
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Custom Badge Name</label>
                     <input type="text" placeholder="e.g. Lumiose Cup Badge" value={form.badgeName}
                       onChange={e => setForm(f => ({ ...f, badgeName: e.target.value }))}
                       className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary placeholder:text-primary/40" />
                   </div>
+                  <div className="space-y-1">
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Badge Image</label>
+                    {form.badgeIcon ? (
+                      <div className="flex items-center gap-2 border-3 border-primary p-2 bg-surface-container-low h-[48px]">
+                        <div className="w-8 h-8 border-2 border-primary overflow-hidden relative flex-shrink-0">
+                          <img src={form.badgeIcon} alt="Badge Preview" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] text-primary/60 font-black uppercase">Uploaded</span>
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, badgeIcon: "" }))}
+                            className="bg-accent-red text-white border border-primary px-1.5 py-0.5 text-[8px] font-black hover:bg-red-700 cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-3 border-dashed border-primary/50 hover:border-primary px-2 py-1 text-center bg-surface-container-low cursor-pointer flex flex-col items-center justify-center h-[48px] relative transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBadgeUpload}
+                          disabled={uploadingBadge}
+                          className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        />
+                        <span className="text-[10px] font-black uppercase text-primary">
+                          {uploadingBadge ? "Uploading..." : "Click to Upload"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 select-none">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Badge Icon</label>
-                    <select value={form.badgeIcon} onChange={e => setForm(f => ({ ...f, badgeIcon: e.target.value }))}
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Currency</label>
+                    <select value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
                       className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary">
-                      <option value="workspace_premium">Premium Ribbon (workspace_premium)</option>
-                      <option value="emoji_events">Gold Trophy (emoji_events)</option>
-                      <option value="stars">Star badge (stars)</option>
-                      <option value="trophy">Trophy (trophy)</option>
-                      <option value="local_fire_department">Fire badge (local_fire_department)</option>
-                      <option value="eco">Leaf badge (eco)</option>
-                      <option value="military_tech">Military badge (military_tech)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="INR">INR (₹)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Prize Distribution</label>
+                    <select value={form.prizeDistribution} onChange={e => setForm(f => ({ ...f, prizeDistribution: e.target.value }))}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary">
+                      <option value="TOP_1">Top 1 (100%)</option>
+                      <option value="TOP_3">Top 3 (60% / 30% / 10%)</option>
+                      <option value="TOP_4">Top 4 (50% / 25% / 12.5% x2)</option>
+                      <option value="TOP_8">Top 8 (50% / 20% / 10% x2 / 2.5% x4)</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: "Entry Fee ($)", key: "entryFee", type: "number" },
-                    { label: "Prize Pool ($)", key: "prizePool", type: "number" },
+                    { label: `Entry Fee (${form.currency === "INR" ? "₹" : "$"})`, key: "entryFee", type: "number" },
+                    { label: `Prize Pool (${form.currency === "INR" ? "₹" : "$"})`, key: "prizePool", type: "number" },
                     { label: "Max Players", key: "maxPlayers", type: "number" },
                   ].map(({ label, key, type }) => (
                     <div key={key}>
@@ -680,6 +755,16 @@ export default function AdminDashboard() {
                       {["SINGLE_ELIMINATION", "DOUBLE_ELIMINATION", "ROUND_ROBIN", "SWISS"].map(v => (
                         <option key={v} value={v}>{v.replace(/_/g, " ")}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Game</label>
+                    <select value={form.game} onChange={e => setForm(f => ({ ...f, game: e.target.value }))}
+                      className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary">
+                      <option value="POKEMON_VGC">Pokémon VGC</option>
+                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Scarlet & Violet</option>
+                      <option value="POKEMON_SHOWDOWN">Pokémon Showdown</option>
+                      <option value="FREE_FIRE">Free Fire</option>
                     </select>
                   </div>
                 </div>
@@ -863,7 +948,7 @@ function TournamentManagementPanel({
   const [shuffledPlayers, setShuffledPlayers] = useState<any[]>([]);
 
   const handleReshuffle = useCallback(() => {
-    if (!managedTournament?.registrations) return;
+    if (!managedTournament?.registrations?.length) return;
     const array = [...managedTournament.registrations];
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -873,10 +958,10 @@ function TournamentManagementPanel({
   }, [managedTournament?.registrations]);
 
   useEffect(() => {
-    if (managedTournament?.registrations && shuffledPlayers.length === 0) {
+    if ((managedTournament?.registrations?.length || 0) > 0 && shuffledPlayers.length === 0) {
       handleReshuffle();
     }
-  }, [managedTournament?.registrations, shuffledPlayers, handleReshuffle]);
+  }, [managedTournament?.registrations?.length, shuffledPlayers.length, handleReshuffle]);
 
   const handleGenerateBracket = async () => {
     setSavingDetails(true);
@@ -911,9 +996,12 @@ function TournamentManagementPanel({
     type: "",
     entryFee: "",
     prizePool: "",
+    currency: "USD",
+    prizeDistribution: "TOP_8",
     maxPlayers: "",
     badgeName: "",
-    badgeIcon: "workspace_premium",
+    badgeIcon: "",
+    game: "",
   });
 
   useEffect(() => {
@@ -925,12 +1013,45 @@ function TournamentManagementPanel({
         type: managedTournament.type || "SINGLE_ELIMINATION",
         entryFee: String(managedTournament.entryFee ?? 0),
         prizePool: String(managedTournament.prizePool ?? 0),
+        currency: managedTournament.currency || "USD",
+        prizeDistribution: managedTournament.prizeDistribution || "TOP_8",
         maxPlayers: String(managedTournament.maxPlayers ?? 128),
         badgeName: managedTournament.badgeName || "",
-        badgeIcon: managedTournament.badgeIcon || "workspace_premium",
+        badgeIcon: managedTournament.badgeIcon || "",
+        game: managedTournament.game || "POKEMON_VGC",
       });
     }
   }, [managedTournament]);
+
+  const [uploadingEditBadge, setUploadingEditBadge] = useState(false);
+
+  const handleEditBadgeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingEditBadge(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "badge_image");
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setEditForm(prev => ({ ...prev, badgeIcon: data.url }));
+      } else {
+        alert(data.error || "Failed to upload badge image.");
+      }
+    } catch {
+      alert("Failed to upload badge image.");
+    } finally {
+      setUploadingEditBadge(false);
+    }
+  };
 
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -946,9 +1067,12 @@ function TournamentManagementPanel({
           type: editForm.type,
           entryFee: parseFloat(editForm.entryFee),
           prizePool: parseFloat(editForm.prizePool),
+          currency: editForm.currency,
+          prizeDistribution: editForm.prizeDistribution,
           maxPlayers: parseInt(editForm.maxPlayers),
           badgeName: editForm.badgeName || null,
           badgeIcon: editForm.badgeIcon || null,
+          game: editForm.game,
         }),
       });
       const data = await res.json();
@@ -1066,11 +1190,11 @@ function TournamentManagementPanel({
               </div>
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Fee:</span>
-                <span className="text-primary">${t.entryFee}</span>
+                <span className="text-primary">{t.currency === "INR" ? "₹" : "$"}{t.entryFee}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Prize Pool:</span>
-                <span className="text-accent-blue">${t.prizePool?.toLocaleString()}</span>
+                <span className="text-accent-blue">{t.currency === "INR" ? "₹" : "$"}{t.prizePool?.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Players:</span>
@@ -1080,7 +1204,9 @@ function TournamentManagementPanel({
                 <div className="flex justify-between py-1.5 border-b border-primary/20 items-center">
                   <span className="text-primary/60">Custom Badge:</span>
                   <span className="text-accent-red flex items-center gap-1 font-black">
-                    <span className="material-symbols-outlined text-sm">{t.badgeIcon || "workspace_premium"}</span>
+                    {t.badgeIcon && (t.badgeIcon.startsWith("/") || t.badgeIcon.startsWith("http")) && (
+                      <img src={t.badgeIcon} alt={t.badgeName} className="w-5 h-5 object-contain" />
+                    )}
                     {t.badgeName}
                   </span>
                 </div>
@@ -1513,10 +1639,29 @@ function TournamentManagementPanel({
                 {matches
                   .filter((m: any) => m.round === activeRoundTab)
                   .map((match: any) => {
-                    const hasP1 = !!match.p1;
-                    const hasP2 = !!match.p2;
+                    const isTeam = match.s1Id !== null && match.s1Id !== undefined;
+                    const hasP1 = isTeam ? !!match.s1 : !!match.p1;
+                    const hasP2 = isTeam ? !!match.s2 : !!match.p2;
                     const bothPlayersSet = hasP1 && hasP2;
                     const scores = matchScores[match.id];
+
+                    const comp1Name = isTeam ? (match.s1?.name || "Squad 1") : (match.p1?.name || "Player 1");
+                    const comp2Name = isTeam ? (match.s2?.name || "Squad 2") : (match.p2?.name || "Player 2");
+
+                    const comp1Logo = isTeam ? match.s1?.logo : match.p1?.image;
+                    const comp2Logo = isTeam ? match.s2?.logo : match.p2?.image;
+
+                    const competitor1Id = isTeam ? match.s1Id : match.p1Id;
+                    const competitor2Id = isTeam ? match.s2Id : match.p2Id;
+
+                    const isWinner1 = isTeam
+                      ? (match.winnerSquadId === match.s1Id)
+                      : (match.winnerId === match.p1Id);
+                    const isWinner2 = isTeam
+                      ? (match.winnerSquadId === match.s2Id)
+                      : (match.winnerId === match.p2Id);
+
+                    const finalWinnerName = isTeam ? (match.winnerSquad?.name) : (match.winner?.name);
 
                     return (
                       <div
@@ -1532,14 +1677,18 @@ function TournamentManagementPanel({
                             {/* Player 1 Details */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 border-2 border-primary bg-accent-yellow text-primary flex items-center justify-center font-bold text-xs select-none">
-                                  {hasP1 ? match.p1.name.charAt(0).toUpperCase() : "?"}
+                                <div className="w-8 h-8 border-2 border-primary bg-accent-yellow text-primary flex items-center justify-center font-bold text-xs select-none overflow-hidden relative">
+                                  {comp1Logo ? (
+                                    <img src={comp1Logo} alt={comp1Name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    comp1Name.charAt(0).toUpperCase()
+                                  )}
                                 </div>
                                 <div>
-                                  <span className={`text-sm uppercase tracking-tight ${match.winnerId === match.p1Id && match.status === "COMPLETED" ? "font-black text-accent-blue" : "font-bold text-primary"}`}>
-                                    {hasP1 ? match.p1.name : "TBD"}
+                                  <span className={`text-sm uppercase tracking-tight ${isWinner1 && match.status === "COMPLETED" ? "font-black text-accent-blue" : "font-bold text-primary"}`}>
+                                    {comp1Name}
                                   </span>
-                                  {hasP1 && <span className="text-[9px] text-primary/60 font-bold ml-2">({match.p1.elo} ELO)</span>}
+                                  {!isTeam && hasP1 && <span className="text-[9px] text-primary/60 font-bold ml-2">({match.p1.elo} ELO)</span>}
                                 </div>
                               </div>
                               {match.status === "COMPLETED" && (
@@ -1556,14 +1705,18 @@ function TournamentManagementPanel({
                             {/* Player 2 Details */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 border-2 border-primary bg-accent-yellow text-primary flex items-center justify-center font-bold text-xs select-none">
-                                  {hasP2 ? match.p2.name.charAt(0).toUpperCase() : "?"}
+                                <div className="w-8 h-8 border-2 border-primary bg-accent-yellow text-primary flex items-center justify-center font-bold text-xs select-none overflow-hidden relative">
+                                  {comp2Logo ? (
+                                    <img src={comp2Logo} alt={comp2Name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    comp2Name.charAt(0).toUpperCase()
+                                  )}
                                 </div>
                                 <div>
-                                  <span className={`text-sm uppercase tracking-tight ${match.winnerId === match.p2Id && match.status === "COMPLETED" ? "font-black text-accent-blue" : "font-bold text-primary"}`}>
-                                    {hasP2 ? match.p2.name : "TBD"}
+                                  <span className={`text-sm uppercase tracking-tight ${isWinner2 && match.status === "COMPLETED" ? "font-black text-accent-blue" : "font-bold text-primary"}`}>
+                                    {comp2Name}
                                   </span>
-                                  {hasP2 && <span className="text-[9px] text-primary/60 font-bold ml-2">({match.p2.elo} ELO)</span>}
+                                  {!isTeam && hasP2 && <span className="text-[9px] text-primary/60 font-bold ml-2">({match.p2.elo} ELO)</span>}
                                 </div>
                               </div>
                               {match.status === "COMPLETED" && (
@@ -1579,7 +1732,7 @@ function TournamentManagementPanel({
                               <div className="text-center py-2.5 bg-white border-2 border-primary font-bold uppercase text-[10px] tracking-wider">
                                 <span className="material-symbols-outlined text-green-600 text-sm align-middle mr-1 material-symbols-fill">check_circle</span>
                                 <span className="text-green-800">Completed</span>
-                                <p className="text-[9px] text-accent-blue font-black mt-1">Winner: {match.winner?.name}</p>
+                                <p className="text-[9px] text-accent-blue font-black mt-1">Winner: {finalWinnerName || "Unknown"}</p>
                               </div>
                             )}
 
@@ -1593,7 +1746,7 @@ function TournamentManagementPanel({
                             {match.status === "PENDING" && !bothPlayersSet && (
                               <div className="text-center py-4 bg-surface-container-low border-2 border-dashed border-primary/40 font-bold uppercase tracking-wider text-[10px]">
                                 <span className="material-symbols-outlined text-primary/40 text-lg block mb-1">hourglass_empty</span>
-                                <span>Waiting for Players</span>
+                                <span>Waiting for {isTeam ? "Squads" : "Players"}</span>
                               </div>
                             )}
 
@@ -1601,7 +1754,7 @@ function TournamentManagementPanel({
                               <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
-                                    <label className="block text-[8px] font-black text-primary/60 uppercase mb-0.5">P1 Score</label>
+                                    <label className="block text-[8px] font-black text-primary/60 uppercase mb-0.5">{isTeam ? "S1 Score" : "P1 Score"}</label>
                                     <input
                                       type="number"
                                       min="0"
@@ -1614,8 +1767,8 @@ function TournamentManagementPanel({
                                           next[match.id] = { ...next[match.id], p1Score: val };
                                           const p1Int = parseInt(val) || 0;
                                           const p2Int = parseInt(next[match.id].p2Score) || 0;
-                                          if (p1Int > p2Int) next[match.id].winnerId = match.p1Id;
-                                          else if (p2Int > p1Int) next[match.id].winnerId = match.p2Id;
+                                          if (p1Int > p2Int) next[match.id].winnerId = competitor1Id;
+                                          else if (p2Int > p1Int) next[match.id].winnerId = competitor2Id;
                                           return next;
                                         });
                                       }}
@@ -1623,7 +1776,7 @@ function TournamentManagementPanel({
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[8px] font-black text-primary/60 uppercase mb-0.5">P2 Score</label>
+                                    <label className="block text-[8px] font-black text-primary/60 uppercase mb-0.5">{isTeam ? "S2 Score" : "P2 Score"}</label>
                                     <input
                                       type="number"
                                       min="0"
@@ -1636,8 +1789,8 @@ function TournamentManagementPanel({
                                           next[match.id] = { ...next[match.id], p2Score: val };
                                           const p1Int = parseInt(next[match.id].p1Score) || 0;
                                           const p2Int = parseInt(val) || 0;
-                                          if (p1Int > p2Int) next[match.id].winnerId = match.p1Id;
-                                          else if (p2Int > p1Int) next[match.id].winnerId = match.p2Id;
+                                          if (p1Int > p2Int) next[match.id].winnerId = competitor1Id;
+                                          else if (p2Int > p1Int) next[match.id].winnerId = competitor2Id;
                                           return next;
                                         });
                                       }}
@@ -1658,10 +1811,10 @@ function TournamentManagementPanel({
                                         return next;
                                       });
                                     }}
-                                    className="w-full border-2 border-primary px-2 py-1 text-xs font-bold bg-white text-primary"
+                                    className="w-full border-2 border-primary px-2 py-1 text-xs font-bold bg-white text-primary uppercase"
                                   >
-                                    <option value={match.p1Id}>{match.p1.name}</option>
-                                    <option value={match.p2Id}>{match.p2.name}</option>
+                                    <option value={competitor1Id}>{comp1Name}</option>
+                                    <option value={competitor2Id}>{comp2Name}</option>
                                   </select>
                                 </div>
 
@@ -1750,7 +1903,7 @@ function TournamentManagementPanel({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 select-none">
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Custom Badge Name</label>
                     <input
@@ -1761,20 +1914,64 @@ function TournamentManagementPanel({
                       className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
                     />
                   </div>
+                  <div className="space-y-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Badge Image</label>
+                    {editForm.badgeIcon ? (
+                      <div className="flex items-center gap-2 border-3 border-primary p-2 bg-surface-container-low h-[38px]">
+                        <div className="w-6 h-6 border-2 border-primary overflow-hidden relative flex-shrink-0">
+                          <img src={editForm.badgeIcon} alt="Badge Preview" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] text-primary/60 font-black uppercase">Uploaded</span>
+                          <button
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, badgeIcon: "" })}
+                            className="bg-accent-red text-white border border-primary px-1.5 py-0.5 text-[8px] font-black hover:bg-red-700 cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-3 border-dashed border-primary/50 hover:border-primary px-2 py-1 text-center bg-surface-container-low cursor-pointer flex flex-col items-center justify-center h-[38px] relative transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditBadgeUpload}
+                          disabled={uploadingEditBadge}
+                          className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        />
+                        <span className="text-[10px] font-black uppercase text-primary">
+                          {uploadingEditBadge ? "Uploading..." : "Click to Upload"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 select-none">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Badge Icon</label>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Currency</label>
                     <select
-                      value={editForm.badgeIcon}
-                      onChange={(e) => setEditForm({ ...editForm, badgeIcon: e.target.value })}
+                      value={editForm.currency}
+                      onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
                       className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
                     >
-                      <option value="workspace_premium">Premium Ribbon (workspace_premium)</option>
-                      <option value="emoji_events">Gold Trophy (emoji_events)</option>
-                      <option value="stars">Star badge (stars)</option>
-                      <option value="trophy">Trophy (trophy)</option>
-                      <option value="local_fire_department">Fire badge (local_fire_department)</option>
-                      <option value="eco">Leaf badge (eco)</option>
-                      <option value="military_tech">Military badge (military_tech)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="INR">INR (₹)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Prize Distribution</label>
+                    <select
+                      value={editForm.prizeDistribution}
+                      onChange={(e) => setEditForm({ ...editForm, prizeDistribution: e.target.value })}
+                      className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
+                    >
+                      <option value="TOP_1">Top 1 (100%)</option>
+                      <option value="TOP_3">Top 3 (60% / 30% / 10%)</option>
+                      <option value="TOP_4">Top 4 (50% / 25% / 12.5% x2)</option>
+                      <option value="TOP_8">Top 8 (50% / 20% / 10% x2 / 2.5% x4)</option>
                     </select>
                   </div>
                 </div>
@@ -1806,7 +2003,9 @@ function TournamentManagementPanel({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Entry Fee ($)</label>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">
+                      Entry Fee ({editForm.currency === "INR" ? "₹" : "$"})
+                    </label>
                     <input
                       type="number"
                       min="0"
@@ -1817,7 +2016,9 @@ function TournamentManagementPanel({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Prize Pool ($)</label>
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">
+                      Prize Pool ({editForm.currency === "INR" ? "₹" : "$"})
+                    </label>
                     <input
                       type="number"
                       min="0"
@@ -1825,6 +2026,19 @@ function TournamentManagementPanel({
                       onChange={(e) => setEditForm({ ...editForm, prizePool: e.target.value })}
                       className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
                     />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Game</label>
+                    <select
+                      value={editForm.game}
+                      onChange={(e) => setEditForm({ ...editForm, game: e.target.value })}
+                      className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
+                    >
+                      <option value="POKEMON_VGC">Pokémon VGC</option>
+                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Scarlet & Violet</option>
+                      <option value="POKEMON_SHOWDOWN">Pokémon Showdown</option>
+                      <option value="FREE_FIRE">Free Fire</option>
+                    </select>
                   </div>
                 </div>
 
@@ -1894,7 +2108,7 @@ function SidebarContent({ nav, session, onLogout, loggingOut, onClose }: {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-black uppercase tracking-tight truncate text-primary">{session?.name || "Admin"}</p>
-            <p className="text-[10px] font-bold text-accent-blue uppercase truncate">{session?.role || "SUPER_ADMIN"}</p>
+            <p className="text-[10px] font-bold text-accent-blue uppercase truncate">{(session?.role === "SUPER_ADMIN" ? "ADMIN" : session?.role) || "ADMIN"}</p>
           </div>
         </div>
         <button onClick={onLogout} disabled={loggingOut}

@@ -57,30 +57,33 @@ function BracketsContent() {
             let champ = null;
 
             if (data.matches && data.matches.length > 0) {
+              const isTeam = data.tournament?.game === "FREE_FIRE";
               data.matches.forEach((m: any) => {
                 const roundNum = m.round;
                 if (!grouped[roundNum]) grouped[roundNum] = [];
 
-                const mapTeam = (player: any, score: number, otherScore: number) => {
+                const mapTeam = (playerOrSquad: any, score: number, otherScore: number) => {
                   return {
-                    name: player?.name || "TBD",
-                    score: m.status === "BYE" && player ? "BYE" : m.status === "COMPLETED" ? String(score) : "...",
-                    avatarUrl: player?.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuDoz5Y0R4TFuXNrYLE-POKr2jfVBcGfiv3xrqewXcn_dT6Pi3y98nN89Lhyl3W232l87CwoQ7BZfA8qbk6kPJHxkY4-u9zYPdd0dciP1rQJguaadH5ak_jVWTlDdyyYkf-xTDQ9pi-g9EvcpjFdFOClplU8RKE9t6xRR0E8brOOOKRBiQSzT85kRb5GSGQOF6ERlnWa8-TdzOhAs0m8PDFak7j8ar1G7gZtM9riEUcB6EfuUwvRoSeIULm7Kmic2qMqoBuCYiiXBW4",
-                    imgAlt: player?.name || "TBD",
-                    isWinner: m.status === "COMPLETED" && m.winnerId === player?.id,
+                    name: playerOrSquad?.name || "TBD",
+                    score: m.status === "BYE" && playerOrSquad ? "BYE" : m.status === "COMPLETED" ? String(score) : "...",
+                    avatarUrl: playerOrSquad?.logo || playerOrSquad?.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuDoz5Y0R4TFuXNrYLE-POKr2jfVBcGfiv3xrqewXcn_dT6Pi3y98nN89Lhyl3W232l87CwoQ7BZfA8qbk6kPJHxkY4-u9zYPdd0dciP1rQJguaadH5ak_jVWTlDdyyYkf-xTDQ9pi-g9EvcpjFdFOClplU8RKE9t6xRR0E8brOOOKRBiQSzT85kRb5GSGQOF6ERlnWa8-TdzOhAs0m8PDFak7j8ar1G7gZtM9riEUcB6EfuUwvRoSeIULm7Kmic2qMqoBuCYiiXBW4",
+                    imgAlt: playerOrSquad?.name || "TBD",
+                    isWinner: m.status === "COMPLETED" && (m.winnerId === playerOrSquad?.id || m.winnerSquadId === playerOrSquad?.id),
                   };
                 };
+
+                const isTeamMatch = m.s1Id !== null;
 
                 grouped[roundNum].push({
                   id: m.id,
                   status: m.status.toLowerCase(),
                   round: roundNum,
-                  team1: mapTeam(m.p1, m.p1Score, m.p2Score),
-                  team2: mapTeam(m.p2, m.p2Score, m.p1Score),
+                  team1: mapTeam(isTeamMatch ? m.s1 : m.p1, m.p1Score, m.p2Score),
+                  team2: mapTeam(isTeamMatch ? m.s2 : m.p2, m.p2Score, m.p1Score),
                 });
 
-                if (m.status === "COMPLETED" && m.winner) {
-                  champ = m.winner;
+                if (m.status === "COMPLETED" && (m.winner || m.winnerSquad)) {
+                  champ = m.winner || m.winnerSquad;
                 }
               });
 
@@ -138,6 +141,8 @@ function BracketsContent() {
       </div>
     );
   }
+
+  const currencySymbol = tournament?.currency === "INR" ? "₹" : "$";
 
   return (
     <>
@@ -255,10 +260,12 @@ function BracketsContent() {
               {grandChampion && (
                 <div className="flex flex-col items-center justify-center min-w-[280px] w-[280px] bg-accent-yellow/10 border-4 border-primary border-dashed p-md neo-brutalist-shadow self-center">
                   <div className="w-20 h-20 bg-primary flex items-center justify-center border-4 border-primary mb-sm">
-                    {grandChampion.image ? (
-                      <img src={grandChampion.image} alt={grandChampion.name} className="w-full h-full object-cover" />
+                    {grandChampion.logo || grandChampion.image ? (
+                      <img src={grandChampion.logo || grandChampion.image} alt={grandChampion.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="material-symbols-outlined text-[48px] text-white">person</span>
+                      <span className="material-symbols-outlined text-[48px] text-white">
+                        {tournament?.game === "FREE_FIRE" ? "groups" : "person"}
+                      </span>
                     )}
                   </div>
                   <div className="text-center select-none text-primary">
@@ -299,7 +306,7 @@ function BracketsContent() {
             <div className="select-none">
               <p className="text-xs font-bold uppercase tracking-widest opacity-70">Prize Pool</p>
               <p className="text-4xl font-bold tracking-tighter text-accent-yellow">
-                ${tournament?.prizePool?.toLocaleString()}
+                {currencySymbol}{tournament?.prizePool?.toLocaleString()}
               </p>
             </div>
           </div>

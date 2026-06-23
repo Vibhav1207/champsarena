@@ -22,6 +22,7 @@ interface Tournament {
   banner: string | null;
   entryFee: number;
   prizePool: number;
+  currency?: string;
   maxPlayers: number;
   startDate: string;
   type: string;
@@ -40,10 +41,10 @@ interface TopPlayer {
 }
 
 const TYPE_MAP: Record<string, { label: string; bg: string }> = {
-  SINGLE_ELIMINATION: { label: "VGC Format", bg: "bg-accent-blue" },
-  SWISS: { label: "VGC Format", bg: "bg-accent-blue" },
-  ROUND_ROBIN: { label: "TCG Format", bg: "bg-primary" },
-  DOUBLE_ELIMINATION: { label: "GO Format", bg: "bg-accent-red" },
+  SINGLE_ELIMINATION: { label: "Pokémon VGC", bg: "bg-accent-blue" },
+  SWISS: { label: "Pokémon VGC", bg: "bg-accent-blue" },
+  ROUND_ROBIN: { label: "Pokémon TCG", bg: "bg-primary" },
+  DOUBLE_ELIMINATION: { label: "Pokémon GO", bg: "bg-accent-red" },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -245,6 +246,7 @@ export default function Home() {
                 {upcomingEvents.map((event, idx) => {
                   const formatInfo = TYPE_MAP[event.type] || { label: "VGC", bg: "bg-accent-blue" };
                   const isGoldBorder = event.entryFee > 25;
+                  const currencySymbol = event.currency === "INR" ? "₹" : "$";
                   return (
                     <div key={event.id} className={`flex-shrink-0 w-80 bg-white border-4 ${isGoldBorder ? "border-accent-yellow" : "border-primary"} p-md neo-brutalist-shadow-hover transition-all flex flex-col justify-between`}>
                       <div>
@@ -269,7 +271,7 @@ export default function Home() {
                           </div>
                           <div className="flex items-center gap-xs font-bold text-sm uppercase text-accent-red">
                             <span className="material-symbols-outlined font-bold">trophy</span>
-                            <span>${event.prizePool.toLocaleString()} Pool</span>
+                            <span>{currencySymbol}{event.prizePool.toLocaleString()} Pool</span>
                           </div>
                         </div>
                       </div>

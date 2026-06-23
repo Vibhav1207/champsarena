@@ -15,6 +15,7 @@ interface Tournament {
   status: "UPCOMING" | "REGISTRATION_OPEN" | "ONGOING" | "COMPLETED" | "CANCELLED" | "DRAFT";
   entryFee: number;
   prizePool: number;
+  currency?: string;
   maxPlayers: number;
   startDate: string;
   banner: string | null;
@@ -22,10 +23,20 @@ interface Tournament {
 }
 
 const FORMAT_MAP: Record<string, { label: string; bg: string }> = {
-  SINGLE_ELIMINATION: { label: "VGC", bg: "bg-accent-blue" },
-  SWISS:              { label: "VGC", bg: "bg-accent-blue" },
-  DOUBLE_ELIMINATION: { label: "GO", bg: "bg-accent-red" },
-  ROUND_ROBIN:        { label: "TCG", bg: "bg-primary" },
+  SINGLE_ELIMINATION: { label: "Pokémon VGC", bg: "bg-accent-blue" },
+  SWISS:              { label: "Pokémon VGC", bg: "bg-accent-blue" },
+  DOUBLE_ELIMINATION: { label: "Pokémon GO", bg: "bg-accent-red" },
+  ROUND_ROBIN:        { label: "Pokémon TCG", bg: "bg-primary" },
+};
+
+const getTournamentGameInfo = (t: any) => {
+  if (t.game === "FREE_FIRE") {
+    return { label: "Free Fire", bg: "bg-accent-yellow text-primary border-primary", key: "FREE_FIRE" };
+  }
+  const typeInfo = FORMAT_MAP[t.type] || { label: "VGC", bg: "bg-accent-blue" };
+  const key = t.type === "DOUBLE_ELIMINATION" ? "GO" : t.type === "ROUND_ROBIN" ? "TCG" : "VGC"; // VGC, TCG, GO
+  const bgClass = typeInfo.bg.includes("text-") ? typeInfo.bg : `${typeInfo.bg} text-white`;
+  return { label: typeInfo.label, bg: bgClass, key };
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -77,8 +88,8 @@ export default function Tournaments() {
 
   const filtered = tournaments.filter(t => {
     if (selectedFormats.length > 0) {
-      const fmtLabel = FORMAT_MAP[t.type]?.label;
-      if (!selectedFormats.includes(fmtLabel)) return false;
+      const gameInfo = getTournamentGameInfo(t);
+      if (!selectedFormats.includes(gameInfo.key)) return false;
     }
     if (selectedStatus && t.status !== selectedStatus) return false;
     if (startDate && new Date(t.startDate) < new Date(startDate)) return false;
@@ -110,6 +121,7 @@ export default function Tournaments() {
                     { label: "VGC (Video Game)", key: "VGC", img: "/vgc.png", color: "bg-accent-blue/10" },
                     { label: "TCG (Trading Card)", key: "TCG", img: "/tcg.png", color: "bg-primary/5" },
                     { label: "Pokémon GO", key: "GO", img: "/pogo.png", color: "bg-accent-red/10" },
+                    { label: "Free Fire", key: "FREE_FIRE", img: "/free_fire.png", color: "bg-accent-yellow/10" },
                   ].map(({ label, key, img, color }) => {
                     const isSelected = selectedFormats.includes(key);
                     return (
@@ -117,24 +129,25 @@ export default function Tournaments() {
                         type="button"
                         key={key}
                         onClick={() => toggleFormat(key)}
-                        className={`w-full text-left border-4 border-primary flex flex-col transition-all duration-150 relative overflow-hidden group active:translate-x-[2px] active:translate-y-[2px] cursor-pointer ${
+                        className={`w-full text-left border-4 border-primary flex flex-row items-center transition-all duration-150 relative overflow-hidden group active:translate-x-[2px] active:translate-y-[2px] cursor-pointer h-14 ${
                           isSelected
                             ? "bg-accent-yellow shadow-none translate-x-[2px] translate-y-[2px]"
                             : "bg-white shadow-[4px_4px_0px_0px_#1a1a1a] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1a1a1a]"
                         }`}
                       >
                         {/* Game Image */}
-                        <div className={`relative h-20 w-full ${color} border-b-2 border-primary overflow-hidden`}>
+                        <div className={`relative h-full w-20 shrink-0 ${color} border-r-2 border-primary overflow-hidden`}>
                           <Image
                             src={img}
                             alt={label}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1"
+                            sizes="80px"
                           />
                         </div>
                         {/* Card Label */}
-                        <div className="p-2 flex items-center justify-between">
-                          <span className="font-bold text-[10px] uppercase tracking-tight text-primary">
+                        <div className="px-sm py-1 flex items-center justify-between flex-grow">
+                          <span className="font-bold text-[10px] uppercase tracking-tight text-primary leading-tight line-clamp-2">
                             {label}
                           </span>
                           <span className={`border-2 border-primary flex items-center justify-center w-5 h-5 shrink-0 ${
@@ -233,11 +246,12 @@ export default function Tournaments() {
                 
                 {filtered.length > 0 ? (
                   filtered.map(t => {
-                    const fmt = FORMAT_MAP[t.type] || { label: t.type, bg: "bg-primary" };
+                    const gameInfo = getTournamentGameInfo(t);
                     const stat = STATUS_LABEL[t.status] || { label: t.status, color: "text-primary/70" };
                     const used = t._count?.registrations ?? 0;
                     const cap = Math.min(100, Math.round((used / t.maxPlayers) * 100));
                     const isGoldBorder = t.entryFee > 25;
+                    const currencySymbol = t.currency === "INR" ? "₹" : "$";
 
                     return (
                       <article key={t.id} className="bg-white border-4 border-primary neo-brutalist-shadow-hover transition-all flex flex-col">
@@ -250,8 +264,8 @@ export default function Tournaments() {
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 30vw"
                           />
                           <div className="absolute top-0 right-0 flex select-none">
-                            <span className={`${fmt.bg} text-white px-sm py-base border-l-4 border-b-4 border-primary font-label-lg text-label-lg uppercase`}>
-                              {fmt.label}
+                            <span className={`${gameInfo.bg} px-sm py-base border-l-4 border-b-4 border-primary font-label-lg text-label-lg uppercase`}>
+                              {gameInfo.label}
                             </span>
                             <span className={`bg-white text-primary px-sm py-base border-l-4 border-b-4 border-primary font-label-lg text-label-lg uppercase italic font-bold`}>
                               {isGoldBorder ? "International" : "Regional"}
@@ -272,7 +286,7 @@ export default function Tournaments() {
                               </div>
                               <div className="flex items-center gap-xs text-accent-red">
                                 <span className="material-symbols-outlined text-[18px]">trophy</span>
-                                <span>${t.prizePool.toLocaleString()} Pool</span>
+                                <span>{currencySymbol}{t.prizePool.toLocaleString()} Pool</span>
                               </div>
                               <div className="flex items-center gap-xs">
                                 <span className="material-symbols-outlined text-[18px]">group</span>

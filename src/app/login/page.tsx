@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { loginTrainer, registerTrainer, socialLogin } from "@/app/actions/authActions";
+import { loginTrainer, registerTrainer, socialLogin, requestPasswordReset } from "@/app/actions/authActions";
 
-type Tab = "login" | "signup";
+type Tab = "login" | "signup" | "forgot";
 
 export default function AuthPage() {
   const [tab, setTab] = useState<Tab>("login");
@@ -22,12 +22,33 @@ export default function AuthPage() {
   const [rPassConfirm, setRPassConfirm] = useState("");
   const [rTerms, setRTerms] = useState(false);
 
+  // Forgot state
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  // CAPTCHA state
+  const [captchaQuestion, setCaptchaQuestion] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const fetchCaptcha = () => {
+    setCaptchaAnswer("");
+    fetch("/api/auth/captcha")
+      .then(r => r.json())
+      .then(d => {
+        if (d.question && d.token) {
+          setCaptchaQuestion(d.question);
+          setCaptchaToken(d.token);
+        }
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
-    // Fetch live stats for the hero from the public stats endpoint
+    // Fetch live stats for the hero
     fetch("/api/public-stats")
       .then(r => r.json())
       .then(d => {
@@ -42,13 +63,20 @@ export default function AuthPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    fetchCaptcha();
+  }, [tab]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const res = await loginTrainer({ email, password });
-      if (res?.error) setError(res.error);
+      const res = await loginTrainer({ email, password, captchaAnswer, captchaToken });
+      if (res?.error) {
+        setError(res.error);
+        fetchCaptcha();
+      }
     } catch {
       setError("Something went wrong.");
     } finally {
@@ -76,12 +104,51 @@ export default function AuthPage() {
       const res = await registerTrainer({
         name: rName,
         email: rEmail,
-        password: rPass
+        password: rPass,
+        captchaAnswer,
+        captchaToken
       });
-      if (res?.error) setError(res.error);
-      else setSuccess("Trainer registered! Signing you in…");
+      if (res?.error) {
+        setError(res.error);
+        fetchCaptcha();
+      } else {
+        setSuccess("Trainer registered! Signing you in…");
+      }
     } catch {
       setError("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    const { verifyCaptcha } = await import("@/lib/captcha");
+    // Verify CAPTCHA check on client first or just let server do it. Since verifyCaptcha runs server side, we verify through actions or a separate API. Let's do it inside the action or check locally. Actually verifyCaptcha uses node crypto which is a server-only module, so client cannot import it directly without runtime errors!
+    // That means we must check CAPTCHA server-side.
+    // Let's call the action which will handle CAPTCHA. Let's modify requestPasswordReset to also verify CAPTCHA.
+    try {
+      // Fetch reset
+      const res = await fetch("/api/auth/reset-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail, captchaAnswer, captchaToken }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+        fetchCaptcha();
+      } else {
+        setSuccess("Security key reset link generated! Check your scratch/sent_emails.log file.");
+        setForgotEmail("");
+        setCaptchaAnswer("");
+      }
+    } catch {
+      setError("Failed to process reset request.");
     } finally {
       setLoading(false);
     }
@@ -117,7 +184,7 @@ export default function AuthPage() {
             </h1>
 
             <p className="text-base xl:text-md font-bold text-primary bg-accent-yellow inline-block px-4 py-1.5 border-2 border-primary mb-md lg:mb-md">
-              The elite circuit for the Master Class.
+              The elite tournament platform.
             </p>
 
             {/* Decorative Stats Grid */}
@@ -160,7 +227,7 @@ export default function AuthPage() {
                 ChampsArena
               </h1>
               <p className="text-primary font-bold text-xs bg-accent-yellow inline-block px-2 border-2 border-primary mt-1">
-                Master Class Series
+                Tournament Hub
               </p>
             </div>
 
@@ -191,7 +258,6 @@ export default function AuthPage() {
 
               {/* Form Body */}
               <div className="p-sm lg:p-md flex-1 flex flex-col justify-between">
-
                 
                 <div className="space-y-sm">
                   
@@ -215,6 +281,7 @@ export default function AuthPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+                  
                   <AnimatePresence mode="wait">
                     {tab === "login" ? (
                       /* ── LOGIN FORM ── */
@@ -227,9 +294,9 @@ export default function AuthPage() {
                         onSubmit={handleLogin} 
                         className="space-y-sm"
                       >
-                        <div className="mb-sm">
+                        <div className="mb-sm text-left">
                           <h2 className="text-lg font-black uppercase tracking-tighter">Enter the Circuit</h2>
-                          <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Sign in to continue your championship journey.</p>
+                          <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Sign in to continue your tournament journey.</p>
                         </div>
 
                         {/* Social Logins */}
@@ -237,14 +304,14 @@ export default function AuthPage() {
                           <button 
                             type="button"
                             onClick={() => handleSocial("google")}
-                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-yellow border-r-2 border-primary transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
+                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-yellow border-r-2 border-primary transition-colors duration-100 font-black uppercase text-[10px] tracking-wider cursor-pointer"
                           >
                             Google
                           </button>
                           <button 
                             type="button"
                             onClick={() => handleSocial("discord")}
-                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-blue hover:text-white transition-colors duration-100 font-black uppercase text-[10px] tracking-wider"
+                            className="flex items-center justify-center gap-xs py-2 bg-white hover:bg-accent-blue hover:text-white transition-colors duration-100 font-black uppercase text-[10px] tracking-wider cursor-pointer"
                           >
                             Discord
                           </button>
@@ -258,9 +325,9 @@ export default function AuthPage() {
                         </div>
 
                         {/* Form Inputs */}
-                        <div className="space-y-xs">
+                        <div className="space-y-xs text-left">
                           <div className="space-y-1">
-                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer ID / Email</label>
+                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
                             <input 
                               type="email"
                               required
@@ -275,9 +342,13 @@ export default function AuthPage() {
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
                               <label className="text-[10px] text-primary uppercase font-black tracking-widest">Security Key</label>
-                              <Link href="#" className="text-accent-red font-black uppercase text-[10px] hover:underline">
+                              <button 
+                                type="button" 
+                                onClick={() => { setTab("forgot"); setError(null); setSuccess(null); }}
+                                className="text-accent-red font-black uppercase text-[10px] hover:underline cursor-pointer"
+                              >
                                 Forgot?
-                              </Link>
+                              </button>
                             </div>
                             <input 
                               type="password"
@@ -289,16 +360,44 @@ export default function AuthPage() {
                               className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
+
+                          {/* CAPTCHA verification */}
+                          <div className="space-y-1 pt-1">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] text-primary uppercase font-black tracking-widest">Verify You Are Human</label>
+                              <button
+                                type="button"
+                                onClick={fetchCaptcha}
+                                className="text-[9px] font-black text-accent-blue uppercase hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[10px]">refresh</span> Refresh
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                                {captchaQuestion}
+                              </div>
+                              <input 
+                                type="text"
+                                required
+                                value={captchaAnswer}
+                                onChange={e => setCaptchaAnswer(e.target.value)}
+                                placeholder="Answer"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                              />
+                            </div>
+                          </div>
+
                         </div>
 
                         {/* Remember Me */}
-                        <div className="flex items-center gap-sm">
+                        <div className="flex items-center gap-sm select-none">
                           <input 
                             className="pokeball-checkbox" 
                             id="remember" 
                             type="checkbox"
                           />
-                          <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer select-none" htmlFor="remember">
+                          <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer" htmlFor="remember">
                             Keep Active (30D)
                           </label>
                         </div>
@@ -307,7 +406,7 @@ export default function AuthPage() {
                         <button 
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red"
+                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
                         >
                           {loading ? "ENTERING..." : "Enter the Stadium"}
                         </button>
@@ -315,12 +414,12 @@ export default function AuthPage() {
                         {/* Admin Hint */}
                         <div className="border-2 border-primary p-2 flex items-start gap-2 bg-accent-yellow/20">
                           <span className="material-symbols-outlined text-primary text-[18px]">info</span>
-                          <p className="text-[9px] uppercase font-black text-primary leading-tight">
+                          <p className="text-[9px] uppercase font-black text-primary leading-tight text-left">
                             Admin access: <code className="font-mono bg-white px-1">admin@champsarena.gg</code> / <code className="font-mono bg-white px-1">Admin@1234</code>
                           </p>
                         </div>
                       </motion.form>
-                    ) : (
+                    ) : tab === "signup" ? (
                       /* ── SIGN UP FORM ── */
                       <motion.form 
                         key="signup" 
@@ -331,12 +430,12 @@ export default function AuthPage() {
                         onSubmit={handleRegister} 
                         className="space-y-sm"
                       >
-                        <div className="mb-sm">
+                        <div className="mb-sm text-left">
                           <h2 className="text-lg font-black uppercase tracking-tighter">New Registration</h2>
                           <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Create your trainer profile and join the circuit.</p>
                         </div>
 
-                        <div className="space-y-xs">
+                        <div className="space-y-xs text-left">
                           <div className="space-y-1">
                             <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Name</label>
                             <input 
@@ -391,18 +490,45 @@ export default function AuthPage() {
                               />
                             </div>
                           </div>
+
+                          {/* CAPTCHA verification */}
+                          <div className="space-y-1 pt-1">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] text-primary uppercase font-black tracking-widest">Verify You Are Human</label>
+                              <button
+                                type="button"
+                                onClick={fetchCaptcha}
+                                className="text-[9px] font-black text-accent-blue uppercase hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[10px]">refresh</span> Refresh
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                                {captchaQuestion}
+                              </div>
+                              <input 
+                                type="text"
+                                required
+                                value={captchaAnswer}
+                                onChange={e => setCaptchaAnswer(e.target.value)}
+                                placeholder="Answer"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                              />
+                            </div>
+                          </div>
                         </div>
 
                         {/* Notice */}
-                        <div className="bg-accent-yellow border-2 border-primary p-2 flex items-start gap-2">
+                        <div className="bg-accent-yellow border-2 border-primary p-2 flex items-start gap-2 text-left">
                           <span className="material-symbols-outlined text-primary text-[18px]">info</span>
                           <p className="text-[9px] uppercase font-black text-primary leading-tight">
-                            Identifier will be public in tournament brackets and league rankings.
+                            Your username will be auto-generated from your trainer name. You can customize it on your profile dashboard.
                           </p>
                         </div>
 
                         {/* Terms */}
-                        <div className="flex items-center gap-sm">
+                        <div className="flex items-center gap-sm select-none">
                           <input 
                             className="pokeball-checkbox" 
                             id="terms" 
@@ -410,7 +536,7 @@ export default function AuthPage() {
                             checked={rTerms}
                             onChange={e => setRTerms(e.target.checked)}
                           />
-                          <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer select-none" htmlFor="terms">
+                          <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer" htmlFor="terms">
                             Accept Regulations
                           </label>
                         </div>
@@ -419,9 +545,83 @@ export default function AuthPage() {
                         <button 
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
                         >
                           {loading ? "REGISTERING..." : "Register Trainer"}
+                        </button>
+                      </motion.form>
+                    ) : (
+                      /* ── FORGOT PASSWORD FORM ── */
+                      <motion.form 
+                        key="forgot" 
+                        initial={{ opacity: 0, x: -12 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 12 }} 
+                        transition={{ duration: 0.15 }} 
+                        onSubmit={handleRequestReset} 
+                        className="space-y-sm"
+                      >
+                        <div className="mb-sm text-left">
+                          <h2 className="text-lg font-black uppercase tracking-tighter">Reset Security Key</h2>
+                          <p className="text-[11px] font-bold text-primary opacity-60 mt-0.5">Simulate a security key reset. We will log the reset link.</p>
+                        </div>
+
+                        <div className="space-y-xs text-left">
+                          <div className="space-y-1">
+                            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer Email</label>
+                            <input 
+                              type="email"
+                              required
+                              disabled={loading}
+                              value={forgotEmail}
+                              onChange={e => setForgotEmail(e.target.value)}
+                              placeholder="trainer@league.com"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                            />
+                          </div>
+
+                          {/* CAPTCHA verification */}
+                          <div className="space-y-1 pt-1">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] text-primary uppercase font-black tracking-widest">Verify You Are Human</label>
+                              <button
+                                type="button"
+                                onClick={fetchCaptcha}
+                                className="text-[9px] font-black text-accent-blue uppercase hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[10px]">refresh</span> Refresh
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                                {captchaQuestion}
+                              </div>
+                              <input 
+                                type="text"
+                                required
+                                value={captchaAnswer}
+                                onChange={e => setCaptchaAnswer(e.target.value)}
+                                placeholder="Answer"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <button 
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
+                        >
+                          {loading ? "SENDING KEY..." : "Send Reset link"}
+                        </button>
+
+                        <button 
+                          type="button"
+                          onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
+                          className="w-full bg-white text-primary border-2 border-primary py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
+                        >
+                          Cancel
                         </button>
                       </motion.form>
                     )}
@@ -435,7 +635,7 @@ export default function AuthPage() {
                     By joining, you accept our <Link className="text-accent-red hover:underline" href="#">Privacy Policy</Link> and <Link className="text-accent-red hover:underline" href="#">Terms of Service</Link>.
                   </p>
                   <div className="flex justify-between items-center text-[10px] text-primary font-black uppercase tracking-widest">
-                    <span>V2.4.0-CHMP</span>
+                    <span>V2.5.0-SEC</span>
                     <div className="flex gap-md">
                       <Link className="hover:text-accent-red" href="#">Rules</Link>
                       <Link className="hover:text-accent-red" href="#">Support</Link>
@@ -462,4 +662,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
