@@ -19,7 +19,7 @@ export default function Profile() {
       .then((data) => {
         if (data.user) {
           setProfileData(data.user);
-          
+
 
 
           // Parse match history from DB
@@ -84,7 +84,7 @@ export default function Profile() {
             {/* ── Main Trainer Card Box ── */}
             <section>
               <div className="border-4 border-primary neo-brutalist-shadow flex flex-col md:flex-row bg-white relative">
-                
+
                 {/* ID Card Chip Decoration */}
                 <div className="absolute -top-4 -right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10">
                   <span className="font-bold text-xs uppercase tracking-widest text-primary">
@@ -112,12 +112,12 @@ export default function Profile() {
                       Verified Unit
                     </div>
                   </div>
-                  
+
                   <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-2 text-primary">
                     Trainer {trainerName}
                   </h1>
                   <p className="text-xl font-medium uppercase text-primary opacity-60">
-                    Established 2024
+                    Established 2026
                   </p>
 
                   <button
@@ -136,7 +136,7 @@ export default function Profile() {
 
                 {/* Right Side: Stats & Info */}
                 <div className="md:w-3/5 flex flex-col justify-stretch">
-                  
+
                   <div className="p-lg flex flex-col justify-between group hover:bg-accent-yellow transition-colors duration-150 flex-grow">
                     <span className="font-black text-xs uppercase tracking-widest text-primary mb-4 block">Rank Status</span>
                     <div className="space-y-4">
@@ -162,14 +162,14 @@ export default function Profile() {
 
             {/* ── Accolades and Mission Log Bento Row ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-sm">
-              
+
               {/* Accolades (Badges) Column */}
               <div className="lg:col-span-1 space-y-md">
                 <h3 className="text-2xl font-black uppercase italic border-b-2 border-primary pb-2 text-primary">Accolades</h3>
                 {earnedBadges.length > 0 ? (
                   <div className="grid grid-cols-3 gap-4">
                     {earnedBadges.map((badge: any, idx: number) => (
-                      <div 
+                      <div
                         key={idx}
                         title={`${badge.name} - Unlocked`}
                         className="aspect-square border-4 border-primary flex flex-col items-center justify-center bg-accent-yellow neo-brutalist-shadow-sm hover:scale-105 transition-all cursor-help group p-1"
@@ -209,23 +209,22 @@ export default function Profile() {
                       <tbody className="divide-y-4 divide-primary bg-white font-bold">
                         {history.length > 0 ? (
                           history.map((item, idx) => {
-                            const rowHoverCls = item.isWin 
-                              ? "hover:bg-accent-yellow" 
+                            const rowHoverCls = item.isWin
+                              ? "hover:bg-accent-yellow"
                               : "hover:bg-accent-blue hover:text-white";
-                            
+
                             return (
-                              <tr 
-                                key={idx} 
+                              <tr
+                                key={idx}
                                 className={`trainer-row border-b-4 border-primary transition-colors cursor-pointer ${rowHoverCls}`}
                               >
                                 <td className="px-md py-4 font-black uppercase">{item.event}</td>
                                 <td className="px-md py-4 text-sm uppercase tracking-wider">{item.date}</td>
                                 <td className="px-md py-4">
-                                  <span className={`px-3 py-1 font-black text-xs uppercase ${
-                                    item.isWin 
-                                      ? "bg-primary text-white" 
+                                  <span className={`px-3 py-1 font-black text-xs uppercase ${item.isWin
+                                      ? "bg-primary text-white"
                                       : "border-2 border-primary text-primary bg-white"
-                                  }`}>
+                                    }`}>
                                     Pos. {item.rank === "Win" ? "#01" : "#04"}
                                   </span>
                                 </td>

@@ -14,12 +14,12 @@ const NAV = [
 ];
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-  UPCOMING:          { label: "Upcoming",          cls: "bg-white text-primary" },
-  REGISTRATION_OPEN: { label: "Open",               cls: "bg-accent-yellow text-primary" },
-  ONGOING:           { label: "Ongoing",            cls: "bg-accent-blue text-white" },
-  COMPLETED:         { label: "Completed",          cls: "bg-surface-container-high text-primary" },
-  DRAFT:             { label: "Draft",              cls: "bg-white text-primary" },
-  CANCELLED:         { label: "Cancelled",          cls: "bg-accent-red text-white" },
+  UPCOMING: { label: "Upcoming", cls: "bg-white text-primary" },
+  REGISTRATION_OPEN: { label: "Open", cls: "bg-accent-yellow text-primary" },
+  ONGOING: { label: "Ongoing", cls: "bg-accent-blue text-white" },
+  COMPLETED: { label: "Completed", cls: "bg-surface-container-high text-primary" },
+  DRAFT: { label: "Draft", cls: "bg-white text-primary" },
+  CANCELLED: { label: "Cancelled", cls: "bg-accent-red text-white" },
 };
 
 export default function AdminDashboard() {
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.tournament) {
         setManagedTournament(data.tournament);
-        
+
         // Initialize match scores state for forms
         const scores: any = {};
         data.tournament.matches?.forEach((m: any) => {
@@ -239,10 +239,10 @@ export default function AdminDashboard() {
 
   const m = analytics.metrics;
   const STATS = [
-    { label: "Registered Trainers",  value: loading ? "—" : (m.totalUsers ?? 0).toLocaleString(),         icon: "group",           color: "bg-accent-blue text-white" },
-    { label: "Total Tournaments",    value: loading ? "—" : (m.totalTournaments ?? 0).toLocaleString(),    icon: "emoji_events",    color: "bg-accent-yellow text-primary" },
-    { label: "Active Tournaments",   value: loading ? "—" : (m.activeTournaments ?? 0).toLocaleString(),  icon: "stadium",         color: "bg-accent-blue text-white" },
-    { label: "Pending Registrations",value: loading ? "—" : (m.pendingRegistrations ?? 0).toLocaleString(), icon: "assignment_late", color: (m.pendingRegistrations ?? 0) > 0 ? "bg-accent-red text-white" : "bg-accent-yellow text-primary" },
+    { label: "Registered Trainers", value: loading ? "—" : (m.totalUsers ?? 0).toLocaleString(), icon: "group", color: "bg-accent-blue text-white" },
+    { label: "Total Tournaments", value: loading ? "—" : (m.totalTournaments ?? 0).toLocaleString(), icon: "emoji_events", color: "bg-accent-yellow text-primary" },
+    { label: "Active Tournaments", value: loading ? "—" : (m.activeTournaments ?? 0).toLocaleString(), icon: "stadium", color: "bg-accent-blue text-white" },
+    { label: "Pending Registrations", value: loading ? "—" : (m.pendingRegistrations ?? 0).toLocaleString(), icon: "assignment_late", color: (m.pendingRegistrations ?? 0) > 0 ? "bg-accent-red text-white" : "bg-accent-yellow text-primary" },
   ];
 
   return (
@@ -583,7 +583,7 @@ export default function AdminDashboard() {
 
         {/* Footer (Internal) */}
         <footer className="bg-white border-t-4 border-primary px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-auto">
-          <p className="text-[10px] font-black uppercase tracking-widest italic text-primary">© 2024 CHAMPSARENA • FORM FOLLOWS FUNCTION</p>
+          <p className="text-[10px] font-black uppercase tracking-widest italic text-primary">© 2026 CHAMPSARENA • FORM FOLLOWS FUNCTION</p>
           <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-primary">
             <a className="hover:text-accent-blue underline decoration-2 underline-offset-2 transition-colors" href="#">Internal Wiki</a>
             <a className="hover:text-accent-blue underline decoration-2 underline-offset-2 transition-colors" href="#">Support</a>
@@ -620,7 +620,7 @@ export default function AdminDashboard() {
               <form onSubmit={handleCreate} className="p-5 space-y-4 text-left">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Tournament Title *</label>
-                  <input type="text" required placeholder="Lumiose City Masters 2024"
+                  <input type="text" required placeholder="Lumiose City Masters 2026"
                     value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                     className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary placeholder:text-primary/40" />
                 </div>
@@ -723,7 +723,7 @@ export default function AdminDashboard() {
                   <p className="font-black text-primary/60 mb-1">Dispute Reason:</p>
                   <p className="normal-case italic">"{resolvingDispute.reason}"</p>
                 </div>
-                
+
                 {resolvingDispute.match?.attachments?.length > 0 && (
                   <div className="space-y-1">
                     <p className="font-black text-primary/60">Screenshot Evidence:</p>
@@ -1020,7 +1020,7 @@ function TournamentManagementPanel({
 
   return (
     <div className="space-y-lg select-none">
-      
+
       {/* Navigation Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md pb-md border-b-4 border-primary">
         <div className="flex items-center gap-3">
@@ -1043,7 +1043,7 @@ function TournamentManagementPanel({
 
       {/* Main split dashboard view */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg text-left">
-        
+
         {/* Left Column: Management actions and stats */}
         <div className="lg:col-span-4 space-y-lg">
           {/* Quick Info Card */}
@@ -1058,7 +1058,7 @@ function TournamentManagementPanel({
                 Edit
               </button>
             </div>
-            
+
             <div className="space-y-2 text-xs font-bold uppercase tracking-tight">
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Format:</span>
@@ -1106,7 +1106,7 @@ function TournamentManagementPanel({
           {/* Controls Card */}
           <div className="bg-white p-5 border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] space-y-4">
             <h3 className="font-black text-primary text-sm uppercase tracking-wider border-b-2 border-primary pb-2">Tournament Actions</h3>
-            
+
             <div className="space-y-3">
               {(t.status === "DRAFT" || t.status === "UPCOMING") && (
                 <button
@@ -1283,9 +1283,8 @@ function TournamentManagementPanel({
                     <button
                       type="button"
                       onClick={() => setSeedingType("ELO")}
-                      className={`py-3 px-4 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-xs cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[2px_2px_0px_0px_#1a1a1a] ${
-                        seedingType === "ELO" ? "bg-accent-blue text-white" : "bg-white text-primary hover:bg-accent-yellow"
-                      }`}
+                      className={`py-3 px-4 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-xs cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[2px_2px_0px_0px_#1a1a1a] ${seedingType === "ELO" ? "bg-accent-blue text-white" : "bg-white text-primary hover:bg-accent-yellow"
+                        }`}
                     >
                       <span className="material-symbols-outlined text-base">military_tech</span>
                       <span>ELO Rated</span>
@@ -1296,9 +1295,8 @@ function TournamentManagementPanel({
                         setSeedingType("RANDOM");
                         handleReshuffle();
                       }}
-                      className={`py-3 px-4 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-xs cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[2px_2px_0px_0px_#1a1a1a] ${
-                        seedingType === "RANDOM" ? "bg-accent-blue text-white" : "bg-white text-primary hover:bg-accent-yellow"
-                      }`}
+                      className={`py-3 px-4 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-xs cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[2px_2px_0px_0px_#1a1a1a] ${seedingType === "RANDOM" ? "bg-accent-blue text-white" : "bg-white text-primary hover:bg-accent-yellow"
+                        }`}
                     >
                       <span className="material-symbols-outlined text-base">shuffle</span>
                       <span>Random</span>
@@ -1308,7 +1306,7 @@ function TournamentManagementPanel({
 
                 <div className="bg-surface-container-low border-2 border-primary p-3 space-y-3">
                   <h5 className="font-black text-primary text-xs uppercase tracking-wider border-b-2 border-primary pb-1">Start Checklist</h5>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold uppercase py-2 px-2 bg-white border-2 border-primary shadow-[2px_2px_0px_0px_#1a1a1a]">
                       <span className="text-primary/60 flex items-center gap-1 shrink-0">
@@ -1325,9 +1323,8 @@ function TournamentManagementPanel({
                         <span className="material-symbols-outlined text-sm text-accent-blue">group</span>
                         Players
                       </span>
-                      <span className={`px-2 py-0.5 border-2 border-primary ${
-                        registrations.length >= 2 ? "bg-accent-yellow text-primary" : "bg-accent-red text-white"
-                      }`}>
+                      <span className={`px-2 py-0.5 border-2 border-primary ${registrations.length >= 2 ? "bg-accent-yellow text-primary" : "bg-accent-red text-white"
+                        }`}>
                         {registrations.length} / {t.maxPlayers}
                       </span>
                     </div>
@@ -1337,9 +1334,8 @@ function TournamentManagementPanel({
                         <span className="material-symbols-outlined text-sm text-accent-blue">check_circle</span>
                         Ready
                       </span>
-                      <span className={`px-2 py-0.5 border-2 border-primary ${
-                        registrations.length >= 2 ? "bg-accent-yellow text-primary" : "bg-accent-red text-white"
-                      }`}>
+                      <span className={`px-2 py-0.5 border-2 border-primary ${registrations.length >= 2 ? "bg-accent-yellow text-primary" : "bg-accent-red text-white"
+                        }`}>
                         {registrations.length >= 2 ? "YES" : "NO"}
                       </span>
                     </div>
@@ -1426,7 +1422,7 @@ function TournamentManagementPanel({
                             <span className="px-1.5 py-[1px] bg-accent-blue text-white border border-primary text-[8px] font-black uppercase">BYE</span>
                           )}
                         </div>
-                        
+
                         <div className="flex flex-col gap-1 p-2 bg-surface-container-low border border-primary">
                           {/* Player 1 */}
                           <div className="flex items-center justify-between py-1 px-1">
@@ -1436,12 +1432,12 @@ function TournamentManagementPanel({
                             </span>
                             <span className="text-[9px] text-primary/60 font-bold bg-white px-1.5 py-0.5 border border-primary">{match.p1?.elo} ELO</span>
                           </div>
-                          
+
                           {/* Divider with VS */}
                           <div className="h-px bg-primary/20 relative flex justify-center my-1">
                             <span className="absolute -top-1.5 px-1 text-[8px] font-black text-primary bg-white border border-primary leading-none uppercase scale-90">VS</span>
                           </div>
-                          
+
                           {/* Player 2 / BYE */}
                           <div className="flex items-center justify-between py-1 px-1">
                             <span className={`text-xs flex items-center gap-1 ${match.isBye ? "text-primary/40 italic font-medium" : "font-bold text-primary truncate max-w-[140px]"}`}>
@@ -1462,7 +1458,7 @@ function TournamentManagementPanel({
           ) : (
             /* Match Listing & Result Inputs */
             <div className="space-y-4">
-              
+
               {/* Round Completion Progress Tracker */}
               {(() => {
                 const currentRoundMatches = matches.filter((m: any) => m.round === activeRoundTab);
@@ -1492,7 +1488,7 @@ function TournamentManagementPanel({
                   </div>
                 );
               })()}
-              
+
               {/* Round Tabs */}
               <div className="flex gap-1 overflow-x-auto pb-2 border-b-2 border-primary">
                 {rounds.map(roundNum => {
@@ -1501,11 +1497,10 @@ function TournamentManagementPanel({
                     <button
                       key={roundNum}
                       onClick={() => setActiveRoundTab(roundNum)}
-                      className={`px-4 py-2 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                        isActive
+                      className={`px-4 py-2 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${isActive
                           ? "bg-primary text-white shadow-none"
                           : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
-                      }`}
+                        }`}
                     >
                       {getRoundName(roundNum, t.type)}
                     </button>
@@ -1526,15 +1521,14 @@ function TournamentManagementPanel({
                     return (
                       <div
                         key={match.id}
-                        className={`border-3 border-primary p-4 shadow-[4px_4px_0px_0px_#1a1a1a] transition-all text-left ${
-                          match.status === "COMPLETED" || match.status === "BYE" ? "bg-surface-container-low opacity-95" : "bg-white"
-                        }`}
+                        className={`border-3 border-primary p-4 shadow-[4px_4px_0px_0px_#1a1a1a] transition-all text-left ${match.status === "COMPLETED" || match.status === "BYE" ? "bg-surface-container-low opacity-95" : "bg-white"
+                          }`}
                       >
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          
+
                           {/* Match Info & Status */}
                           <div className="flex-1 space-y-3">
-                            
+
                             {/* Player 1 Details */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -1713,7 +1707,7 @@ function TournamentManagementPanel({
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
               className="bg-white border-4 border-primary w-full max-w-[512px] p-6 shadow-[12px_12px_0px_0px_#1a1a1a] relative max-h-[90vh] overflow-y-auto custom-scrollbar text-left">
-              
+
               <div className="flex items-center justify-between mb-4 border-b-4 border-primary pb-3 bg-accent-yellow p-3 -mx-6 -mt-6">
                 <h3 className="font-black text-primary text-xl uppercase tracking-tight flex items-center gap-xs">
                   <span className="material-symbols-outlined text-primary">edit</span>
@@ -1881,11 +1875,10 @@ function SidebarContent({ nav, session, onLogout, loggingOut, onClose }: {
           const isActive = item.id === "dashboard";
           return (
             <Link key={item.id} href={item.href} onClick={onClose}
-              className={`flex items-center gap-3 px-4 py-3 border-3 border-primary font-bold text-xs uppercase tracking-wider transition-all select-none ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-3 border-3 border-primary font-bold text-xs uppercase tracking-wider transition-all select-none ${isActive
                   ? "bg-primary text-white"
                   : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
-              }`}>
+                }`}>
               <span className={`material-symbols-outlined text-base ${isActive ? "material-symbols-fill" : ""}`}>{item.icon}</span>
               {item.label}
             </Link>

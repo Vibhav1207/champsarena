@@ -51,7 +51,7 @@ function BracketsContent() {
           const data = await res.json();
           if (data.tournament) {
             setTournament(data.tournament);
-            
+
             // Group matches by round
             const grouped: Record<number, Match[]> = {};
             let champ = null;
@@ -161,7 +161,7 @@ function BracketsContent() {
                 {tournament?.type?.replace("_", " ") || "Master Class"}
               </span>
               <span className="font-bold text-xs uppercase tracking-widest text-primary">
-                • {tournament?.title || "London Regional 2024"}
+                • {tournament?.title || "London Regional 2026"}
               </span>
             </div>
             <h2 className="text-5xl font-bold uppercase tracking-tighter text-primary">
@@ -193,7 +193,7 @@ function BracketsContent() {
               {sortedRounds.map((roundNum) => {
                 const matches = roundsMatches[roundNum] || [];
                 const roundName = getRoundName(roundNum, tournament?.type);
-                
+
                 return (
                   <div key={roundNum} className="flex flex-col gap-md md:gap-lg min-w-[280px] w-[280px]">
                     <div className="text-center border-b-4 border-primary pb-xs mb-md select-none bg-surface-container-high p-xs">
@@ -201,7 +201,7 @@ function BracketsContent() {
                         {roundName}
                       </p>
                     </div>
-                    
+
                     <div className="flex flex-col justify-around h-full gap-md">
                       {matches.map((match) => (
                         <div key={match.id} className="relative group text-primary">
@@ -209,9 +209,8 @@ function BracketsContent() {
                             <div className="flex flex-col">
                               {/* Player 1 */}
                               <div
-                                className={`flex items-center justify-between p-sm border-b-2 border-primary ${
-                                  match.team1.isWinner ? "bg-accent-yellow/20 font-black" : match.team2.isWinner ? "opacity-40" : ""
-                                }`}
+                                className={`flex items-center justify-between p-sm border-b-2 border-primary ${match.team1.isWinner ? "bg-accent-yellow/20 font-black" : match.team2.isWinner ? "opacity-40" : ""
+                                  }`}
                               >
                                 <div className="flex items-center gap-xs">
                                   <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
@@ -228,9 +227,8 @@ function BracketsContent() {
 
                               {/* Player 2 */}
                               <div
-                                className={`flex items-center justify-between p-sm ${
-                                  match.team2.isWinner ? "bg-accent-yellow/20 font-black" : match.team1.isWinner ? "opacity-40" : ""
-                                }`}
+                                className={`flex items-center justify-between p-sm ${match.team2.isWinner ? "bg-accent-yellow/20 font-black" : match.team1.isWinner ? "opacity-40" : ""
+                                  }`}
                               >
                                 <div className="flex items-center gap-xs">
                                   <div className="w-6 h-6 bg-primary flex items-center justify-center font-bold text-white text-[10px] uppercase">
@@ -291,7 +289,7 @@ function BracketsContent() {
               </p>
             </div>
           </div>
-          
+
           <div className="border-r-4 border-b-4 border-primary p-md flex items-center gap-md bg-primary text-white">
             <div className="w-12 h-12 border-2 border-white flex items-center justify-center select-none">
               <span className="material-symbols-outlined text-white">

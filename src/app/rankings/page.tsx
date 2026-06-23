@@ -101,7 +101,7 @@ export default function Rankings() {
                 Official Series
               </span>
               <span className="border-2 border-primary px-2 py-0.5 font-bold uppercase text-xs">
-                Season 2024
+                Season 2026
               </span>
             </div>
             <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.9] tracking-tighter mb-md text-primary">
@@ -180,9 +180,8 @@ export default function Rankings() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className={`order-2 md:order-1 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${
-                    podiumPlayers[1] ? "" : "opacity-40"
-                  }`}
+                  className={`order-2 md:order-1 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${podiumPlayers[1] ? "" : "opacity-40"
+                    }`}
                 >
                   <div className="absolute top-0 left-0 bg-primary text-white px-4 py-2 font-black text-2xl">02</div>
                   <div className="w-32 h-32 border-4 border-primary overflow-hidden mb-md bg-white relative">
@@ -269,9 +268,8 @@ export default function Rankings() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className={`order-3 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${
-                    podiumPlayers[2] ? "" : "opacity-40"
-                  }`}
+                  className={`order-3 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${podiumPlayers[2] ? "" : "opacity-40"
+                    }`}
                 >
                   <div className="absolute top-0 left-0 bg-primary text-white px-4 py-2 font-black text-2xl">03</div>
                   <div className="w-32 h-32 border-4 border-primary overflow-hidden mb-md bg-white relative">

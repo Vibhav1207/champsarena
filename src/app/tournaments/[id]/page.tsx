@@ -19,7 +19,7 @@ interface StandingsPlayer {
 
 export default function TournamentDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  
+
   const [activeTab, setActiveTab] = useState<TabId>("rules");
   const [searchPlayer, setSearchPlayer] = useState("");
   const [tournament, setTournament] = useState<any>(null);
@@ -60,7 +60,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
           setCurrentUser(data.user);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [id]);
 
   const handleReportMatch = async (matchId: string) => {
@@ -138,7 +138,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
     try {
       setPaying(true);
       setShowGatewayModal(false);
- 
+
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,7 +281,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                 {tournament?.description || "The premier circuit tournament stage. Form follows function."}
               </p>
             </div>
-            
+
             {/* Quick stats sidebar */}
             <div className="flex flex-col gap-sm min-w-[280px] bg-accent-yellow p-md border-4 border-primary select-none">
               <div className="flex items-center justify-between text-primary border-b-2 border-primary pb-xs">
@@ -340,7 +340,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
           <section className="border-4 border-primary bg-white p-md md:p-xl neo-brutalist-shadow mb-xl relative overflow-hidden text-primary">
             {/* Top Bar Accent */}
             <div className="absolute top-0 left-0 right-0 h-3 bg-accent-blue" />
-            
+
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-xl mt-2">
               <div className="space-y-sm w-full lg:w-auto">
                 <div className="flex flex-wrap items-center gap-sm">
@@ -357,7 +357,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                     </span>
                   )}
                 </div>
-                
+
                 {/* Matchup visualizer */}
                 <div className="flex flex-col sm:flex-row items-center gap-md sm:gap-xl">
                   {/* Player 1 */}
@@ -436,7 +436,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                           />
                         </div>
                       </div>
-                      
+
                       {/* Screenshot Url input */}
                       <div className="flex flex-col gap-1 pt-xs">
                         <label className="text-[9px] font-black uppercase text-primary/70">Screenshot Proof (URL)</label>
@@ -481,11 +481,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`font-black uppercase py-md px-lg transition-all border-r-4 border-primary text-base cursor-pointer focus:outline-none ${
-                  isActive
+                className={`font-black uppercase py-md px-lg transition-all border-r-4 border-primary text-base cursor-pointer focus:outline-none ${isActive
                     ? "bg-primary text-white"
                     : "text-primary hover:bg-accent-yellow"
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -573,11 +572,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                       ].map((item, index) => (
                         <div
                           key={index}
-                          className={`flex justify-between items-center p-md border-b-2 last:border-b-0 border-primary ${
-                            item.highlight
+                          className={`flex justify-between items-center p-md border-b-2 last:border-b-0 border-primary ${item.highlight
                               ? "bg-accent-yellow"
                               : "bg-white"
-                          }`}
+                            }`}
                         >
                           <div className="flex flex-col select-none">
                             <span className="font-black uppercase text-lg leading-tight">{item.rank}</span>
@@ -654,11 +652,10 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                         <div key={index} className="timeline-item flex gap-md pb-md md:pb-xl relative">
                           <div className="timeline-dot flex flex-col items-center relative select-none">
                             <span
-                              className={`w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-4 border-primary z-10 ${
-                                item.highlight
+                              className={`w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-4 border-primary z-10 ${item.highlight
                                   ? "bg-primary text-white"
                                   : "bg-white text-primary"
-                              }`}
+                                }`}
                             >
                               <span className="material-symbols-outlined scale-125 md:scale-150">
                                 {item.icon}
@@ -668,7 +665,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
                               <div className="absolute top-12 md:top-16 bottom-0 w-[4px] bg-primary h-[calc(100%+8px)]" />
                             )}
                           </div>
-                          
+
                           <div className="flex-1 pt-0 md:pt-4 text-left">
                             <span className="text-[10px] md:text-label-lg bg-accent-yellow border-2 border-primary px-2 py-1 font-black">
                               {item.time}
@@ -845,7 +842,7 @@ export default function TournamentDetail({ params }: { params: Promise<{ id: str
               <p className="text-primary font-bold uppercase text-xs">
                 Provide a clear description of the issue (e.g. incorrect score reported by opponent, player didn't show up, connection issues, rules violation). Please also submit screenshot URL proof in the match lobby report if possible.
               </p>
-              
+
               <div className="flex flex-col gap-xs">
                 <label className="text-[10px] font-black uppercase text-primary/70">Reason / Details</label>
                 <textarea
