@@ -14,7 +14,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const adminEmail = "admin@champsarena.pro";
-  const adminPassword = "Admin@1224";
+  const adminPassword = "Admin@12241218";
 
   const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (existing) {
