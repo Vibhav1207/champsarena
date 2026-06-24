@@ -15,7 +15,6 @@ export const authConfig = {
         token.role = user.role!;
         token.elo = user.elo!;
         token.trainerId = user.trainerId!;
-        token.homeRegion = user.homeRegion!;
       }
       return token;
     },
@@ -25,7 +24,6 @@ export const authConfig = {
         session.user.role = token.role as any;
         session.user.elo = token.elo as number;
         session.user.trainerId = token.trainerId as string;
-        session.user.homeRegion = token.homeRegion as string;
       }
       return session;
     },
