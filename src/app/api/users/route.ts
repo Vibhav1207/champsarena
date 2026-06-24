@@ -61,14 +61,12 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, homeRegion, favPokemon, image } = body;
+    const { name, image } = body;
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         name,
-        homeRegion,
-        favPokemon,
         image,
       },
       select: {
@@ -89,7 +87,7 @@ export async function PUT(req: NextRequest) {
       data: {
         action: "UPDATE_PROFILE",
         userId: session.user.id,
-        details: `Updated profile details: ${JSON.stringify({ name, homeRegion, favPokemon })}`,
+        details: `Updated profile details: ${JSON.stringify({ name })}`,
       },
     });
 

@@ -69,7 +69,6 @@ export async function registerTrainer(formData: any) {
         email,
         username: generatedUsername,
         password: hashedPassword,
-        favPokemon: null,
       },
     });
 
