@@ -13,7 +13,7 @@ interface PlayerProfilePageProps {
 
 export async function generateMetadata({ params }: PlayerProfilePageProps): Promise<Metadata> {
   const { username } = await params;
-  
+
   // Find user by username or ID
   let player = null;
   try {
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PlayerProfilePageProps): Prom
 
   const name = player.name || player.username || "Esports Trainer";
   const title = `${name} - Esports Player Profile | ChampsArena`;
-  const description = `View the official competitive gaming profile for ${name} on ChampsArena. Check ELO rating (${player.elo}), win/loss record (${player.wins}W - ${player.losses}L), region, and achievements.`;
+  const description = `View the competitive gaming profile for ${name} on ChampsArena. Check ELO rating (${player.elo}), win/loss record (${player.wins}W - ${player.losses}L), region, and achievements.`;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
 
   return {
@@ -138,8 +138,8 @@ export default async function PlayerProfilePage({ params }: PlayerProfilePagePro
     accolades.push({ title: "Undefeated", desc: "Flawless record in tournament battles", color: "bg-accent-red text-white" });
   }
 
-  const winrate = player.wins + player.losses > 0 
-    ? Math.round((player.wins / (player.wins + player.losses)) * 100) 
+  const winrate = player.wins + player.losses > 0
+    ? Math.round((player.wins / (player.wins + player.losses)) * 100)
     : 0;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
@@ -352,7 +352,7 @@ export default async function PlayerProfilePage({ params }: PlayerProfilePagePro
                           {reg.tournament.title}
                         </h4>
                       </div>
-                      <Link 
+                      <Link
                         href={`/tournaments/${reg.tournament.id}`}
                         className="bg-accent-yellow border-2 border-primary text-primary px-sm py-1 font-black uppercase text-[10px] hover:translate-y-[-1px] transition-all select-none"
                       >

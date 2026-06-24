@@ -6,14 +6,14 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Official Tournament Rules & Regulations | ChampsArena",
-  description: "Read the official competitive rules, ELO regulations, match reporting policies, and terms of conduct for participating in tournaments on ChampsArena.",
+  description: "Read the  competitive rules, ELO regulations, match reporting policies, and terms of conduct for participating in tournaments on ChampsArena.",
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"}/rules`
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"}/rules`
   }
 };
 
 export default function RulesPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Breadcrumb & FAQ schemas
   const jsonLd = {
@@ -133,7 +133,7 @@ export default function RulesPage() {
                 ELO is recalculate dynamically after every match. Players who disconnect during a match will receive an ELO deduction corresponding to a match loss. Artificially inflating ELO rating (boosting) leads to profile termination.
               </p>
             </div>
-            
+
             <div className="bg-white border-4 border-primary p-md md:p-lg space-y-sm">
               <h2 className="font-headline-sm uppercase">Need help?</h2>
               <p className="font-bold text-xs leading-relaxed uppercase">

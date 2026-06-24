@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t-8 border-primary mt-auto">
       <div className="flex flex-col md:flex-row justify-between items-start px-md md:px-lg py-lg md:py-xl max-w-container-max mx-auto gap-lg md:gap-xl">
-        
+
         {/* Brand Info */}
         <div className="flex flex-col gap-md">
           <Link href="/" className="inline-block hover:opacity-95 transition-all">
@@ -13,7 +13,7 @@ export default function Footer() {
             </span>
           </Link>
           <p className="font-bold text-primary max-w-[320px] uppercase leading-tight">
-            The official tournament series for elite competitive trainers. Established 2024.
+            The tournament series for elite competitive trainers. Established 2026.
           </p>
           <span className="font-black text-xs uppercase tracking-widest text-primary/50">
             © {new Date().getFullYear()} ChampsArena. ALL RIGHTS RESERVED.

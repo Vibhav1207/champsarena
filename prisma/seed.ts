@@ -13,12 +13,12 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const adminEmail = "admin@champsarena.gg";
-  const adminPassword = "Admin@1234";
+  const adminEmail = "admin@champsarena.pro";
+  const adminPassword = "Admin@1224";
 
   const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (existing) {
-    // Ensure role is SUPER_ADMIN
+
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "SUPER_ADMIN" },
