@@ -14,10 +14,6 @@ export async function GET(req: NextRequest) {
 
     const where: any = {};
 
-    if (region && region !== "All Regions") {
-      where.homeRegion = region;
-    }
-
     if (search) {
       where.name = { contains: search, mode: "insensitive" };
     }
