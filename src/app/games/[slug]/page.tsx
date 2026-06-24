@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: GamePageProps): Promise<Metad
 
   const title = `${game.name} Tournaments | Register & Compete | ChampsArena`;
   const description = `Join upcoming ${game.name} tournaments on ChampsArena. Register, compete, track standings, earn rewards and become a champion.`;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   return {
     title,
@@ -64,7 +64,7 @@ export default async function GameHubPage({ params }: GamePageProps) {
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Fetch tournaments of this game
   let tournaments: any[] = [];
@@ -269,15 +269,15 @@ export default async function GameHubPage({ params }: GamePageProps) {
                 {game.description}
               </p>
             </div>
-            
+
             <div className="flex flex-col gap-xs shrink-0 w-full md:w-auto md:min-w-[200px] select-none">
-              <Link 
+              <Link
                 href={`/games/${slug}/tournaments`}
                 className="text-center py-3 bg-accent-red text-white border-2 border-primary font-black uppercase text-xs hover:translate-y-[-1px] transition-all"
               >
                 Browse Tournaments
               </Link>
-              <Link 
+              <Link
                 href={`/games/${slug}/leaderboards`}
                 className="text-center py-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs hover:bg-accent-yellow transition-all"
               >
@@ -310,9 +310,8 @@ export default async function GameHubPage({ params }: GamePageProps) {
                       <article key={t.id} className="border-4 border-primary p-md hover:bg-surface-container transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
                         <div>
                           <div className="flex items-center gap-xs mb-xs select-none">
-                            <span className={`px-sm py-0.5 border border-primary text-[9px] font-black uppercase ${
-                              t.status === "REGISTRATION_OPEN" ? "bg-accent-red text-white" : "bg-white text-primary"
-                            }`}>
+                            <span className={`px-sm py-0.5 border border-primary text-[9px] font-black uppercase ${t.status === "REGISTRATION_OPEN" ? "bg-accent-red text-white" : "bg-white text-primary"
+                              }`}>
                               {t.status.replace("_", " ")}
                             </span>
                             <span className="text-[10px] font-bold text-primary/60">
@@ -331,7 +330,7 @@ export default async function GameHubPage({ params }: GamePageProps) {
                             <p className="text-[9px] font-black text-primary/50 uppercase">Prize Pool</p>
                             <p className="text-lg font-black text-accent-red leading-none">{currencySymbol}{t.prizePool.toLocaleString()}</p>
                           </div>
-                          <Link 
+                          <Link
                             href={`/tournaments/${t.id}`}
                             className="bg-accent-yellow text-primary border-2 border-primary px-md py-2 font-black uppercase text-[10px] hover:translate-y-[-1px] transition-all"
                           >
@@ -358,7 +357,7 @@ export default async function GameHubPage({ params }: GamePageProps) {
                         <span className="text-[9px] font-bold text-primary/50 uppercase block mb-xs">Completed Event</span>
                         <h3 className="font-black text-base uppercase text-primary line-clamp-1">{t.title}</h3>
                       </div>
-                      <Link 
+                      <Link
                         href={`/tournaments/${t.id}`}
                         className="mt-md text-xs font-black uppercase text-accent-blue hover:underline inline-block select-none"
                       >
@@ -383,9 +382,9 @@ export default async function GameHubPage({ params }: GamePageProps) {
                   <p className="text-sm font-bold uppercase text-primary/50 text-center py-6">No ranked players yet</p>
                 ) : (
                   topPlayers.map((player, idx) => (
-                    <Link 
+                    <Link
                       href={`/players/${player.username || player.id}`}
-                      key={player.id} 
+                      key={player.id}
                       className="flex items-center justify-between border-2 border-primary p-xs hover:bg-accent-yellow transition-all"
                     >
                       <div className="flex items-center gap-sm">
@@ -408,7 +407,7 @@ export default async function GameHubPage({ params }: GamePageProps) {
                   ))
                 )}
               </div>
-              <Link 
+              <Link
                 href={`/games/${slug}/leaderboards`}
                 className="w-full block text-center mt-md py-2 border-2 border-primary text-primary font-black uppercase text-xs hover:bg-primary hover:text-white transition-all select-none"
               >
@@ -423,8 +422,8 @@ export default async function GameHubPage({ params }: GamePageProps) {
               </h3>
               <div className="grid grid-cols-2 gap-xs">
                 {otherGamesList.map((g) => (
-                  <Link 
-                    key={g.slug} 
+                  <Link
+                    key={g.slug}
                     href={`/games/${g.slug}`}
                     className="p-sm bg-white border-2 border-primary hover:bg-primary hover:text-white transition-all text-center font-black uppercase text-[10px]"
                   >

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: GameTournamentsPageProps): Pr
 
   const title = `${game.name} Tournaments Calendar | ChampsArena`;
   const description = `Find and register for all upcoming ${game.name} competitive tournaments, championships, and qualifiers on ChampsArena. View schedules and rules.`;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   return {
     title,
@@ -98,7 +98,7 @@ export default async function GameTournamentsPage({ params }: GameTournamentsPag
   const upcoming = tournaments.filter(t => t.status === "UPCOMING");
   const completed = tournaments.filter(t => t.status === "COMPLETED");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // ItemList / CollectionPage schema for SEO listing
   const jsonLd = {
@@ -221,7 +221,7 @@ export default async function GameTournamentsPage({ params }: GameTournamentsPag
                             <p>👥 {t.maxPlayers - used} Slots Open</p>
                           </div>
                         </div>
-                        <Link 
+                        <Link
                           href={`/tournaments/${t.id}`}
                           className="w-full text-center mt-md py-2 bg-accent-yellow border-2 border-primary text-primary font-black uppercase text-xs hover:translate-y-[-1px] transition-all block select-none"
                         >
@@ -257,7 +257,7 @@ export default async function GameTournamentsPage({ params }: GameTournamentsPag
                             <p>🏆 {currencySymbol}{t.prizePool.toLocaleString()} Prize Pool</p>
                           </div>
                         </div>
-                        <Link 
+                        <Link
                           href={`/tournaments/${t.id}`}
                           className="w-full text-center mt-md py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-xs transition-all block select-none"
                         >

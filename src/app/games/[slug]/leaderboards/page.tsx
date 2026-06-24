@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: GameLeaderboardsPageProps): P
 
   const title = `${game.name} Leaderboard & Standings | ChampsArena`;
   const description = `View official player standings, ELO rankings, and win rates for ${game.name} on ChampsArena. Climb the ladder and check top contenders.`;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   return {
     title,
@@ -64,7 +64,7 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
   const isFreeFire = game.gameKey === "FREE_FIRE";
 
   // Schema Markup (CollectionPage)
@@ -128,11 +128,11 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
         const squadMatches = matches.filter(m => m.s1Id === s.id || m.s2Id === s.id);
         const wins = squadMatches.filter(m => m.winnerSquadId === s.id).length;
         const losses = squadMatches.length - wins;
-        
+
         const averageElo = s.members.length > 0
           ? Math.round(s.members.reduce((acc, m) => acc + m.elo, 0) / s.members.length)
           : 1000;
-          
+
         const points = wins * 3;
 
         return {
@@ -353,7 +353,7 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
                                   </div>
                                 )}
                               </div>
-                              <Link 
+                              <Link
                                 href={`/players/${p.username || p.id}`}
                                 className="font-black text-lg uppercase text-primary leading-none hover:underline"
                               >

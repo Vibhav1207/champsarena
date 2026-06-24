@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   return {
     title: post.metaTitle,
@@ -64,18 +64,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Related games cross-linking mapping
   const relatedGameSlug = post.category.toLowerCase().includes("pokemon")
     ? "pokemon"
     : post.category.toLowerCase().includes("free fire")
-    ? "free-fire"
-    : post.category.toLowerCase().includes("bgmi")
-    ? "bgmi"
-    : post.category.toLowerCase().includes("valorant")
-    ? "valorant"
-    : null;
+      ? "free-fire"
+      : post.category.toLowerCase().includes("bgmi")
+        ? "bgmi"
+        : post.category.toLowerCase().includes("valorant")
+          ? "valorant"
+          : null;
 
   const relatedGame = relatedGameSlug ? GAMES_DATA[relatedGameSlug] : null;
 

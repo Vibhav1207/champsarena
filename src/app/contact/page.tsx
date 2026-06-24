@@ -8,12 +8,12 @@ export const metadata: Metadata = {
   title: "Contact ChampsArena | Support & Tournament Inquiries",
   description: "Get in touch with the ChampsArena support and tournament administration team. Open support tickets, file tournament disputes, or contact partnership queries.",
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"}/contact`
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"}/contact`
   }
 };
 
 export default function ContactPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Breadcrumb Schema
   const jsonLd = {
@@ -133,7 +133,7 @@ export default function ContactPage() {
               <div className="space-y-sm font-bold text-xs uppercase pt-xs select-none">
                 <div className="flex flex-col border-b-2 border-primary pb-xs">
                   <span className="text-primary/60 text-[10px]">Email Support</span>
-                  <span className="text-sm font-black">support@champsarena.gg</span>
+                  <span className="text-sm font-black">support@champsarena.pro</span>
                 </div>
                 <div className="flex flex-col border-b-2 border-primary pb-xs">
                   <span className="text-primary/60 text-[10px]">Admin Office Hours</span>

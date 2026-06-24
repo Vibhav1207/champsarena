@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description: "Join competitive gaming tournaments across Pokémon, Free Fire, BGMI, Valorant and more. Register for tournaments, compete against top players, climb leaderboards, and become a champion on ChampsArena.",
   keywords: "gaming tournaments, esports tournaments, pokemon tournaments, free fire tournaments, online tournaments, esports competitions, gaming championships, competitive gaming, tournament platform, online gaming competitions, gaming events, skill based tournaments",
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"
+    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"
   }
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Fetch Announcements on the Server
   let announcement = null;
@@ -70,7 +70,7 @@ export default async function Home() {
       orderBy: { elo: "desc" },
       select: { id: true, name: true, elo: true, wins: true, losses: true, image: true, homeRegion: true }
     });
-    
+
     topPlayers = allUsers.slice(0, 3);
     winners = [...allUsers]
       .filter(u => u.wins > 0)

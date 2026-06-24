@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PlayerProfilePageProps): Prom
   const name = player.name || player.username || "Esports Trainer";
   const title = `${name} - Esports Player Profile | ChampsArena`;
   const description = `View the competitive gaming profile for ${name} on ChampsArena. Check ELO rating (${player.elo}), win/loss record (${player.wins}W - ${player.losses}L), region, and achievements.`;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   return {
     title,
@@ -142,7 +142,7 @@ export default async function PlayerProfilePage({ params }: PlayerProfilePagePro
     ? Math.round((player.wins / (player.wins + player.losses)) * 100)
     : 0;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
   const name = player.name || player.username || "Esports Trainer";
 
   // ProfilePage JSON-LD Schema

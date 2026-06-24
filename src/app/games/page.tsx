@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   description: "Browse competitive gaming tournaments across Pokémon, Garena Free Fire, BGMI, Valorant, Clash Royale, Brawl Stars, EA FC, and Fortnite. Find tournaments, view rankings, and join the action.",
   keywords: "gaming tournaments, esports tournaments, competitive gaming catalog, pokémon tournaments, free fire tournaments, bgmi tournaments, valorant tournaments, clash royale tournaments",
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"}/games`
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"}/games`
   }
 };
 
 export default function GamesCatalogPage() {
   const gamesList = Object.values(GAMES_DATA);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // CollectionPage JSON-LD Schema
   const jsonLd = {
@@ -75,11 +75,10 @@ export default function GamesCatalogPage() {
           {gamesList.map((game) => {
             const isActive = game.slug === "pokemon" || game.slug === "free-fire";
             return (
-              <article 
-                key={game.slug} 
-                className={`bg-white border-4 border-primary transition-all flex flex-col justify-between ${
-                  isActive ? "neo-brutalist-shadow-hover" : "opacity-75 shadow-[4px_4px_0px_0px_rgba(26,26,26,0.3)]"
-                }`}
+              <article
+                key={game.slug}
+                className={`bg-white border-4 border-primary transition-all flex flex-col justify-between ${isActive ? "neo-brutalist-shadow-hover" : "opacity-75 shadow-[4px_4px_0px_0px_rgba(26,26,26,0.3)]"
+                  }`}
               >
                 {/* Game Banner */}
                 <div className="relative h-44 border-b-4 border-primary bg-surface-dim overflow-hidden select-none">
@@ -87,9 +86,8 @@ export default function GamesCatalogPage() {
                     src={game.bannerUrl}
                     alt={`${game.name} competition banner`}
                     fill
-                    className={`object-cover contrast-125 transition-transform duration-300 ${
-                      isActive ? "grayscale hover:scale-105" : "grayscale opacity-60"
-                    }`}
+                    className={`object-cover contrast-125 transition-transform duration-300 ${isActive ? "grayscale hover:scale-105" : "grayscale opacity-60"
+                      }`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <span className="absolute bottom-sm left-sm bg-primary text-white px-sm py-xs font-black uppercase text-xs">
@@ -120,21 +118,21 @@ export default function GamesCatalogPage() {
                   <div className="space-y-xs pt-xs select-none">
                     {isActive ? (
                       <>
-                        <Link 
-                          href={`/games/${game.slug}`} 
+                        <Link
+                          href={`/games/${game.slug}`}
                           className="w-full text-center py-2 bg-accent-yellow border-2 border-primary text-primary font-black uppercase text-xs hover:translate-y-[-1px] transition-all block"
                         >
                           View Game Hub
                         </Link>
                         <div className="grid grid-cols-2 gap-xs">
-                          <Link 
-                            href={`/games/${game.slug}/tournaments`} 
+                          <Link
+                            href={`/games/${game.slug}/tournaments`}
                             className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
                           >
                             Tournaments
                           </Link>
-                          <Link 
-                            href={`/games/${game.slug}/leaderboards`} 
+                          <Link
+                            href={`/games/${game.slug}/leaderboards`}
                             className="text-center py-2 border-2 border-primary bg-white hover:bg-surface-container text-primary font-black uppercase text-[10px] block"
                           >
                             Leaderboards
@@ -142,8 +140,8 @@ export default function GamesCatalogPage() {
                         </div>
                       </>
                     ) : (
-                      <button 
-                        disabled 
+                      <button
+                        disabled
                         className="w-full text-center py-2 bg-surface-container-high border-2 border-primary/30 text-primary/40 font-black uppercase text-xs cursor-not-allowed"
                       >
                         Register Coming Soon

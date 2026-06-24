@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  
+
   let tournament;
   try {
     tournament = await prisma.tournament.findUnique({
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = `${tournament.title} | ${gameName} Tournament Registration | ChampsArena`;
   const description = `Register for ${tournament.title}${prizeStr}.${regDeadlineStr} View tournament details, rules, schedule, standings, participants, and results on ChampsArena.`;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
   const ogImageUrl = `${baseUrl}/api/og/tournament?title=${encodeURIComponent(tournament.title)}&game=${encodeURIComponent(tournament.game)}&prize=${encodeURIComponent(tournament.prizePool)}&date=${encodeURIComponent(new Date(tournament.startDate).toLocaleDateString())}`;
 
   return {
@@ -164,7 +164,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
   const currencyCode = tournament.currency === "INR" ? "INR" : "USD";
 
   // Event JSON-LD schema
@@ -190,8 +190,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
       "@type": "Offer",
       "price": tournament.entryFee,
       "priceCurrency": currencyCode,
-      "availability": (tournament.game === "FREE_FIRE" ? tournament.squadRegistrations.length : tournament.registrations.length) >= tournament.maxPlayers 
-        ? "https://schema.org/OutOfStock" 
+      "availability": (tournament.game === "FREE_FIRE" ? tournament.squadRegistrations.length : tournament.registrations.length) >= tournament.maxPlayers
+        ? "https://schema.org/OutOfStock"
         : "https://schema.org/InStock"
     }
   };

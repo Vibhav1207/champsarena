@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Stay ahead of the competition with esports news, Pokémon VGC/TCG tournament guides, Garena Free Fire squad tactics, BGMI strategies, and tournament announcements on ChampsArena.",
   keywords: "esports news, tournament guides, pokémon guides, free fire strategies, bgmi drop tactics, competitive gaming strategy",
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"}/blog`
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"}/blog`
   }
 };
 
@@ -29,7 +29,7 @@ const CATEGORIES = [
 ];
 
 export default function BlogIndexPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // CollectionPage JSON-LD Schema
   const jsonLd = {

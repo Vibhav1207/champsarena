@@ -8,12 +8,12 @@ export const metadata: Metadata = {
   title: "About ChampsArena | Competitive Esports Tournament Series",
   description: "Learn about the mission, values, and history behind ChampsArena, the ultimate stage for competitive esports tournaments.",
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg"}/about`
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro"}/about`
   }
 };
 
 export default function AboutPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // JSON-LD Organization & Breadcrumb structured data
   const jsonLd = {
@@ -50,7 +50,7 @@ export default function AboutPage() {
   return (
     <>
       <Navigation />
-      
+
       {/* Inject JSON-LD */}
       <script
         type="application/ld+json"
