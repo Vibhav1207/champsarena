@@ -90,8 +90,13 @@ export async function GET(req: NextRequest) {
         maxPlayers: true,
         prizePool: true,
         entryFee: true,
+        currency: true,
         startDate: true,
-        _count: { select: { registrations: true } },
+        _count: {
+          select: {
+            registrations: { where: { status: "APPROVED" } },
+          },
+        },
       },
     });
 

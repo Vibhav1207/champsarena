@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutTrainer } from "@/app/actions/authActions";
 import { usePopup } from "@/components/PopupProvider";
+import { formatPrizeAmount } from "@/lib/currency";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard", href: "/admin" },
@@ -102,6 +103,42 @@ export default function AdminDashboard() {
       }
     } catch (e) {
       alert("Failed to update status");
+    }
+  };
+
+  const handleQuickStartTournament = async (
+    tournamentId: string,
+    title: string,
+    playerCount: number,
+    maxPlayers: number
+  ) => {
+    if (playerCount < 2) {
+      alert("You need at least 2 approved players to start the tournament.");
+      return;
+    }
+
+    const isEarlyStart = playerCount < maxPlayers;
+    const message = isEarlyStart
+      ? `Start "${title}" early with ${playerCount}/${maxPlayers} players? Brackets will be generated for all approved registrations.`
+      : `Start "${title}" now with ${playerCount} players? This will generate brackets and set status to ONGOING.`;
+
+    if (!(await confirm(message))) return;
+
+    try {
+      const res = await fetch(`/api/tournaments/${tournamentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ONGOING" }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Tournament started and brackets generated successfully!");
+        fetchData();
+      }
+    } catch {
+      alert("Failed to start tournament.");
     }
   };
 
@@ -433,6 +470,11 @@ export default function AdminDashboard() {
                       ) : (analytics.recentTournaments?.length > 0 ? (
                         analytics.recentTournaments.map((t: any) => {
                           const s = STATUS_CONFIG[t.status] || STATUS_CONFIG.DRAFT;
+                          const approvedCount = t._count?.registrations ?? 0;
+                          const canStart =
+                            (t.status === "REGISTRATION_OPEN" || t.status === "UPCOMING" || t.status === "DRAFT") &&
+                            approvedCount >= 2;
+                          const isEarlyStart = approvedCount < t.maxPlayers;
                           return (
                             <tr key={t.id} className="hover:bg-surface-container-low transition-colors">
                               <td className="px-5 py-4">
@@ -447,13 +489,28 @@ export default function AdminDashboard() {
                                 <span className={`text-[10px] font-black px-2.5 py-1 border-2 border-primary shadow-[2px_2px_0px_0px_#1a1a1a] uppercase whitespace-nowrap ${s.cls}`}>{s.label}</span>
                               </td>
                               <td className="px-5 py-4 text-xs font-bold text-primary">
-                                {t._count?.registrations ?? 0} / {t.maxPlayers}
+                                {approvedCount} / {t.maxPlayers}
                               </td>
                               <td className="px-5 py-4 text-sm font-black text-accent-blue">
-                                {t.currency === "INR" ? "₹" : "$"}{(t.prizePool ?? 0).toLocaleString()}
+                                {formatPrizeAmount(t.prizePool ?? 0, t.currency)}
                               </td>
                               <td className="px-5 py-4">
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
+                                  {canStart && (
+                                    <button
+                                      onClick={() =>
+                                        handleQuickStartTournament(t.id, t.title, approvedCount, t.maxPlayers)
+                                      }
+                                      className="bg-accent-yellow text-primary border-2 border-primary px-3 py-1.5 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-yellow-400 transition-all cursor-pointer whitespace-nowrap"
+                                      title={
+                                        isEarlyStart
+                                          ? `Start with ${approvedCount}/${t.maxPlayers} players`
+                                          : "Start tournament"
+                                      }
+                                    >
+                                      {isEarlyStart ? "Start Early" : "Start"}
+                                    </button>
+                                  )}
                                   <button
                                     onClick={() => setManagingTournamentId(t.id)}
                                     className="bg-accent-yellow text-primary border-2 border-primary px-3 py-1.5 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-yellow-400 transition-all cursor-pointer"
@@ -1253,7 +1310,7 @@ function TournamentManagementPanel({
               </div>
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Prize Pool:</span>
-                <span className="text-accent-blue">{t.currency === "INR" ? "₹" : "$"}{t.prizePool?.toLocaleString()}</span>
+                <span className="text-accent-blue">{formatPrizeAmount(t.prizePool ?? 0, t.currency)}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-primary/20">
                 <span className="text-primary/60">Players:</span>
@@ -1310,14 +1367,22 @@ function TournamentManagementPanel({
                       alert("You need at least 2 registered and approved players to start the tournament!");
                       return;
                     }
-                    if (await confirm(`Start the tournament now? This will generate the initial match brackets for ${registrations.length} players and transition status to ONGOING.`)) {
+                    const isEarlyStart = registrations.length < t.maxPlayers;
+                    const message = isEarlyStart
+                      ? `Start the tournament early with ${registrations.length}/${t.maxPlayers} approved players? Brackets will be generated for current registrations only.`
+                      : `Start the tournament now? This will generate the initial match brackets for ${registrations.length} players and transition status to ONGOING.`;
+                    if (await confirm(message)) {
                       handleUpdateStatus("ONGOING");
                     }
                   }}
                   className="w-full py-3 bg-accent-yellow text-primary border-3 border-primary font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_#1a1a1a] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-xs cursor-pointer animate-pulse"
                 >
                   <span className="material-symbols-outlined text-[18px] material-symbols-fill">play_circle</span>
-                  Start & Generate Brackets
+                  <span>
+                    {registrations.length < t.maxPlayers
+                      ? `Start Early (${registrations.length}/${t.maxPlayers})`
+                      : "Start & Generate Brackets"}
+                  </span>
                 </button>
               )}
 
@@ -1491,6 +1556,11 @@ function TournamentManagementPanel({
 
                 <div className="bg-surface-container-low border-2 border-primary p-3 space-y-3">
                   <h5 className="font-black text-primary text-xs uppercase tracking-wider border-b-2 border-primary pb-1">Start Checklist</h5>
+                  {registrations.length < t.maxPlayers && registrations.length >= 2 && (
+                    <p className="text-[10px] font-bold uppercase text-accent-blue bg-accent-blue/10 border border-accent-blue px-2 py-1.5">
+                      Max players not required — you can start early with {registrations.length}/{t.maxPlayers} approved players.
+                    </p>
+                  )}
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold uppercase py-2 px-2 bg-white border-2 border-primary shadow-[2px_2px_0px_0px_#1a1a1a]">

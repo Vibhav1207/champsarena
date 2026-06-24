@@ -15,6 +15,9 @@ export const authConfig = {
         token.role = user.role!;
         token.elo = user.elo!;
         token.trainerId = user.trainerId!;
+        if (user.image) {
+          token.picture = user.image;
+        }
       }
       return token;
     },
@@ -24,6 +27,9 @@ export const authConfig = {
         session.user.role = token.role as any;
         session.user.elo = token.elo as number;
         session.user.trainerId = token.trainerId as string;
+        if (token.picture) {
+          session.user.image = token.picture as string;
+        }
       }
       return session;
     },

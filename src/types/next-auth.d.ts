@@ -24,5 +24,6 @@ declare module "next-auth/jwt" {
     role: Role;
     elo: number;
     trainerId: string;
+    picture?: string;
   }
 }

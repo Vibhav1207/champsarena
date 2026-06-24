@@ -11,11 +11,13 @@ export async function GET(req: NextRequest) {
     const title = searchParams.get("title") || "ChampsArena Tournament";
     const game = searchParams.get("game") || "ESPORTS";
     const prize = searchParams.get("prize") || "0";
+    const currency = searchParams.get("currency") || "USD";
     const date = searchParams.get("date") || "TBD";
 
     const gameLabel = game.replace("_", " ");
+    const currencySymbol = currency === "INR" ? "₹" : "$";
     const prizeFormatted = parseFloat(prize) > 0 
-      ? `$${parseFloat(prize).toLocaleString()}`
+      ? `${currencySymbol}${parseFloat(prize).toLocaleString()}`
       : "Free Entry";
 
     // Return the generated image response

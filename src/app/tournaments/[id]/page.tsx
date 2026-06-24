@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const description = `Register for ${tournament.title}${prizeStr}.${regDeadlineStr} View tournament details, rules, schedule, standings, participants, and results on ChampsArena.`;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
-  const ogImageUrl = `${baseUrl}/api/og/tournament?title=${encodeURIComponent(tournament.title)}&game=${encodeURIComponent(tournament.game)}&prize=${encodeURIComponent(tournament.prizePool)}&date=${encodeURIComponent(new Date(tournament.startDate).toLocaleDateString())}`;
+  const ogImageUrl = `${baseUrl}/api/og/tournament?title=${encodeURIComponent(tournament.title)}&game=${encodeURIComponent(tournament.game)}&prize=${encodeURIComponent(tournament.prizePool)}&currency=${encodeURIComponent(tournament.currency)}&date=${encodeURIComponent(new Date(tournament.startDate).toLocaleDateString())}`;
 
   return {
     title,
