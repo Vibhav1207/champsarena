@@ -9,7 +9,7 @@ type Tab = "login" | "signup" | "forgot";
 
 export default function AuthPage() {
   const [tab, setTab] = useState<Tab>("login");
-  const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0, totalMatches: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0, totalMatches: 0, loaded: false });
 
   // Login state
   const [email, setEmail] = useState("");
@@ -52,11 +52,12 @@ export default function AuthPage() {
     fetch("/api/public-stats")
       .then(r => r.json())
       .then(d => {
-        if (d) {
+        if (d && !d.error) {
           setStats({
-            totalUsers: d.totalUsers || 0,
-            totalTournaments: d.totalTournaments || 0,
-            totalMatches: d.totalMatches || 0
+            totalUsers: d.totalUsers ?? 0,
+            totalTournaments: d.totalTournaments ?? 0,
+            totalMatches: d.totalMatches ?? 0,
+            loaded: true
           });
         }
       })
@@ -191,19 +192,19 @@ export default function AuthPage() {
             <div className="mt-md lg:mt-lg grid grid-cols-3 gap-0 w-full border-4 border-primary neo-brutalist-shadow overflow-hidden bg-white">
               <div className="bg-white p-sm xl:p-sm border-r-2 border-primary">
                 <span className="block text-xl xl:text-2xl font-black text-primary">
-                  {stats.totalMatches > 0 ? stats.totalMatches.toLocaleString() : "2.4k"}
+                  {stats.loaded ? stats.totalMatches.toLocaleString() : "2.4k"}
                 </span>
                 <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest text-primary">Events</span>
               </div>
               <div className="bg-accent-blue text-white p-sm xl:p-sm border-r-2 border-primary">
                 <span className="block text-xl xl:text-2xl font-black">
-                  {stats.totalUsers > 0 ? stats.totalUsers.toLocaleString() : "15k"}
+                  {stats.loaded ? stats.totalUsers.toLocaleString() : "15k"}
                 </span>
                 <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest">Trainers</span>
               </div>
               <div className="bg-accent-yellow text-primary p-sm xl:p-sm">
                 <span className="block text-xl xl:text-2xl font-black text-primary">
-                  {stats.totalTournaments > 0 ? stats.totalTournaments.toLocaleString() : "89"}
+                  {stats.loaded ? stats.totalTournaments.toLocaleString() : "89"}
                 </span>
                 <span className="font-black text-[9px] xl:text-[10px] uppercase tracking-widest text-primary">Tournaments</span>
               </div>
