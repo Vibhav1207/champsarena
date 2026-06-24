@@ -15,7 +15,6 @@ declare module "next-auth" {
     role?: Role;
     elo?: number;
     trainerId?: string;
-    homeRegion?: string;
   }
 }
 

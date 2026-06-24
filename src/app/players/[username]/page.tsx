@@ -239,11 +239,6 @@ export default async function PlayerProfilePage({ params }: PlayerProfilePagePro
 
             {/* Region / Country */}
             <div className="flex flex-wrap items-center justify-center gap-xs text-xs font-bold uppercase text-primary/70 mb-md select-none">
-              {player.homeRegion && (
-                <span className="px-sm py-0.5 border border-primary bg-surface-container-high">
-                  📍 {player.homeRegion}
-                </span>
-              )}
               {player.country && (
                 <span className="px-sm py-0.5 border border-primary bg-surface-container-high">
                   🏳️ {player.country}
