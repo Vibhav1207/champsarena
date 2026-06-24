@@ -61,8 +61,6 @@ model User {
   wins                Int             @default(0)
   losses              Int             @default(0)
   trainerId           String          @unique @default(uuid())
-  homeRegion          String          @default("Kanto")
-  favPokemon          String?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
