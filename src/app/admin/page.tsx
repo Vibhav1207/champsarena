@@ -1683,8 +1683,8 @@ function TournamentManagementPanel({
                       key={roundNum}
                       onClick={() => setActiveRoundTab(roundNum)}
                       className={`px-4 py-2 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${isActive
-                          ? "bg-primary text-white shadow-none"
-                          : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
+                        ? "bg-primary text-white shadow-none"
+                        : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
                         }`}
                     >
                       {getRoundName(roundNum, t.type)}
@@ -2093,9 +2093,9 @@ function TournamentManagementPanel({
                       onChange={(e) => setEditForm({ ...editForm, game: e.target.value })}
                       className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
                     >
-                      <option value="POKEMON_VGC">Pokémon VGC</option>
-                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Scarlet & Violet</option>
-                      <option value="POKEMON_SHOWDOWN">Pokémon Showdown</option>
+                      <option value="POKEMON_VGC">Pokémon Champions</option>
+                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Go</option>
+                      <option value="POKEMON_SHOWDOWN">Pokémon Trading Card Game</option>
                       <option value="FREE_FIRE">Free Fire</option>
                     </select>
                   </div>
@@ -2175,8 +2175,8 @@ function SidebarContent({ nav, session, onLogout, loggingOut, onClose }: {
           return (
             <Link key={item.id} href={item.href} onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 border-3 border-primary font-bold text-xs uppercase tracking-wider transition-all select-none ${isActive
-                  ? "bg-primary text-white"
-                  : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
+                ? "bg-primary text-white"
+                : "bg-white text-primary hover:bg-accent-yellow active:translate-x-[2px] active:translate-y-[2px]"
                 }`}>
               <span className={`material-symbols-outlined text-base ${isActive ? "material-symbols-fill" : ""}`}>{item.icon}</span>
               {item.label}

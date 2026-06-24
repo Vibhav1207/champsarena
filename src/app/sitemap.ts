@@ -3,15 +3,15 @@ import { GAMES_DATA } from "@/data/games";
 import blogPosts from "@/data/blog.json";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.gg";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
   // Fetch all tournaments to include in the sitemap
   let tournaments: any[] = [];
   let players: any[] = [];
-  
+
   try {
     const { prisma } = await import("@/lib/db");
-    
+
     tournaments = await prisma.tournament.findMany({
       where: { visibility: true },
       select: { id: true, updatedAt: true },
