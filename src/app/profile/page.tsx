@@ -60,7 +60,7 @@ export default function Profile() {
           setEditBio(data.user.bio || "");
           setEditCountry(data.user.country || "");
           setEditDiscord(data.user.discordUsername || "");
-          
+
           try {
             const socials = data.user.socialLinks ? JSON.parse(data.user.socialLinks) : {};
             setEditTwitter(socials.twitter || "");
@@ -128,7 +128,7 @@ export default function Profile() {
               setShowJoinModal(true);
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
       const tab = params.get("tab");
       if (tab === "squad") {
@@ -344,7 +344,7 @@ export default function Profile() {
   const handleDisbandSquad = async () => {
     if (!squadData) return;
     if (!await confirm("Are you absolutely sure you want to disband and delete your squad? This action is permanent and cannot be undone.")) return;
-    
+
     try {
       const res = await fetch(`/api/squads/${squadData.id}`, {
         method: "DELETE",
@@ -394,13 +394,13 @@ export default function Profile() {
           <>
             {/* Header Tabs */}
             <nav className="flex border-4 border-primary bg-white select-none overflow-x-auto whitespace-nowrap custom-scrollbar w-full">
-              <button 
+              <button
                 onClick={() => setActiveTab("trainer")}
                 className={`flex-1 md:flex-none shrink-0 font-black uppercase py-3 px-4 sm:py-md sm:px-lg transition-all border-r-4 border-primary text-sm sm:text-base cursor-pointer focus:outline-none ${activeTab === "trainer" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
               >
                 Trainer Profile
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab("squad")}
                 className={`flex-1 md:flex-none shrink-0 font-black uppercase py-3 px-4 sm:py-md sm:px-lg transition-all border-r-4 border-primary text-sm sm:text-base cursor-pointer focus:outline-none ${activeTab === "squad" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"}`}
               >
@@ -411,19 +411,19 @@ export default function Profile() {
             <AnimatePresence mode="wait">
               {activeTab === "trainer" ? (
                 /* ── TRAINER PROFILE TAB ── */
-                <motion.div 
-                  key="trainer" 
-                  initial={{ opacity: 0, y: 10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  exit={{ opacity: 0, y: -10 }} 
+                <motion.div
+                  key="trainer"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                   className="space-y-xl"
                 >
                   <section className="w-full min-w-0">
                     <div className="border-4 border-primary neo-brutalist-shadow flex flex-col md:flex-row bg-white relative w-full overflow-hidden">
-                      
+
                       {/* ID Badge Tag */}
-                      <div className="absolute -top-4 right-2 md:-right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10 select-none">
+                      <div className="absolute -top-0 right-0 md:-right-4 bg-accent-yellow border-2 border-primary px-4 py-2 flex items-center gap-2 z-10 select-none">
                         <span className="font-bold text-xs uppercase tracking-widest text-primary">
                           ID: {trainerId}
                         </span>
@@ -453,7 +453,7 @@ export default function Profile() {
                         <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-2 text-primary">
                           Trainer {trainerName}
                         </h1>
-                        
+
                         {trainerUsername && (
                           <p className="text-md font-bold uppercase text-accent-blue mb-2">
                             @{trainerUsername}
@@ -614,11 +614,11 @@ export default function Profile() {
                 </motion.div>
               ) : (
                 /* ── SQUAD CENTER TAB ── */
-                <motion.div 
-                  key="squad" 
-                  initial={{ opacity: 0, y: 10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  exit={{ opacity: 0, y: -10 }} 
+                <motion.div
+                  key="squad"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                   className="space-y-xl text-left"
                 >
@@ -781,7 +781,7 @@ export default function Profile() {
                           <div className="border-4 border-primary bg-white p-sm neo-brutalist-shadow space-y-sm">
                             <h3 className="font-black text-lg uppercase select-none">Invite New Members</h3>
                             <p className="text-[10px] font-bold text-primary/60 uppercase select-none">Search players by username, email, or user ID to dispatch invitations.</p>
-                            
+
                             {inviteError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{inviteError}</div>}
                             {inviteSuccess && <div className="p-2 bg-green-100 border border-green-700 text-green-700 text-xs font-bold uppercase">{inviteSuccess}</div>}
 
@@ -924,7 +924,7 @@ export default function Profile() {
             <form onSubmit={handleUpdateProfile} className="space-y-sm">
               <div className="space-y-1">
                 <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer *</label>
-                <input 
+                <input
                   type="text"
                   required
                   value={editUsername}
@@ -936,7 +936,7 @@ export default function Profile() {
 
               <div className="space-y-1">
                 <label className="text-[10px] text-primary uppercase font-black tracking-widest">Biography</label>
-                <textarea 
+                <textarea
                   value={editBio}
                   onChange={e => setEditBio(e.target.value)}
                   placeholder="Tactical summary or coordinates..."
@@ -948,7 +948,7 @@ export default function Profile() {
               <div className="grid grid-cols-2 gap-sm">
                 <div className="space-y-1">
                   <label className="text-[10px] text-primary uppercase font-black tracking-widest">Country</label>
-                  <input 
+                  <input
                     type="text"
                     value={editCountry}
                     onChange={e => setEditCountry(e.target.value)}
@@ -958,7 +958,7 @@ export default function Profile() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] text-primary uppercase font-black tracking-widest">Discord Username</label>
-                  <input 
+                  <input
                     type="text"
                     value={editDiscord}
                     onChange={e => setEditDiscord(e.target.value)}
@@ -1010,7 +1010,7 @@ export default function Profile() {
             <form onSubmit={handleCreateSquadSubmit} className="space-y-sm">
               <div className="space-y-1">
                 <label className="text-[10px] text-primary uppercase font-black tracking-widest">Squad Name *</label>
-                <input 
+                <input
                   type="text"
                   required
                   value={squadName}
@@ -1058,7 +1058,7 @@ export default function Profile() {
 
               <div className="space-y-1">
                 <label className="text-[10px] text-primary uppercase font-black tracking-widest">Description</label>
-                <textarea 
+                <textarea
                   value={squadDesc}
                   onChange={e => setSquadDesc(e.target.value)}
                   placeholder="Describe your squad..."
@@ -1083,7 +1083,7 @@ export default function Profile() {
             <h3 className="font-headline-md text-primary uppercase text-center font-black">
               Squad Invitation Link
             </h3>
-            
+
             <div className="bg-accent-yellow border-4 border-primary p-md text-center space-y-sm select-none">
               <span className="material-symbols-outlined text-5xl text-primary">groups</span>
               <p className="text-sm font-black uppercase text-primary leading-tight">
@@ -1124,7 +1124,7 @@ export default function Profile() {
           </div>
         </div>
       )}
-      
+
       {/* Join Success Alert banner */}
       {joinSuccess && (
         <div className="fixed bottom-4 right-4 bg-accent-yellow border-4 border-primary p-md neo-brutalist-shadow-sm z-50 flex items-center gap-md font-black uppercase text-xs text-primary">
