@@ -37,7 +37,6 @@ interface TopPlayer {
   wins: number;
   losses: number;
   image: string | null;
-  homeRegion: string | null;
 }
 
 const TYPE_MAP: Record<string, { label: string; bg: string }> = {

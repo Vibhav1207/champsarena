@@ -39,8 +39,6 @@ export async function GET(req: NextRequest) {
         elo: true,
         wins: true,
         losses: true,
-        homeRegion: true,
-        favPokemon: true,
         trainerId: true,
       },
       orderBy,
@@ -82,8 +80,6 @@ export async function PUT(req: NextRequest) {
         elo: true,
         wins: true,
         losses: true,
-        homeRegion: true,
-        favPokemon: true,
         trainerId: true,
       },
     });

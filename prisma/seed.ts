@@ -35,8 +35,6 @@ async function main() {
       password: hashed,
       role: "SUPER_ADMIN",
       elo: 9999,
-      homeRegion: "Indigo Plateau",
-      favPokemon: "Mewtwo",
     },
   });
   console.log("✅ Admin user created!");

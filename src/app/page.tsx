@@ -68,7 +68,7 @@ export default async function Home() {
   try {
     const allUsers = await prisma.user.findMany({
       orderBy: { elo: "desc" },
-      select: { id: true, name: true, elo: true, wins: true, losses: true, image: true, homeRegion: true }
+      select: { id: true, name: true, elo: true, wins: true, losses: true, image: true }
     });
 
     topPlayers = allUsers.slice(0, 3);

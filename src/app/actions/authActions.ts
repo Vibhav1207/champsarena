@@ -70,7 +70,6 @@ export async function registerTrainer(formData: any) {
         username: generatedUsername,
         password: hashedPassword,
         favPokemon: null,
-        homeRegion: "Kanto",
       },
     });
 
@@ -79,7 +78,7 @@ export async function registerTrainer(formData: any) {
     await logSimulatedEmail({
       to: email,
       subject: "Welcome to ChampsArena!",
-      body: `Hello Trainer ${name},\n\nWelcome to ChampsArena! Your trainer profile has been created successfully.\nYour official username is: ${generatedUsername}\n\nPrepare for battle!\n- ChampsArena Team`,
+      body: `Hello  ${name},\n\nWelcome to ChampsArena! Your trainer profile has been created successfully.\nYour official username is: ${generatedUsername}\n\nPrepare for battle!\n- ChampsArena Team`,
     });
 
     await signIn("credentials", {

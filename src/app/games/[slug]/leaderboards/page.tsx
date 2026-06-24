@@ -175,8 +175,7 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
           elo: true,
           wins: true,
           losses: true,
-          image: true,
-          homeRegion: true
+          image: true
         }
       });
 
@@ -192,8 +191,7 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
             elo: true,
             wins: true,
             losses: true,
-            image: true,
-            homeRegion: true
+            image: true
           }
         });
       }

@@ -14,7 +14,6 @@ interface Player {
   elo: number;
   wins: number;
   losses: number;
-  homeRegion: string | null;
   role: string;
 }
 
@@ -194,17 +193,15 @@ export default function Rankings() {
             <div className="flex border-4 border-primary mb-xl bg-white select-none">
               <button
                 onClick={() => setActiveTab("trainers")}
-                className={`flex-1 py-4 font-black uppercase text-center border-r-4 border-primary transition-all text-sm md:text-base cursor-pointer focus:outline-none ${
-                  activeTab === "trainers" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"
-                }`}
+                className={`flex-1 py-4 font-black uppercase text-center border-r-4 border-primary transition-all text-sm md:text-base cursor-pointer focus:outline-none ${activeTab === "trainers" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"
+                  }`}
               >
                 Trainer Standings (1v1)
               </button>
               <button
                 onClick={() => setActiveTab("squads")}
-                className={`flex-1 py-4 font-black uppercase text-center transition-all text-sm md:text-base cursor-pointer focus:outline-none ${
-                  activeTab === "squads" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"
-                }`}
+                className={`flex-1 py-4 font-black uppercase text-center transition-all text-sm md:text-base cursor-pointer focus:outline-none ${activeTab === "squads" ? "bg-primary text-white" : "text-primary hover:bg-accent-yellow"
+                  }`}
               >
                 Squad Standings (Free Fire)
               </button>

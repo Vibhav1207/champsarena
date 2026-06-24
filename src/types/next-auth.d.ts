@@ -8,7 +8,6 @@ declare module "next-auth" {
       role: Role;
       elo: number;
       trainerId: string;
-      homeRegion: string;
     } & DefaultSession["user"];
   }
 
@@ -26,6 +25,5 @@ declare module "next-auth/jwt" {
     role: Role;
     elo: number;
     trainerId: string;
-    homeRegion: string;
   }
 }
