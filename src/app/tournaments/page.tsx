@@ -25,18 +25,33 @@ interface Tournament {
 const FORMAT_MAP: Record<string, { label: string; bg: string }> = {
   SINGLE_ELIMINATION: { label: "Pokémon VGC", bg: "bg-accent-blue" },
   SWISS:              { label: "Pokémon VGC", bg: "bg-accent-blue" },
-  DOUBLE_ELIMINATION: { label: "Pokémon GO", bg: "bg-accent-red" },
+  DOUBLE_ELIMINATION: { label: "Pokémon GO",  bg: "bg-accent-red" },
   ROUND_ROBIN:        { label: "Pokémon TCG", bg: "bg-primary" },
 };
 
+const GAME_BADGE: Record<string, { label: string; bg: string; key: string; banner: string }> = {
+  FREE_FIRE:     { label: "Free Fire",  bg: "bg-accent-yellow text-primary border-primary", key: "FREE_FIRE", banner: "/free_fire.png" },
+  VALORANT:      { label: "Valorant",   bg: "bg-red-600 text-white border-red-800",         key: "VALORANT", banner: "/valorant_banner.png" },
+  BGMI:          { label: "BGMI",       bg: "bg-amber-700 text-white border-amber-900",     key: "BGMI",     banner: "" },
+  PUBG:          { label: "PUBG",       bg: "bg-amber-600 text-white border-amber-800",     key: "PUBG",     banner: "" },
+  CLASH_ROYALE:  { label: "Clash Royale", bg: "bg-blue-600 text-white border-blue-800",    key: "CLASH_ROYALE", banner: "" },
+  BRAWL_STARS:   { label: "Brawl Stars",  bg: "bg-yellow-500 text-primary border-yellow-700", key: "BRAWL_STARS", banner: "" },
+  FORTNITE:      { label: "Fortnite",   bg: "bg-blue-500 text-white border-blue-700",       key: "FORTNITE", banner: "" },
+  MOBILE_LEGENDS:{ label: "MLBB",       bg: "bg-indigo-600 text-white border-indigo-800",   key: "MOBILE_LEGENDS", banner: "" },
+  APEX_LEGENDS:  { label: "Apex",       bg: "bg-orange-600 text-white border-orange-800",   key: "APEX_LEGENDS", banner: "" },
+  EA_FC:         { label: "EA FC",      bg: "bg-green-600 text-white border-green-800",     key: "EA_FC",    banner: "" },
+};
+
 const getTournamentGameInfo = (t: any) => {
-  if (t.game === "FREE_FIRE") {
-    return { label: "Free Fire", bg: "bg-accent-yellow text-primary border-primary", key: "FREE_FIRE" };
+  // Use the game field directly if it's a known non-Pokémon game
+  if (t.game && GAME_BADGE[t.game]) {
+    return GAME_BADGE[t.game];
   }
+  // Pokémon fallback — infer from tournament type
   const typeInfo = FORMAT_MAP[t.type] || { label: "VGC", bg: "bg-accent-blue" };
-  const key = t.type === "DOUBLE_ELIMINATION" ? "GO" : t.type === "ROUND_ROBIN" ? "TCG" : "VGC"; // VGC, TCG, GO
+  const key = t.type === "DOUBLE_ELIMINATION" ? "GO" : t.type === "ROUND_ROBIN" ? "TCG" : "VGC";
   const bgClass = typeInfo.bg.includes("text-") ? typeInfo.bg : `${typeInfo.bg} text-white`;
-  return { label: typeInfo.label, bg: bgClass, key };
+  return { label: typeInfo.label, bg: bgClass, key, banner: "" };
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -122,6 +137,7 @@ export default function Tournaments() {
                     { label: "TCG (Trading Card)", key: "TCG", img: "/tcg.png", color: "bg-primary/5" },
                     { label: "Pokémon GO", key: "GO", img: "/pogo.png", color: "bg-accent-red/10" },
                     { label: "Free Fire", key: "FREE_FIRE", img: "/free_fire.png", color: "bg-accent-yellow/10" },
+                    { label: "Valorant", key: "VALORANT", img: "/valorant.png", color: "bg-red-500/10" },
                   ].map(({ label, key, img, color }) => {
                     const isSelected = selectedFormats.includes(key);
                     return (
@@ -257,7 +273,7 @@ export default function Tournaments() {
                       <article key={t.id} className="bg-white border-4 border-primary neo-brutalist-shadow-hover transition-all flex flex-col">
                         <div className="relative h-48 border-b-4 border-primary bg-surface-dim">
                           <Image
-                            src={t.banner || BANNER_FALLBACK}
+                            src={t.banner || gameInfo.banner || BANNER_FALLBACK}
                             alt={t.title}
                             fill
                             className="object-cover grayscale contrast-125"

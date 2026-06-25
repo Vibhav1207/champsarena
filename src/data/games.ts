@@ -62,7 +62,7 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     gameKey: "VALORANT",
     description: "Compete in Valorant 1v1 duels and team tournaments on ChampsArena. Prove your aim and game sense in solo challenges, or register your squad for 5v5 custom competitive matches.",
     keywords: ["valorant tournaments", "valorant 1v1 tournament", "valorant community cup", "valorant online tournaments", "valorant team registration", "valorant duels"],
-    bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
+    bannerUrl: "/valorant_banner.png",
     logoUrl: "/games/valorant-logo.png",
     genre: "Tactical Hero Shooter",
     publisher: "Riot Games",
