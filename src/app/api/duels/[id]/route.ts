@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 // GET /api/duels/[id]
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 // PUT /api/duels/[id] — Accept, decline, submit result, cancel
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -177,7 +178,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 // DELETE /api/duels/[id] — Creator deletes their own pending duel
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

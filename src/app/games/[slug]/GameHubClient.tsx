@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { GameInfo } from "@/data/games";
-import { formatPrizeAmount } from "@/lib/currency";
 
 interface GameHubClientProps {
   game: GameInfo;
