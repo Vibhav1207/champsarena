@@ -54,7 +54,7 @@ export async function generateMatchesForTournament(tournamentId: string, seeding
 
   if (!tournament) throw new Error("Tournament not found");
 
-  const isTeam = tournament.game === "FREE_FIRE";
+  const isTeam = tournament.mode === "SQUAD";
 
   interface Competitor {
     id: string;
@@ -572,6 +572,25 @@ export async function submitMatchResult(
       });
     }
 
+    // Apply ELO changes and increment wins/losses for squads themselves
+    await prisma.squad.update({
+      where: { id: s1.id },
+      data: {
+        elo: Math.max(100, s1NewElo),
+        wins: winnerId === s1.id ? { increment: 1 } : undefined,
+        losses: winnerId === s2.id ? { increment: 1 } : undefined,
+      },
+    });
+
+    await prisma.squad.update({
+      where: { id: s2.id },
+      data: {
+        elo: Math.max(100, s2NewElo),
+        wins: winnerId === s2.id ? { increment: 1 } : undefined,
+        losses: winnerId === s1.id ? { increment: 1 } : undefined,
+      },
+    });
+
     // Update this match
     await prisma.match.update({
       where: { id: matchId },
@@ -762,7 +781,7 @@ async function checkAndAdvanceSwissRound(tournamentId: string) {
       });
 
       if (tournament) {
-        const isTeam = tournament.game === "FREE_FIRE";
+        const isTeam = tournament.mode === "SQUAD";
         let competitors = [];
 
         if (isTeam) {
@@ -838,7 +857,7 @@ export async function checkAndAutoGenerateBrackets(tournamentId: string) {
 
     if (!tournament) return;
 
-    const isTeam = tournament.game === "FREE_FIRE";
+    const isTeam = tournament.mode === "SQUAD";
     const approvedCount = isTeam ? tournament.squadRegistrations.length : tournament.registrations.length;
 
     if (
@@ -1142,7 +1161,7 @@ async function completeTournament(tournamentId: string, winnerId: string) {
 
   if (!tournament) return;
 
-  const isTeam = tournament.game === "FREE_FIRE";
+  const isTeam = tournament.mode === "SQUAD";
 
   if (isTeam) {
     await prisma.tournament.update({

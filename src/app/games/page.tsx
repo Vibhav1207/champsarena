@@ -73,7 +73,7 @@ export default function GamesCatalogPage() {
         {/* Games Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
           {gamesList.map((game) => {
-            const isActive = game.slug === "pokemon" || game.slug === "free-fire";
+            const isActive = game.slug === "pokemon" || game.slug === "free-fire" || game.slug === "bgmi";
             return (
               <article
                 key={game.slug}

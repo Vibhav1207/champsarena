@@ -93,6 +93,10 @@ model User {
   matchesAsP1   Match[]         @relation("MatchP1")
   matchesAsP2   Match[]         @relation("MatchP2")
   wonTournaments Tournament[]   @relation("TournamentWinner")
+
+  createdDuels  Duel[]          @relation("DuelCreator")
+  receivedDuels Duel[]          @relation("DuelOpponent")
+  wonDuels      Duel[]          @relation("DuelWinner")
 }
 
 model Account {
@@ -155,6 +159,9 @@ model Tournament {
   winner               User?            @relation("TournamentWinner", fields: [winnerId], references: [id])
   winnerSquadId        String?
   winnerSquad          Squad?           @relation("TournamentSquadWinner", fields: [winnerSquadId], references: [id])
+  mode                 String           @default("SOLO")
+  minSquadMembers      Int              @default(1)
+  maxSquadMembers      Int              @default(1)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
@@ -372,6 +379,9 @@ model Squad {
   matchesAsS2   Match[]  @relation("MatchS2")
   wonMatches    Match[]  @relation("MatchSquadWinner")
   wonTournaments Tournament[] @relation("TournamentSquadWinner")
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  elo         Int      @default(1000)
 }
 
 model SquadInvitation {
@@ -397,4 +407,29 @@ model SquadRegistration {
   updatedAt    DateTime           @updatedAt
 
   @@unique([squadId, tournamentId])
+}
+
+model Duel {
+  id                  String   @id @default(cuid())
+  game                String   // e.g. BGMI, POKEMON_VGC
+  creatorId           String
+  creator             User     @relation("DuelCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  opponentId          String?  // Null for open challenges
+  opponent            User?    @relation("DuelOpponent", fields: [opponentId], references: [id], onDelete: Cascade)
+  status              String   @default("PENDING") // PENDING, ACCEPTED, DECLINED, ONGOING, COMPLETED, CANCELLED
+  winnerId            String?
+  winner              User?    @relation("DuelWinner", fields: [winnerId], references: [id])
+  creatorScore        Int      @default(0)
+  opponentScore       Int      @default(0)
+  reportedById        String?
+  reportedWinnerId    String?
+  reportedCreatorScore Int?
+  reportedOpponentScore Int?
+  proofUrl            String?  // for screenshot proof
+  notes               String?  @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([opponentId])
 }

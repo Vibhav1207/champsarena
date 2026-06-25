@@ -150,6 +150,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         winnerId: body.winnerId,
         game: body.game,
         watchLiveUrl: body.watchLiveUrl !== undefined ? body.watchLiveUrl : undefined,
+        mode: body.mode,
+        minSquadMembers: body.minSquadMembers !== undefined ? parseInt(body.minSquadMembers) : undefined,
+        maxSquadMembers: body.maxSquadMembers !== undefined ? parseInt(body.maxSquadMembers) : undefined,
       },
     });
 

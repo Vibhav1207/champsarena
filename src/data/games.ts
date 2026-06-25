@@ -8,6 +8,9 @@ export interface GameInfo {
   logoUrl: string;
   genre: string;
   publisher: string;
+  supportsSolo: boolean;
+  supportsSquad: boolean;
+  supportsDuels: boolean;
 }
 
 export const GAMES_DATA: Record<string, GameInfo> = {
@@ -20,7 +23,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/pokemon-logo.png",
     genre: "Strategic Role-Playing / Card Game",
-    publisher: "The Pokémon Company / Nintendo"
+    publisher: "The Pokémon Company / Nintendo",
+    supportsSolo: true,
+    supportsSquad: false,
+    supportsDuels: true
   },
   "free-fire": {
     slug: "free-fire",
@@ -31,7 +37,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAGW7-vBXzV5KsC7LXIfK2ot_cPNs1BvRxQf0sHBj6v53DPscGlH_j8DDNJLsA49-gvQHaA7Sr_3zqaf7h27ApQXPUfQhU38Z5Wgp8B6OIkcIyguC5WUEhA0a5rnCc0XF5yuKBjroVnBtoQwra4ilXJNqFl7no6UIkGdSF_x9iXqkY-P-NZUNF_qeyoU9Jrz7gEgBQ2WqVsf4QIVRkLK4P83cCEEs4dzFuPIqZLyKxMy1n8Ym93FtsPqsTpOWKPWZuHCbegLshT6V8",
     logoUrl: "/games/free-fire-logo.png",
     genre: "Battle Royale / Tactical Shooter",
-    publisher: "Garena"
+    publisher: "Garena",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "bgmi": {
     slug: "bgmi",
@@ -42,7 +51,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAGW7-vBXzV5KsC7LXIfK2ot_cPNs1BvRxQf0sHBj6v53DPscGlH_j8DDNJLsA49-gvQHaA7Sr_3zqaf7h27ApQXPUfQhU38Z5Wgp8B6OIkcIyguC5WUEhA0a5rnCc0XF5yuKBjroVnBtoQwra4ilXJNqFl7no6UIkGdSF_x9iXqkY-P-NZUNF_qeyoU9Jrz7gEgBQ2WqVsf4QIVRkLK4P83cCEEs4dzFuPIqZLyKxMy1n8Ym93FtsPqsTpOWKPWZuHCbegLshT6V8",
     logoUrl: "/games/bgmi-logo.png",
     genre: "Battle Royale",
-    publisher: "Krafton"
+    publisher: "Krafton",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "valorant": {
     slug: "valorant",
@@ -53,7 +65,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/valorant-logo.png",
     genre: "Tactical Hero Shooter",
-    publisher: "Riot Games"
+    publisher: "Riot Games",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "clash-royale": {
     slug: "clash-royale",
@@ -64,7 +79,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/clash-royale-logo.png",
     genre: "Real-Time Strategy / Deck Builder",
-    publisher: "Supercell"
+    publisher: "Supercell",
+    supportsSolo: true,
+    supportsSquad: false,
+    supportsDuels: true
   },
   "clash-of-clans": {
     slug: "clash-of-clans",
@@ -75,7 +93,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/coc-logo.png",
     genre: "Combat Strategy",
-    publisher: "Supercell"
+    publisher: "Supercell",
+    supportsSolo: false,
+    supportsSquad: true,
+    supportsDuels: false
   },
   "brawl-stars": {
     slug: "brawl-stars",
@@ -86,7 +107,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/brawl-stars-logo.png",
     genre: "MOBA / Hero Shooter",
-    publisher: "Supercell"
+    publisher: "Supercell",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "ea-fc": {
     slug: "ea-fc",
@@ -97,7 +121,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/ea-fc-logo.png",
     genre: "Sports / Football Simulation",
-    publisher: "Electronic Arts"
+    publisher: "Electronic Arts",
+    supportsSolo: true,
+    supportsSquad: false,
+    supportsDuels: true
   },
   "fortnite": {
     slug: "fortnite",
@@ -108,7 +135,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/fortnite-logo.png",
     genre: "Battle Royale / Sand-box",
-    publisher: "Epic Games"
+    publisher: "Epic Games",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "pubg": {
     slug: "pubg",
@@ -119,7 +149,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAGW7-vBXzV5KsC7LXIfK2ot_cPNs1BvRxQf0sHBj6v53DPscGlH_j8DDNJLsA49-gvQHaA7Sr_3zqaf7h27ApQXPUfQhU38Z5Wgp8B6OIkcIyguC5WUEhA0a5rnCc0XF5yuKBjroVnBtoQwra4ilXJNqFl7no6UIkGdSF_x9iXqkY-P-NZUNF_qeyoU9Jrz7gEgBQ2WqVsf4QIVRkLK4P83cCEEs4dzFuPIqZLyKxMy1n8Ym93FtsPqsTpOWKPWZuHCbegLshT6V8",
     logoUrl: "/games/pubg-logo.png",
     genre: "Battle Royale",
-    publisher: "Krafton"
+    publisher: "Krafton",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "mobile-legends": {
     slug: "mobile-legends",
@@ -130,7 +163,10 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/mlbb-logo.png",
     genre: "MOBA",
-    publisher: "Moonton"
+    publisher: "Moonton",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   },
   "apex-legends": {
     slug: "apex-legends",
@@ -141,6 +177,9 @@ export const GAMES_DATA: Record<string, GameInfo> = {
     bannerUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo",
     logoUrl: "/games/apex-logo.png",
     genre: "Battle Royale / Hero Shooter",
-    publisher: "Electronic Arts / Respawn Entertainment"
+    publisher: "Electronic Arts / Respawn Entertainment",
+    supportsSolo: true,
+    supportsSquad: true,
+    supportsDuels: true
   }
 };

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
-    const isTeam = tournament.game === "FREE_FIRE";
+    const isTeam = tournament.mode === "SQUAD";
     let squadId: string | null = null;
 
     if (isTeam) {
@@ -57,9 +57,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Only the Team Captain can register the squad for tournaments." }, { status: 403 });
       }
 
-      // Validate squad size: standard 4 to 5 members
-      if (squad.members.length < 4 || squad.members.length > 5) {
-        return NextResponse.json({ error: `Your roster size is ${squad.members.length}. Free Fire squad tournaments require between 4 and 5 players.` }, { status: 400 });
+      // Validate squad size: generic squad limits
+      const minMembers = tournament.minSquadMembers || 4;
+      const maxMembers = tournament.maxSquadMembers || 5;
+      if (squad.members.length < minMembers || squad.members.length > maxMembers) {
+        return NextResponse.json({ error: `Your roster size is ${squad.members.length}. This squad tournament requires between ${minMembers} and ${maxMembers} players.` }, { status: 400 });
       }
 
       // Check if squad already registered

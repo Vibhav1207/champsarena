@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
       badgeIcon,
       game,
       watchLiveUrl,
+      mode,
+      minSquadMembers,
+      maxSquadMembers,
     } = body;
 
     if (!title || !description || !rules || !registrationDeadline || !startDate || !endDate) {
@@ -112,6 +115,9 @@ export async function POST(req: NextRequest) {
         badgeIcon: badgeIcon || null,
         game: game || "POKEMON_VGC",
         watchLiveUrl: watchLiveUrl || null,
+        mode: mode || "SOLO",
+        minSquadMembers: minSquadMembers !== undefined ? parseInt(minSquadMembers) : 1,
+        maxSquadMembers: maxSquadMembers !== undefined ? parseInt(maxSquadMembers) : 1,
       },
     });
 
