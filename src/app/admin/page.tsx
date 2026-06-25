@@ -182,6 +182,9 @@ export default function AdminDashboard() {
     type: "SINGLE_ELIMINATION", status: "UPCOMING",
     badgeName: "", badgeIcon: "",
     game: "POKEMON_VGC",
+    mode: "SOLO",
+    minSquadMembers: "2",
+    maxSquadMembers: "4",
     registrationDeadline: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 16),
     startDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 16),
     endDate: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16),
@@ -298,6 +301,8 @@ export default function AdminDashboard() {
           entryFee: parseFloat(form.entryFee),
           prizePool: parseFloat(form.prizePool),
           maxPlayers: parseInt(form.maxPlayers),
+          minSquadMembers: parseInt(form.minSquadMembers),
+          maxSquadMembers: parseInt(form.maxSquadMembers),
           registrationDeadline: new Date(form.registrationDeadline).toISOString(),
           startDate: new Date(form.startDate).toISOString(),
           endDate: new Date(form.endDate).toISOString(),
@@ -318,6 +323,9 @@ export default function AdminDashboard() {
           type: "SINGLE_ELIMINATION", status: "UPCOMING",
           badgeName: "", badgeIcon: "",
           game: "POKEMON_VGC",
+          mode: "SOLO",
+          minSquadMembers: "2",
+          maxSquadMembers: "4",
           registrationDeadline: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 16),
           startDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 16),
           endDate: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16),
@@ -839,12 +847,59 @@ export default function AdminDashboard() {
                     <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Game</label>
                     <select value={form.game} onChange={e => setForm(f => ({ ...f, game: e.target.value }))}
                       className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary">
-                      <option value="POKEMON_VGC">Pokémon VGC</option>
-                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Scarlet & Violet</option>
-                      <option value="POKEMON_SHOWDOWN">Pokémon Showdown</option>
+                      <option value="POKEMON_VGC">Pokémon VGC & TCG</option>
                       <option value="FREE_FIRE">Free Fire</option>
+                      <option value="BGMI">Battlegrounds Mobile India (BGMI)</option>
+                      <option value="VALORANT">Valorant</option>
+                      <option value="CLASH_ROYALE">Clash Royale</option>
+                      <option value="CLASH_OF_CLANS">Clash of Clans</option>
+                      <option value="BRAWL_STARS">Brawl Stars</option>
+                      <option value="EA_FC">EA Sports FC</option>
+                      <option value="FORTNITE">Fortnite</option>
+                      <option value="PUBG">PUBG: Battlegrounds</option>
+                      <option value="MOBILE_LEGENDS">Mobile Legends: Bang Bang</option>
+                      <option value="APEX_LEGENDS">Apex Legends</option>
                     </select>
                   </div>
+
+                  {/* Tournament Mode */}
+                  <div className="col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Tournament Mode</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["SOLO", "SQUAD"] as const).map(m => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, mode: m }))}
+                          className={`py-2.5 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
+                            form.mode === m ? "bg-primary text-white" : "bg-white text-primary hover:bg-accent-yellow"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">{m === "SOLO" ? "person" : "groups"}</span>
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Squad Config — shown only in SQUAD mode */}
+                  {form.mode === "SQUAD" && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Min Squad Size</label>
+                        <input type="number" min="2" max="10" value={form.minSquadMembers}
+                          onChange={e => setForm(f => ({ ...f, minSquadMembers: e.target.value }))}
+                          className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider mb-1.5 text-primary">Max Squad Size</label>
+                        <input type="number" min="2" max="10" value={form.maxSquadMembers}
+                          onChange={e => setForm(f => ({ ...f, maxSquadMembers: e.target.value }))}
+                          className="w-full border-3 border-primary px-4 py-3 text-sm font-bold bg-white focus:bg-accent-yellow/10 outline-none text-primary" />
+                      </div>
+                    </>
+                  )}
+
                   <div className="col-span-2 grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Reg Close *</label>
@@ -1106,6 +1161,9 @@ function TournamentManagementPanel({
     badgeName: "",
     badgeIcon: "",
     game: "",
+    mode: "SOLO",
+    minSquadMembers: "2",
+    maxSquadMembers: "4",
     registrationDeadline: "",
     startDate: "",
     endDate: "",
@@ -1127,6 +1185,9 @@ function TournamentManagementPanel({
         badgeName: managedTournament.badgeName || "",
         badgeIcon: managedTournament.badgeIcon || "",
         game: managedTournament.game || "POKEMON_VGC",
+        mode: managedTournament.mode || "SOLO",
+        minSquadMembers: String(managedTournament.minSquadMembers ?? 2),
+        maxSquadMembers: String(managedTournament.maxSquadMembers ?? 4),
         registrationDeadline: managedTournament.registrationDeadline ? new Date(managedTournament.registrationDeadline).toISOString().slice(0, 16) : "",
         startDate: managedTournament.startDate ? new Date(managedTournament.startDate).toISOString().slice(0, 16) : "",
         endDate: managedTournament.endDate ? new Date(managedTournament.endDate).toISOString().slice(0, 16) : "",
@@ -1185,6 +1246,9 @@ function TournamentManagementPanel({
           badgeName: editForm.badgeName || null,
           badgeIcon: editForm.badgeIcon || null,
           game: editForm.game,
+          mode: editForm.mode,
+          minSquadMembers: parseInt(editForm.minSquadMembers),
+          maxSquadMembers: parseInt(editForm.maxSquadMembers),
           registrationDeadline: editForm.registrationDeadline ? new Date(editForm.registrationDeadline).toISOString() : undefined,
           startDate: editForm.startDate ? new Date(editForm.startDate).toISOString() : undefined,
           endDate: editForm.endDate ? new Date(editForm.endDate).toISOString() : undefined,
@@ -2163,12 +2227,58 @@ function TournamentManagementPanel({
                       onChange={(e) => setEditForm({ ...editForm, game: e.target.value })}
                       className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10"
                     >
-                      <option value="POKEMON_VGC">Pokémon Champions</option>
-                      <option value="POKEMON_SCARLET_VIOLET">Pokémon Go</option>
-                      <option value="POKEMON_SHOWDOWN">Pokémon Trading Card Game</option>
+                      <option value="POKEMON_VGC">Pokémon VGC &amp; TCG</option>
                       <option value="FREE_FIRE">Free Fire</option>
+                      <option value="BGMI">Battlegrounds Mobile India (BGMI)</option>
+                      <option value="VALORANT">Valorant</option>
+                      <option value="CLASH_ROYALE">Clash Royale</option>
+                      <option value="CLASH_OF_CLANS">Clash of Clans</option>
+                      <option value="BRAWL_STARS">Brawl Stars</option>
+                      <option value="EA_FC">EA Sports FC</option>
+                      <option value="FORTNITE">Fortnite</option>
+                      <option value="PUBG">PUBG: Battlegrounds</option>
+                      <option value="MOBILE_LEGENDS">Mobile Legends: Bang Bang</option>
+                      <option value="APEX_LEGENDS">Apex Legends</option>
                     </select>
                   </div>
+
+                  {/* Tournament Mode */}
+                  <div className="col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Tournament Mode</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["SOLO", "SQUAD"] as const).map(m => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, mode: m })}
+                          className={`py-2.5 border-2 border-primary text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
+                            editForm.mode === m ? "bg-primary text-white" : "bg-white text-primary hover:bg-accent-yellow"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">{m === "SOLO" ? "person" : "groups"}</span>
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Squad Config — shown only in SQUAD mode */}
+                  {editForm.mode === "SQUAD" && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Min Squad Size</label>
+                        <input type="number" min="2" max="10" value={editForm.minSquadMembers}
+                          onChange={e => setEditForm({ ...editForm, minSquadMembers: e.target.value })}
+                          className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-primary mb-1.5">Max Squad Size</label>
+                        <input type="number" min="2" max="10" value={editForm.maxSquadMembers}
+                          onChange={e => setEditForm({ ...editForm, maxSquadMembers: e.target.value })}
+                          className="w-full border-3 border-primary px-3 py-2 text-sm font-bold bg-white text-primary outline-none focus:bg-accent-yellow/10" />
+                      </div>
+                    </>
+                  )}
                   <div className="col-span-2 grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-[10px] font-black uppercase tracking-wider mb-1 text-primary">Reg Close *</label>
