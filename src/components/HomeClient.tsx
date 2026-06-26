@@ -95,10 +95,10 @@ export default function HomeClient({
               Join the tournament series and claim your place in the Hall of Fame. Form follows function.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center select-none w-full max-w-xs sm:max-w-md md:max-w-none mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
-              <Link href="/login" className="bg-accent-yellow text-primary px-6 py-3 md:px-xl md:py-md border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center hover:translate-x-1 hover:translate-y-1 whitespace-nowrap">
+              <Link href="/login" className="bg-accent-yellow text-primary px-4 py-2 md:px-6 md:py-3 border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
                 Register Now
               </Link>
-              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-6 py-3 md:px-xl md:py-md neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center hover:translate-x-1 hover:translate-y-1 whitespace-nowrap">
+              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-4 py-2 md:px-6 md:py-3 neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
                 Schedule
               </Link>
             </div>
