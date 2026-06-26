@@ -529,7 +529,7 @@ export default function AuthPage() {
                             onChange={e => setRTerms(e.target.checked)}
                           />
                           <label className="text-[10px] text-primary uppercase font-black tracking-widest cursor-pointer" htmlFor="terms">
-                            Accept Regulations
+                            I agree to the <Link href="/privacy" className="text-accent-red hover:underline">Privacy Policy</Link> and <Link href="/terms" className="text-accent-red hover:underline">Terms of Service</Link>.
                           </label>
                         </div>
 
@@ -624,13 +624,13 @@ export default function AuthPage() {
                 {/* Trainer Card Footer inside box */}
                 <div className="mt-md text-left border-t-[3px] border-primary pt-3">
                   <p className="text-[9px] font-black uppercase text-primary leading-none mb-2">
-                    By joining, you accept our <Link className="text-accent-red hover:underline" href="#">Privacy Policy</Link> and <Link className="text-accent-red hover:underline" href="#">Terms of Service</Link>.
+                    By joining, you accept our <Link href="/privacy" className="text-accent-red hover:underline">Privacy Policy</Link> and <Link href="/terms" className="text-accent-red hover:underline">Terms of Service</Link>.
                   </p>
                   <div className="flex justify-between items-center text-[10px] text-primary font-black uppercase tracking-widest">
                     <span>V2.5.0-SEC</span>
                     <div className="flex gap-md">
-                      <Link className="hover:text-accent-red" href="#">Rules</Link>
-                      <Link className="hover:text-accent-red" href="#">Support</Link>
+                      <Link className="hover:text-accent-red" href="/rules">Rules</Link>
+                      <Link className="hover:text-accent-red" href="/contact">Support</Link>
                     </div>
                   </div>
                 </div>
