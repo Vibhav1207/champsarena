@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutTrainer } from "@/app/actions/authActions";
 import { usePopup } from "@/components/PopupProvider";
+import { useBodyScrollLock } from "@/lib/bodyScrollLock";
 import { formatPrizeAmount } from "@/lib/currency";
 
 const NAV = [
@@ -172,6 +173,9 @@ export default function AdminDashboard() {
 
   // Create tournament modal
   const [showModal, setShowModal] = useState(false);
+  // Body scroll lock for modals
+  useBodyScrollLock(showModal);
+  useBodyScrollLock(!!resolvingDispute);
   const [form, setForm] = useState({
     title: "", description: "",
     rules: "Standard Regulation rules apply.",
@@ -947,7 +951,20 @@ export default function AdminDashboard() {
       {/* ── Dispute Resolution Modal ── */}
       <AnimatePresence>
         {resolvingDispute && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => {
+              if (e.target === e.currentTarget) {
+                setResolvingDispute(null);
+              }
+            }}
+            onKeyDown={e => {
+              if (e.key === "Escape") {
+                setResolvingDispute(null);
+              }
+            }}
+            tabIndex="-1"
+          >
             <div className="w-full max-w-[512px] bg-white border-8 border-primary shadow-[12px_12px_0px_0px_#1a1a1a] max-h-[85vh] overflow-y-auto custom-scrollbar text-primary">
               <div className="flex items-center justify-between p-5 border-b-4 border-primary bg-accent-red text-white">
                 <h2 className="text-xl font-black uppercase tracking-tight">Resolve Dispute</h2>

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBodyScrollLock } from "@/lib/bodyScrollLock";
 
 interface Toast {
   id: string;
@@ -70,10 +71,14 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
     resolve: null,
   });
 
+  // Lock body scroll when confirm or alert modal is open
+  useBodyScrollLock(confirmState.isOpen);
+  useBodyScrollLock(alertState.isOpen);
+
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
-    
+
     // Auto remove toast after 3.5 seconds
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -172,8 +177,21 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
       {/* ── CONFIRM DIALOG MODAL (Neo-brutalist style) ── */}
       <AnimatePresence>
         {confirmState.isOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => {
+              if (e.target === e.currentTarget) {
+                setConfirmState({ isOpen: false, message: "", resolve: null });
+              }
+            }}
+          >
             <motion.div
+              onKeyDown={e => {
+                if (e.key === "Escape") {
+                  setConfirmState({ isOpen: false, message: "", resolve: null });
+                }
+              }}
+              tabIndex={-1}
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -195,7 +213,7 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
                 </button>
                 <button
                   onClick={() => handleConfirmResponse(false)}
-                  className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
+                  className="p-3 bg-white text-primary border-2 border.primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
                 >
                   Cancel
                 </button>
@@ -208,15 +226,28 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
       {/* ── ALERT DIALOG MODAL (Neo-brutalist style) ── */}
       <AnimatePresence>
         {alertState.isOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => {
+              if (e.target === e.currentTarget) {
+                setAlertState({ isOpen: false, message: "", resolve: null });
+              }
+            }}
+          >
             <motion.div
+              onKeyDown={e => {
+                if (e.key === "Escape") {
+                  setAlertState({ isOpen: false, message: "", resolve: null });
+                }
+              }}
+              tabIndex={-1}
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
+              className="bg-white border-8 border.primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y.auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y.md text-left text-primary uppercase font-bold text-xs"
             >
               <div className="flex items-center gap-2 border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
-                <span className="material-symbols-outlined text-lg">info</span>
+                <span className="material-symbols.outlined text-lg">info</span>
                 <h3 className="font-black text-sm uppercase text-primary">Attention</h3>
               </div>
               <p className="text-primary font-bold uppercase text-sm leading-relaxed whitespace-pre-line pt-2">
@@ -225,7 +256,7 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
               <div className="select-none pt-2">
                 <button
                   onClick={handleAlertResponse}
-                  className="w-full p-3 bg-primary text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5 hover:bg-opacity-90"
+                  className="w-full p-3 bg-primary text-white border-2 border.primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5 hover:bg-opacity-90"
                 >
                   Okay
                 </button>

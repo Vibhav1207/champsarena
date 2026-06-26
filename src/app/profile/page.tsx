@@ -8,6 +8,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { logoutTrainer } from "@/app/actions/authActions";
 import { usePopup } from "@/components/PopupProvider";
+import { useBodyScrollLock } from "@/lib/bodyScrollLock";
 
 type TabId = "trainer" | "squad";
 
@@ -135,7 +136,7 @@ export default function Profile() {
         setActiveTab("squad");
       }
     }
-  }, []);
+  }, []);\n  useBodyScrollLock(showEditProfile);\n  useBodyScrollLock(showCreateSquad);\n  useBodyScrollLock(showJoinModal)\n  useBodyScrollLock(showEditProfile);\n  useBodyScrollLock(showCreateSquad);\n  useBodyScrollLock(showJoinModal)
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -912,7 +913,12 @@ export default function Profile() {
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+          onClick={e => { if (e.target === e.currentTarget) setShowEditProfile(false); }}
+          onKeyDown={e => { if (e.key === 'Escape') setShowEditProfile(false); }}
+          tabIndex="-1"
+        >
           <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
               <h3 className="font-black text-lg uppercase text-primary">Edit Trainer Profile</h3>
@@ -998,7 +1004,12 @@ export default function Profile() {
 
       {/* Create Squad Modal */}
       {showCreateSquad && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+          onClick={e => { if (e.target === e.currentTarget) setShowCreateSquad(false); }}
+          onKeyDown={e => { if (e.key === 'Escape') setShowCreateSquad(false); }}
+          tabIndex="-1"
+        >
           <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
               <h3 className="font-black text-lg uppercase text-primary">Establish Squad Roster</h3>
@@ -1039,7 +1050,7 @@ export default function Profile() {
                     </div>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-primary/50 hover:border-primary p-sm text-center bg-surface-container-low cursor-pointer flex flex-col items-center justify-center min-h-[80px] relative transition-colors">
+                  <div className="border-2 border-dashed border-primary/50 hover:border-primary p-sm text-center bg-surface-container-low cursor-pointer flex-f -col items-center justify-center min-h-[80px] relative transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -1078,7 +1089,12 @@ export default function Profile() {
 
       {/* Join Squad Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+          onClick={e => { if (e.target === e.currentTarget) setShowJoinModal(false); }}
+          onKeyDown={e => { if (e.key === 'Escape') setShowJoinModal(false); }}
+          tabIndex="-1"
+        >
           <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <h3 className="font-headline-md text-primary uppercase text-center font-black">
               Squad Invitation Link

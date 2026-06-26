@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginTrainer, registerTrainer, socialLogin, requestPasswordReset } from "@/app/actions/authActions";
+import Navigation from "@/components/navigation";
+import { usePendingAction } from "@/context/PendingActionContext";
+import { useRouter } from "next/navigation";
 
 type Tab = "login" | "signup" | "forgot";
 
@@ -33,6 +36,21 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { pendingAction, clearPendingAction } = usePendingAction();
+  const router = useRouter();
+
+  // Handle pending action after login or registration
+  useEffect(() => {
+    if (success && pendingAction) {
+      pendingAction.action().then(() => {
+        clearPendingAction();
+      }).catch((err) => {
+        console.error('Failed to execute pending action:', err);
+        clearPendingAction();
+      });
+    }
+  }, [success, pendingAction]);
 
   const fetchCaptcha = () => {
     setCaptchaAnswer("");
@@ -77,6 +95,8 @@ export default function AuthPage() {
       if (res?.error) {
         setError(res.error);
         fetchCaptcha();
+      } else {
+        setSuccess("Login successful!");
       }
     } catch {
       setError("Something went wrong.");
@@ -113,7 +133,7 @@ export default function AuthPage() {
         setError(res.error);
         fetchCaptcha();
       } else {
-        setSuccess("Trainer registered! Signing you in…");
+        setSuccess("Registration successful! You are now logged in.");
       }
     } catch {
       setError("Registration failed. Please try again.");
@@ -129,11 +149,7 @@ export default function AuthPage() {
     setLoading(true);
 
     const { verifyCaptcha } = await import("@/lib/captcha");
-    // Verify CAPTCHA check on client first or just let server do it. Since verifyCaptcha runs server side, we verify through actions or a separate API. Let's do it inside the action or check locally. Actually verifyCaptcha uses node crypto which is a server-only module, so client cannot import it directly without runtime errors!
-    // That means we must check CAPTCHA server-side.
-    // Let's call the action which will handle CAPTCHA. Let's modify requestPasswordReset to also verify CAPTCHA.
     try {
-      // Fetch reset
       const res = await fetch("/api/auth/reset-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,7 +160,7 @@ export default function AuthPage() {
         setError(data.error);
         fetchCaptcha();
       } else {
-        setSuccess("Security key reset link generated! Check your scratch/sent_emails.log file.");
+        setSuccess("Password reset link sent! Check your email.");
         setForgotEmail("");
         setCaptchaAnswer("");
       }
@@ -157,17 +173,21 @@ export default function AuthPage() {
 
   const handleSocial = async (provider: "google" | "discord") => {
     setError(null);
+    setLoading(true);
     try {
       await socialLogin(provider);
+      setSuccess(`Logged in with ${provider}!`);
     } catch {
       setError(`Failed to sign in with ${provider}.`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen lg:h-screen w-screen overflow-x-hidden lg:overflow-hidden bg-background text-primary selection:bg-accent-yellow selection:text-primary flex flex-col justify-stretch">
-      <main className="flex-1 w-full flex flex-col lg:flex-row items-stretch lg:overflow-hidden relative">
-
+    <div className="flex min-h-screen flex-col">
+      <Navigation />
+      <main className="flex-1 flex bg-black">
         {/* ── Left Illustration Section (Desktop Only) ── */}
         <div className="hidden lg:flex lg:w-1/2 h-full bg-surface-container-high relative overflow-hidden items-center justify-center border-r-[6px] border-primary">
           <div className="relative z-10 w-full max-w-[576px] p-md lg:p-md text-center flex flex-col items-center select-none">
@@ -219,36 +239,26 @@ export default function AuthPage() {
         </div>
 
         {/* ── Right Form Section ── */}
-        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-background flex flex-col items-center justify-start lg:justify-center py-lg lg:py-md px-sm md:p-lg">
-          <div className="w-full max-w-[512px]">
-
-            {/* Mobile Header (Hidden on Desktop) */}
-            <div className="lg:hidden text-center mb-xl">
-              <h1 className="text-4xl md:text-5xl font-black text-primary tracking-tighter uppercase italic">
-                ChampsArena
-              </h1>
-              <p className="text-primary font-bold text-xs bg-accent-yellow inline-block px-2 border-2 border-primary mt-1">
-                Tournament Hub
-              </p>
-            </div>
+        <div className="flex-1 h-full overflow-y-auto custom-scroll bg-black flex flex-col items-center justify-start lg:justify-center py-lg lg:py-md px-sm md:p-lg">
+          <div className="w-full max-w-[512px] bg-white/50 backdrop-blur-md border border-white/20">
 
             {/* Trainer Card Container */}
-            <div className="bg-white border-4 border-primary neo-brutalist-shadow flex flex-col min-h-[440px] lg:min-h-0 relative">
+            <div className="flex flex-col min-h-[440px] lg:min-h-0 relative">
 
               {/* Card Header / Tabs */}
               <div className="flex border-b-[3px] border-primary">
                 <button
                   onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
                   className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"
-                    }`}
+                  `}`}
                 >
                   Login
                   {tab === "login" && <div className="active-tab-indicator"></div>}
                 </button>
                 <button
                   onClick={() => { setTab("signup"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 border-l-[3px] border-primary ${tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
-                    }`}
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
+                  `}`}
                 >
                   Sign Up
                   {tab === "signup" && <div className="active-tab-indicator"></div>}
@@ -356,7 +366,7 @@ export default function AuthPage() {
                               value={password}
                               onChange={e => setPassword(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -373,7 +383,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -382,7 +392,7 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
@@ -405,7 +415,7 @@ export default function AuthPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
+                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
                         >
                           {loading ? "ENTERING..." : "Enter the Stadium"}
                         </button>
@@ -438,7 +448,7 @@ export default function AuthPage() {
                               value={rName}
                               onChange={e => setRName(e.target.value)}
                               placeholder="Red"
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -451,7 +461,7 @@ export default function AuthPage() {
                               value={rEmail}
                               onChange={e => setREmail(e.target.value)}
                               placeholder="champion@league.com"
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -465,7 +475,7 @@ export default function AuthPage() {
                                 value={rPass}
                                 onChange={e => setRPass(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                                className=`w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
                               />
                             </div>
                             <div className="space-y-1">
@@ -477,8 +487,7 @@ export default function AuthPage() {
                                 value={rPassConfirm}
                                 onChange={e => setRPassConfirm(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"
-                                  }`}
+                                className={`w-full bg-white border-2 border-property py_2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
                               />
                             </div>
                           </div>
@@ -496,7 +505,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -505,14 +514,15 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
+
                         </div>
 
                         {/* Notice */}
-                        <div className="bg-accent-yellow border-2 border-primary p-2 flex items-start gap-2 text-left">
+                        <div className="bg-accent-yellow border-2 border-property p-2 flex items-start gap-2 text-left">
                           <span className="material-symbols-outlined text-primary text-[18px]">info</span>
                           <p className="text-[9px] uppercase font-black text-primary leading-tight">
                             Your username will be auto-generated from your trainer name. You can customize it on your profile dashboard.
@@ -537,7 +547,7 @@ export default function AuthPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
                         >
                           {loading ? "REGISTERING..." : "Register Trainer"}
                         </button>
@@ -568,7 +578,7 @@ export default function AuthPage() {
                               value={forgotEmail}
                               onChange={e => setForgotEmail(e.target.value)}
                               placeholder="trainer@league.com"
-                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -585,7 +595,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -594,16 +604,17 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
+
                         </div>
 
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
                         >
                           {loading ? "SENDING KEY..." : "Send Reset link"}
                         </button>
@@ -611,7 +622,7 @@ export default function AuthPage() {
                         <button
                           type="button"
                           onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
-                          className="w-full bg-white text-primary border-2 border-primary py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
+                          className="w-full bg-white text-primary border-2 border-property py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -639,18 +650,9 @@ export default function AuthPage() {
 
             </div>
 
-            {/* Back to Hub button */}
-            <div className="mt-md text-center select-none">
-              <Link href="/" className="inline-flex items-center gap-xs font-black uppercase text-xs text-primary hover:text-accent-red transition-colors">
-                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                Return to Hub
-              </Link>
-            </div>
-
           </div>
-        </div>
-
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

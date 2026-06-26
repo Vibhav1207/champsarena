@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import { useBodyScrollLock } from "@/lib/bodyScrollLock";
 
 type TabId = "rules" | "schedule" | "brackets" | "standings";
 
@@ -87,6 +88,10 @@ export default function TournamentDetailClient({
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [submittingDispute, setSubmittingDispute] = useState(false);
+  // Body scroll lock for modals
+  useBodyScrollLock(showGatewayModal);
+  useBodyScrollLock(showRosterModal);
+  useBodyScrollLock(showDisputeModal);
 
   const fetchDetails = () => {
     fetch(`/api/tournaments/${id}`)
@@ -1144,7 +1149,12 @@ export default function TournamentDetailClient({
 
         {/* Gateway Selection Modal */}
         {showGatewayModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget) setShowGatewayModal(false); }}
+            onKeyDown={e => { if (e.key === 'Escape') setShowGatewayModal(false); }}
+            tabIndex="-1"
+          >
             <div className="bg-white border-8 border-primary max-w-[384px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 Select Payment
@@ -1184,7 +1194,12 @@ export default function TournamentDetailClient({
 
         {/* Dispute Modal */}
         {showDisputeModal && activeMatch && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget) setShowDisputeModal(false); }}
+            onKeyDown={e => { if (e.key === 'Escape') setShowDisputeModal(false); }}
+            tabIndex={-1}
+          >
             <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 File Match Dispute
@@ -1231,12 +1246,17 @@ export default function TournamentDetailClient({
 
         {/* Roster Validation Modal */}
         {showRosterModal && currentUser?.squad && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget) setShowRosterModal(false); }}
+            onKeyDown={e => { if (e.key === 'Escape') setShowRosterModal(false); }}
+            tabIndex={-1}
+          >
             <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 Squad Registration
               </h3>
-              
+
               {/* Squad Header */}
               <div className="flex items-center gap-sm bg-accent-yellow border-4 border-primary p-xs select-none">
                 <div className="w-12 h-12 bg-primary flex items-center justify-center font-bold text-white uppercase select-none overflow-hidden relative">
