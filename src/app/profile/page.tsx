@@ -912,8 +912,8 @@ export default function Profile() {
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
               <h3 className="font-black text-lg uppercase text-primary">Edit Trainer Profile</h3>
               <button onClick={() => setShowEditProfile(false)} className="material-symbols-outlined text-primary hover:opacity-75 cursor-pointer">close</button>
@@ -998,8 +998,8 @@ export default function Profile() {
 
       {/* Create Squad Modal */}
       {showCreateSquad && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
               <h3 className="font-black text-lg uppercase text-primary">Establish Squad Roster</h3>
               <button onClick={() => setShowCreateSquad(false)} className="material-symbols-outlined text-primary hover:opacity-75 cursor-pointer">close</button>
@@ -1078,8 +1078,8 @@ export default function Profile() {
 
       {/* Join Squad Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-          <div className="bg-white border-8 border-primary max-w-[448px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+          <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
             <h3 className="font-headline-md text-primary uppercase text-center font-black">
               Squad Invitation Link
             </h3>

@@ -172,12 +172,12 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
       {/* ── CONFIRM DIALOG MODAL (Neo-brutalist style) ── */}
       <AnimatePresence>
         {confirmState.isOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white border-8 border-primary max-w-[448px] w-full p-md max-h-[90vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
+              className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
             >
               <div className="flex items-center gap-2 border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
                 <span className="material-symbols-outlined text-lg">help_outline</span>
@@ -208,12 +208,12 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
       {/* ── ALERT DIALOG MODAL (Neo-brutalist style) ── */}
       <AnimatePresence>
         {alertState.isOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white border-8 border-primary max-w-[448px] w-full p-md max-h-[90vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
+              className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
             >
               <div className="flex items-center gap-2 border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
                 <span className="material-symbols-outlined text-lg">info</span>
