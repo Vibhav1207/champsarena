@@ -94,11 +94,11 @@ export default function HomeClient({
             <p className="font-bold text-sm sm:text-base md:text-xl text-primary mb-xl max-w-[672px] mx-auto border-l-8 border-primary pl-6 bg-white/80 p-4">
               Join the tournament series and claim your place in the Hall of Fame. Form follows function.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center select-none w-full max-w-xs sm:max-w-md md:max-w-none mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
-              <Link href="/login" className="bg-accent-yellow text-primary px-4 py-2 md:px-6 md:py-3 border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
+            <div className="flex flex-col gap-4 justify-center select-none w-full max-w-xs sm:max-w-md md:max-w-none md:flex-row mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
+              <Link href="/login" className="bg-accent-yellow text-primary flex-1 min-h-[48px] flex items-center justify-center px-4 py-3 md:px-6 border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
                 Register Now
               </Link>
-              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary px-4 py-2 md:px-6 md:py-3 neo-brutalist-shadow neo-brutalist-button-active transition-all w-full sm:w-auto text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
+              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary flex-1 min-h-[48px] flex items-center justify-center px-4 py-3 md:px-6 neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
                 Schedule
               </Link>
             </div>
