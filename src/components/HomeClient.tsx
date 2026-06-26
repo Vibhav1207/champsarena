@@ -94,13 +94,16 @@ export default function HomeClient({
             <p className="font-bold text-sm sm:text-base md:text-xl text-primary mb-xl max-w-[672px] mx-auto border-l-8 border-primary pl-6 bg-white/80 p-4">
               Join the tournament series and claim your place in the Hall of Fame. Form follows function.
             </p>
-            <div className="flex flex-col gap-4 justify-center select-none w-full max-w-xs sm:max-w-md md:max-w-none md:flex-row mx-auto font-black text-lg md:text-2xl uppercase tracking-widest">
-              <Link href="/login" className="bg-accent-yellow text-primary flex-1 min-h-[48px] flex items-center justify-center px-4 py-3 md:px-6 border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
-                Register Now
-              </Link>
-              <Link href="/tournaments" className="bg-white text-primary border-4 border-primary flex-1 min-h-[48px] flex items-center justify-center px-4 py-3 md:px-6 neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap hover:translate-x-0.5 hover:translate-y-0.5 md:hover:translate-x-1 md:hover:translate-y-1">
-                Schedule
-              </Link>
+            <div className="w-full">
+              {/* Mobile: Stacked buttons */}
+              <div className="space-y-4 md:space-y-0 md:flex md:flex-row">
+                <Link href="/login" className="w-full flex-1 bg-accent-yellow text-primary text-xl font-black px-6 py-5 border-4 border-primary neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap min-h-[60px] flex items-center justify-center hover:translate-y-0.5">
+                  Register Now
+                </Link>
+                <Link href="/tournaments" className="w-full flex-1 bg-white text-primary text-xl font-black border-4 border-primary px-6 py-5 neo-brutalist-shadow neo-brutalist-button-active transition-all text-center whitespace-nowrap min-h-[60px] flex items-center justify-center hover:translate-y-0.5">
+                  Schedule
+                </Link>
+              </div>
             </div>
           </div>
           {/* Decorative Elements */}
