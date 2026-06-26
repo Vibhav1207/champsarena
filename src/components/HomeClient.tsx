@@ -253,7 +253,7 @@ export default function HomeClient({
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
                           <img
-                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[1].id || topPlayers[1].name || 'default'}`}
+                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[1].id || topPlayers[1].name || 'default'}`}
                           alt={`${topPlayers[1].name || "Trainer"} avatar`}
                           className="absolute inset-0 w-full h-full object-cover"
                         />
@@ -278,7 +278,7 @@ export default function HomeClient({
                       <div className="relative mb-lg select-none">
                         <div className="w-56 h-56 sm:w-72 sm:h-72 border-8 border-primary bg-accent-yellow overflow-hidden neo-brutalist-shadow transition-all relative">
                           <img
-                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[0].id || topPlayers[0].name || 'default'}`}
+                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[0].id || topPlayers[0].name || 'default'}`}
                           alt={`${topPlayers[0].name || "Trainer"} avatar`}
                           className="absolute inset-0 w-full h-full object-cover"
                         />
@@ -303,7 +303,7 @@ export default function HomeClient({
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
                           <img
-                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[2].id || topPlayers[2].name || 'default'}`}
+                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[2].id || topPlayers[2].name || 'default'}`}
                           alt={`${topPlayers[2].name || "Trainer"} avatar`}
                           className="absolute inset-0 w-full h-full object-cover"
                         />

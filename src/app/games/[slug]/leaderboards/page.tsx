@@ -344,7 +344,7 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
                             <div className="flex items-center gap-sm">
                               <div className="w-10 h-10 border-2 border-primary relative bg-accent-yellow shrink-0 overflow-hidden select-none">
                                 <img
-        src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${p.id || p.username || 'default'}`}
+        src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${p.id || p.username || 'default'}`}
         alt={`${p.name || "Trainer"} avatar`}
         className="w-full h-full object-cover"
       />
