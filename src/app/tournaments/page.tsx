@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import { useAuth } from "@/lib/auth";
 
 interface Tournament {
   id: string;
@@ -75,6 +77,8 @@ export default function Tournaments() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     setLoading(true);
@@ -328,9 +332,23 @@ export default function Tournaments() {
                               <p className={`font-label-lg text-label-lg ${stat.color} uppercase italic`}>{stat.label}</p>
                               {cap >= 90 && <p className="font-label-lg text-label-lg text-accent-red font-black uppercase italic">Almost Full!</p>}
                             </div>
-                            <Link href={`/tournaments/${t.id}`} className="w-full text-center py-3 bg-accent-yellow border-2 border-primary text-primary font-black uppercase neo-brutalist-shadow-sm hover:translate-y-[-2px] transition-all block select-none">
-                              Join Tournament
-                            </Link>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isAuthenticated) {
+                                  const callbackUrl = `/tournaments/${t.id}`;
+                                  router.push(`/login?callback=${encodeURIComponent(callbackUrl)}`);
+                                  return;
+                                }
+                                router.push(`/tournaments/${t.id}`);
+                              }}
+                              disabled={authLoading || !isAuthenticated}
+                              className={`w-full text-center py-3 bg-accent-yellow border-2 border-primary text-primary font-black uppercase neo-brutalist-shadow-sm hover:translate-y-[-2px] transition-all block select-none ${
+                                authLoading || !isAuthenticated ? 'opacity-50 pointer-events-none' : ''
+                              }`}
+                            >
+                              {authLoading ? 'Checking access...' : 'Join Tournament'}
+                            </button>
                           </div>
                         </div>
                       </article>

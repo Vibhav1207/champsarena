@@ -73,6 +73,13 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     redirect(`/games/${id}/tournaments`);
   }
 
+  // Check if user is authenticated
+  const session = await auth();
+  if (!session) {
+    const callbackUrl = `/tournaments/${id}`;
+    redirect(`/login?callback=${encodeURIComponent(callbackUrl)}`);
+  }
+
   // Fetch Tournament details
   const tournament = await prisma.tournament.findUnique({
     where: { id },
@@ -121,9 +128,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     notFound();
   }
 
-  // Fetch auth session and user registrations
-  const session = await auth();
-  let userRegistration = null;
+    let userRegistration = null;
   let squadRegistration = null;
 
   if (session?.user?.id) {

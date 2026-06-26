@@ -6,13 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { loginTrainer, registerTrainer, socialLogin, requestPasswordReset } from "@/app/actions/authActions";
 import Navigation from "@/components/navigation";
 import { usePendingAction } from "@/context/PendingActionContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "login" | "signup" | "forgot";
 
 export default function AuthPage() {
   const [tab, setTab] = useState<Tab>("login");
   const [stats, setStats] = useState({ totalUsers: 0, totalTournaments: 0, totalMatches: 0, loaded: false });
+
+  // Get callback URL from query params
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callback') || '/';
 
   // Login state
   const [email, setEmail] = useState("");
@@ -37,9 +42,12 @@ export default function AuthPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { pendingAction, clearPendingAction } = usePendingAction();
   const router = useRouter();
+  const { pendingAction, clearPendingAction } = usePendingAction();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callback') || '/';
 
+  
   // Handle pending action after login or registration
   useEffect(() => {
     if (success && pendingAction) {
@@ -49,8 +57,11 @@ export default function AuthPage() {
         console.error('Failed to execute pending action:', err);
         clearPendingAction();
       });
+    } else if (success && !pendingAction) {
+      // If no pending action, redirect to the callback URL
+      router.push(decodeURIComponent(callbackUrl));
     }
-  }, [success, pendingAction]);
+  }, [success, pendingAction, router, callbackUrl]);
 
   const fetchCaptcha = () => {
     setCaptchaAnswer("");
@@ -172,6 +183,11 @@ export default function AuthPage() {
   };
 
   const handleSocial = async (provider: "google" | "discord") => {
+    // Save callback URL to sessionStorage so we can use it after social login redirect
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('callbackUrl', callbackUrl);
+    }
+
     setError(null);
     setLoading(true);
     try {
@@ -249,17 +265,15 @@ export default function AuthPage() {
               <div className="flex border-b-[3px] border-primary">
                 <button
                   onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"
-                  `}`}
+                  className={`flex-1 py-3 text-lg font-bold relative uppercase tracking-tighter transition-colors duration-200 ${tab === "login" ? "text-primary bg-white" : "text-primary bg-surface-container-high border-r-[3px] border-primary"}`}
                 >
                   Login
                   {tab === "login" && <div className="active-tab-indicator"></div>}
                 </button>
                 <button
                   onClick={() => { setTab("signup"); setError(null); setSuccess(null); }}
-                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"
-                  `}`}
-                >
+                  className={`flex-1 py-3 text-lg font-black relative uppercase tracking-tighter transition-colors duration-200 ${tab === "signup" ? "text-primary bg-white" : "text-primary bg-surface-container-high"}`}
+                  >
                   Sign Up
                   {tab === "signup" && <div className="active-tab-indicator"></div>}
                 </button>
@@ -366,7 +380,7 @@ export default function AuthPage() {
                               value={password}
                               onChange={e => setPassword(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -383,7 +397,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -392,7 +406,7 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
@@ -415,7 +429,7 @@ export default function AuthPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
+                          className="w-full bg-primary text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-accent-red cursor-pointer"
                         >
                           {loading ? "ENTERING..." : "Enter the Stadium"}
                         </button>
@@ -448,7 +462,7 @@ export default function AuthPage() {
                               value={rName}
                               onChange={e => setRName(e.target.value)}
                               placeholder="Red"
-                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -461,7 +475,7 @@ export default function AuthPage() {
                               value={rEmail}
                               onChange={e => setREmail(e.target.value)}
                               placeholder="champion@league.com"
-                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -475,7 +489,7 @@ export default function AuthPage() {
                                 value={rPass}
                                 onChange={e => setRPass(e.target.value)}
                                 placeholder="••••••••"
-                                className=`w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
+                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`}
                               />
                             </div>
                             <div className="space-y-1">
@@ -487,7 +501,7 @@ export default function AuthPage() {
                                 value={rPassConfirm}
                                 onChange={e => setRPassConfirm(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 border-property py_2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
+                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
                               />
                             </div>
                           </div>
@@ -505,7 +519,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -514,7 +528,7 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
@@ -522,7 +536,7 @@ export default function AuthPage() {
                         </div>
 
                         {/* Notice */}
-                        <div className="bg-accent-yellow border-2 border-property p-2 flex items-start gap-2 text-left">
+                        <div className="bg-accent-yellow border-2 border-primary p-2 flex items-start gap-2 text-left">
                           <span className="material-symbols-outlined text-primary text-[18px]">info</span>
                           <p className="text-[9px] uppercase font-black text-primary leading-tight">
                             Your username will be auto-generated from your trainer name. You can customize it on your profile dashboard.
@@ -547,7 +561,7 @@ export default function AuthPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
                         >
                           {loading ? "REGISTERING..." : "Register Trainer"}
                         </button>
@@ -578,7 +592,7 @@ export default function AuthPage() {
                               value={forgotEmail}
                               onChange={e => setForgotEmail(e.target.value)}
                               placeholder="trainer@league.com"
-                              className="w-full bg-white border-2 border-property py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
+                              className="w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors"
                             />
                           </div>
 
@@ -595,7 +609,7 @@ export default function AuthPage() {
                               </button>
                             </div>
                             <div className="flex gap-2">
-                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-property text-xs font-black select-none flex items-center justify-center grow">
+                              <div className="bg-primary text-white font-mono px-3 py-2 border-2 border-primary text-xs font-black select-none flex items-center justify-center grow">
                                 {captchaQuestion}
                               </div>
                               <input
@@ -604,7 +618,7 @@ export default function AuthPage() {
                                 value={captchaAnswer}
                                 onChange={e => setCaptchaAnswer(e.target.value)}
                                 placeholder="Answer"
-                                className="w-24 bg-white border-2 border-property py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
+                                className="w-24 bg-white border-2 border-primary py-2 px-2 text-sm font-bold focus:bg-accent-yellow outline-none text-center"
                               />
                             </div>
                           </div>
@@ -614,7 +628,7 @@ export default function AuthPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-property neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
+                          className="w-full bg-accent-red text-white py-2.5 text-lg font-black uppercase tracking-tighter border-2 border-primary neo-brutalist-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:bg-primary cursor-pointer"
                         >
                           {loading ? "SENDING KEY..." : "Send Reset link"}
                         </button>
@@ -622,7 +636,7 @@ export default function AuthPage() {
                         <button
                           type="button"
                           onClick={() => { setTab("login"); setError(null); setSuccess(null); }}
-                          className="w-full bg-white text-primary border-2 border-property py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
+                          className="w-full bg-white text-primary border-2 border-primary py-2 font-black uppercase text-xs tracking-wider hover:bg-accent-yellow transition-all cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -651,6 +665,7 @@ export default function AuthPage() {
             </div>
 
           </div>
+        </div>
         </main>
       </div>
     </div>

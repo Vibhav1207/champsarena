@@ -9,15 +9,31 @@ import Footer from "@/components/footer";
 import { logoutTrainer } from "@/app/actions/authActions";
 import { usePopup } from "@/components/PopupProvider";
 import { useBodyScrollLock } from "@/lib/bodyScrollLock";
+import { useAuth } from "@/lib/auth";
 
 type TabId = "trainer" | "squad";
 
 export default function Profile() {
   const { confirm } = usePopup();
+  const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("trainer");
   const [profileData, setProfileData] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Handle redirect from social login
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isAuthenticated) {
+      const callbackUrl = sessionStorage.getItem('callbackUrl');
+      if (callbackUrl) {
+        sessionStorage.removeItem('callbackUrl');
+        // Use router.push instead of window.location.href to avoid full reload
+        // But we don't have access to router here, so we'll use window.location
+        // In a real app, we might want to pass router down or use navigation
+        window.location.href = decodeURIComponent(callbackUrl);
+      }
+    }
+  }, [isAuthenticated]);
 
   // Squad States
   const [squadData, setSquadData] = useState<any>(null);
@@ -136,7 +152,12 @@ export default function Profile() {
         setActiveTab("squad");
       }
     }
-  }, []);\n  useBodyScrollLock(showEditProfile);\n  useBodyScrollLock(showCreateSquad);\n  useBodyScrollLock(showJoinModal)\n  useBodyScrollLock(showEditProfile);\n  useBodyScrollLock(showCreateSquad);\n  useBodyScrollLock(showJoinModal)
+  }, []);
+
+
+  useBodyScrollLock(showEditProfile);
+  useBodyScrollLock(showCreateSquad);
+  useBodyScrollLock(showJoinModal)
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -269,6 +290,10 @@ export default function Profile() {
   };
 
   const handleJoinSquadDirect = async () => {
+    if (!isAuthenticated) {
+      // Auth handling is done by useAuth hook via useEffect
+      return;
+    }
     if (!joiningSquadId) return;
     setJoinError(null);
     try {
@@ -470,13 +495,23 @@ export default function Profile() {
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full select-none">
                           <button
-                            onClick={() => setShowEditProfile(true)}
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                // Auth handling is done by useAuth hook via useEffect
+                                return;
+                              }
+                              setShowEditProfile(true);
+                            }}
                             className="flex-grow bg-accent-yellow text-primary border-4 border-primary px-4 py-2 font-black uppercase tracking-widest text-xs hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:translate-x-0 active:translate-y-0 cursor-pointer"
                           >
                             Edit Profile
                           </button>
                           <button
                             onClick={async () => {
+                              if (!isAuthenticated) {
+                                // Auth handling is done by useAuth hook via useEffect
+                                return;
+                              }
                               try {
                                 await logoutTrainer();
                               } catch (err) {
@@ -895,7 +930,13 @@ export default function Profile() {
                             Create a competitive roster to participate in multiplayer tournaments like Free Fire and Valorant.
                           </p>
                           <button
-                            onClick={() => setShowCreateSquad(true)}
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                // Auth handling is done by useAuth hook via useEffect
+                                return;
+                              }
+                              setShowCreateSquad(true);
+                            }}
                             className="bg-accent-yellow text-primary border-4 border-primary px-lg py-2.5 font-black uppercase text-xs tracking-widest hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer"
                           >
                             Build Squad
