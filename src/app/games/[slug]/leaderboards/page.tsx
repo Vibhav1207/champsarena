@@ -343,13 +343,11 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
                           <td className="px-lg py-md">
                             <div className="flex items-center gap-sm">
                               <div className="w-10 h-10 border-2 border-primary relative bg-accent-yellow shrink-0 overflow-hidden select-none">
-                                {p.image ? (
-                                  <img src={p.image} alt={p.name || "Trainer"} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center font-black text-primary">
-                                    {(p.name || "P").charAt(0).toUpperCase()}
-                                  </div>
-                                )}
+                                <img
+        src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${p.id || p.username || 'default'}`}
+        alt={`${p.name || "Trainer"} avatar`}
+        className="w-full h-full object-cover"
+      />
                               </div>
                               <Link
                                 href={`/players/${p.username || p.id}`}

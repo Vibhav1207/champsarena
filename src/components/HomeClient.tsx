@@ -252,19 +252,11 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
-                          {topPlayers[1].image ? (
-                            <Image
-                              src={topPlayers[1].image}
-                              alt={topPlayers[1].name || "Trainer"}
-                              fill
-                              className="object-cover"
-                              sizes="224px"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-surface-container flex items-center justify-center font-bold text-4xl text-primary">
-                              {topPlayers[1].name ? topPlayers[1].name[0].toUpperCase() : "T"}
-                            </div>
-                          )}
+                          <img
+                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[1].id || topPlayers[1].name || 'default'}`}
+                          alt={`${topPlayers[1].name || "Trainer"} avatar`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
                         </div>
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-blue text-white px-4 py-2 font-black text-3xl border-4 border-primary">2</div>
                       </div>
@@ -285,19 +277,11 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-56 h-56 sm:w-72 sm:h-72 border-8 border-primary bg-accent-yellow overflow-hidden neo-brutalist-shadow transition-all relative">
-                          {topPlayers[0].image ? (
-                            <Image
-                              src={topPlayers[0].image}
-                              alt={topPlayers[0].name || "Trainer"}
-                              fill
-                              className="object-cover"
-                              sizes="288px"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center font-bold text-5xl text-primary">
-                              {topPlayers[0].name ? topPlayers[0].name[0].toUpperCase() : "T"}
-                            </div>
-                          )}
+                          <img
+                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[0].id || topPlayers[0].name || 'default'}`}
+                          alt={`${topPlayers[0].name || "Trainer"} avatar`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
                         </div>
                         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent-yellow text-primary px-8 py-3 font-black text-5xl border-8 border-primary">1</div>
                       </div>
@@ -318,19 +302,11 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
-                          {topPlayers[2].image ? (
-                            <Image
-                              src={topPlayers[2].image}
-                              alt={topPlayers[2].name || "Trainer"}
-                              fill
-                              className="object-cover"
-                              sizes="224px"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-surface-container flex items-center justify-center font-bold text-4xl text-primary">
-                              {topPlayers[2].name ? topPlayers[2].name[0].toUpperCase() : "T"}
-                            </div>
-                          )}
+                          <img
+                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${topPlayers[2].id || topPlayers[2].name || 'default'}`}
+                          alt={`${topPlayers[2].name || "Trainer"} avatar`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
                         </div>
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-red text-white px-4 py-2 font-black text-3xl border-4 border-primary">3</div>
                       </div>
