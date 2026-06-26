@@ -177,7 +177,7 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white border-8 border-primary max-w-[448px] w-full p-md shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
+              className="bg-white border-8 border-primary max-w-[448px] w-full p-md max-h-[90vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
             >
               <div className="flex items-center gap-2 border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
                 <span className="material-symbols-outlined text-lg">help_outline</span>
@@ -213,7 +213,7 @@ export function PopupProvider({ children }: { children: React.ReactNode }) {
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white border-8 border-primary max-w-[448px] w-full p-md shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
+              className="bg-white border-8 border-primary max-w-[448px] w-full p-md max-h-[90vh] overflow-y-auto shadow-[12px_12px_0px_0px_#1a1a1a] space-y-md text-left text-primary uppercase font-bold text-xs"
             >
               <div className="flex items-center gap-2 border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
                 <span className="material-symbols-outlined text-lg">info</span>
