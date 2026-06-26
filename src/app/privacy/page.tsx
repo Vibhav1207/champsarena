@@ -2,7 +2,7 @@ import React from "react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import Link from "next/link";
-import type { Metadata };
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | ChampsArena",
