@@ -1144,8 +1144,8 @@ export default function TournamentDetailClient({
 
         {/* Gateway Selection Modal */}
         {showGatewayModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-            <div className="bg-white border-8 border-primary max-w-[384px] w-full p-md neo-brutalist-shadow space-y-md text-left">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[384px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 Select Payment
               </h3>
@@ -1184,8 +1184,8 @@ export default function TournamentDetailClient({
 
         {/* Dispute Modal */}
         {showDisputeModal && activeMatch && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 File Match Dispute
               </h3>
@@ -1231,8 +1231,8 @@ export default function TournamentDetailClient({
 
         {/* Roster Validation Modal */}
         {showRosterModal && currentUser?.squad && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-sm backdrop-blur-sm">
-            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-md neo-brutalist-shadow space-y-md text-left text-primary">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm">
+            <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary">
               <h3 className="font-headline-md text-primary uppercase text-center font-black">
                 Squad Registration
               </h3>

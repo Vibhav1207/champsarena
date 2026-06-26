@@ -342,10 +342,10 @@ export default function HomeClient({
                 Connect with thousands of trainers. Discuss meta, find partners, and get real-time support.
               </p>
               <div className="flex flex-wrap gap-md md:gap-lg select-none font-black uppercase text-base md:text-xl">
-                <a href="#" className="bg-[#5865F2] text-white px-md py-sm md:px-lg md:py-md border-4 border-primary flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
+                <a href="/discord" className="bg-[#5865F2] text-white px-md py-sm md:px-lg md:py-md border-4 border-primary flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
                   Discord Community
                 </a>
-                <a href="#" className="bg-white text-primary px-md py-sm md:px-lg md:py-md border-4 border-primary flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
+                <a href="/tournaments" className="bg-white text-primary px-md py-sm md:px-lg md:py-md border-4 border-primary flex items-center gap-sm neo-brutalist-shadow neo-brutalist-button-active transition-all">
                   Find Local Clubs
                 </a>
               </div>

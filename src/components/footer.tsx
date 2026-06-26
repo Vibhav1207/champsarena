@@ -29,7 +29,7 @@ export default function Footer() {
             <span className="font-black text-xl text-primary uppercase mb-xs border-b-4 border-accent-red pb-1 select-none">
               Community
             </span>
-            <a href="#" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
+            <a href="/discord" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Discord
             </a>
             <a href="/contact" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
@@ -45,6 +45,9 @@ export default function Footer() {
             </a>
             <a href="/privacy" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Privacy
+            </a>
+            <a href="/terms" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
+              Terms
             </a>
           </div>
         </div>

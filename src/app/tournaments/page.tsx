@@ -73,6 +73,8 @@ export default function Tournaments() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     setLoading(true);
@@ -111,6 +113,13 @@ export default function Tournaments() {
     if (endDate && new Date(t.startDate) > new Date(endDate)) return false;
     return true;
   });
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedFiltered = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <>
@@ -241,7 +250,7 @@ export default function Tournaments() {
               </div>
               {!loading && !error && (
                 <div className="flex items-center gap-xs font-label-lg text-label-lg text-white bg-black px-md py-xs border-2 border-black">
-                  <span>SHOWING {filtered.length} / {tournaments.length} EVENTS</span>
+                  <span>SHOWING {paginatedFiltered.length} / {filtered.length} EVENTS</span>
                 </div>
               )}
             </header>
@@ -260,8 +269,8 @@ export default function Tournaments() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-md">
                 
-                {filtered.length > 0 ? (
-                  filtered.map(t => {
+                {paginatedFiltered.length > 0 ? (
+                  paginatedFiltered.map(t => {
                     const gameInfo = getTournamentGameInfo(t);
                     const stat = STATUS_LABEL[t.status] || { label: t.status, color: "text-primary/70" };
                     const used = t._count?.registrations ?? 0;
@@ -341,7 +350,7 @@ export default function Tournaments() {
                 )}
 
                 {/* More coming teaser */}
-                {filtered.length > 0 && (
+                {paginatedFiltered.length > 0 && (
                   <article className="bg-surface-container-high border-4 border-dashed border-primary flex flex-col items-center justify-center p-lg text-center select-none">
                     <div className="w-16 h-16 bg-black flex items-center justify-center mb-sm">
                       <span className="material-symbols-outlined text-white text-[40px]">add</span>
@@ -357,15 +366,35 @@ export default function Tournaments() {
             {/* Pagination */}
             {!loading && !error && filtered.length > 0 && (
               <div className="mt-xl flex items-center justify-center gap-xs select-none">
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white transition-all cursor-pointer">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className={`w-12 h-12 flex items-center justify-center border-4 border-primary ${currentPage === 1 ? 'opacity-50 pointer-events-none' : 'hover:bg-black hover:text-white transition-all cursor-pointer'}`}
+                >
                   <span className="material-symbols-outlined text-[24px]">chevron_left</span>
                 </button>
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary bg-black text-white font-title-lg uppercase">1</button>
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">2</button>
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">3</button>
-                <span className="px-xs text-primary font-black">...</span>
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white font-title-lg uppercase transition-all">12</button>
-                <button className="w-12 h-12 flex items-center justify-center border-4 border-primary hover:bg-black hover:text-white transition-all cursor-pointer">
+
+                {/* Page numbers */}
+                <div className="flex gap-x-1">
+                  {[...Array(totalPages)].map((_, index) => (
+                    <button
+                      key={index + 1}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`w-12 h-12 flex items-center justify-center border-4 border-primary ${currentPage === index + 1
+                        ? 'bg-black text-white'
+                        : 'hover:bg-black hover:text-white transition-all cursor-pointer'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`w-12 h-12 flex items-center justify-center border-4 border-primary ${currentPage === totalPages ? 'opacity-50 pointer-events-none' : 'hover:bg-black hover:text-white transition-all cursor-pointer'}`}
+                >
                   <span className="material-symbols-outlined text-[24px]">chevron_right</span>
                 </button>
               </div>
