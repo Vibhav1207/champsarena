@@ -32,7 +32,7 @@ export default function Footer() {
             <a href="#" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Discord
             </a>
-            <a href="#" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
+            <a href="/contact" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Support Hub
             </a>
           </div>
@@ -40,10 +40,10 @@ export default function Footer() {
             <span className="font-black text-xl text-primary uppercase mb-xs border-b-4 border-accent-yellow pb-1 select-none">
               Legal
             </span>
-            <a href="#" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
+            <a href="/rules" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Regulations
             </a>
-            <a href="#" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
+            <a href="/privacy" className="text-primary font-bold hover:text-accent-blue uppercase text-sm">
               Privacy
             </a>
           </div>
