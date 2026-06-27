@@ -710,7 +710,7 @@ Managed={loadingManaged}
                       <div key={item.label} className="flex items-center justify-between py-2 border-b-2 border-dashed border-primary/20 last:border-0">
                         <span className="text-xs text-primary font-bold uppercase tracking-tight">{item.label}</span>
                         <span className={`flex items-center gap-1.5 text-xs font-black uppercase ${item.good ? "text-green-700" : "text-amber-600"}`}>
-                          <span className={`w-3 h-3 border-2 border-primary ${item.good ? "bg-green-500 animate-pulse" : "bg-amber-400`} /> />
+                          <span className={`w-3 h-3 border-2 border-primary ${item.good ? "bg-green-500 animate-pulse" : "bg-amber-400"}`}>
                           {item.status}
                         </span>
                       </div>

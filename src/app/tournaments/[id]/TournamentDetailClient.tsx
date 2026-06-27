@@ -124,7 +124,7 @@ export default function TournamentDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           p1Score: parseInt(reportP1Score),
-          p2Score: parseInt(report.");
+          p2Score: parseInt(reportP2Score);
       return;
     }
     try {

@@ -910,7 +910,7 @@ export default function Profile() {
                                   <button onClick={() => handleRespondInvite(invite.id, "DECLINE")} className="bg-white text-accent-red border border-primary px-3 py-1.5 text-[10px] font-black hover:bg-red-50 cursor-pointer">DECLINE</button>
                                 </div>
                               </div>
-                            )}
+                            ))}
                           </div>
                         ) : (
                           <div className="border-4 border-dashed border-primary/45 p-md text-center bg-surface-container-low text-primary select-none flex flex-col items-center justify-center min-h-[160px]">
