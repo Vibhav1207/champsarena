@@ -117,17 +117,7 @@ export default function TournamentDetailClient({
       alert("Please enter scores for both sides.");
       return;
     }
-    try {
-      setReportingMatch(true);
-      const res = await fetch(`/api/matches/${matchId}/report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          p1Score: parseInt(reportP1Score),
-          p2Score: parseInt(reportP2Score);
-      return;
-    }
-    try {
+        try {
       setReportingMatch(true);
       const res = await fetch(`/api/matches/${matchId}/report`, {
         method: "POST",
