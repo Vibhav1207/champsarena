@@ -109,8 +109,22 @@ export default function TournamentDetailClient({
   }, [id]);
 
   const handleReportMatch = async (matchId: string) => {
+    if (!currentUser) {
+      alert("You must be logged in to report match results.");
+      return;
+    }
     if (!reportP1Score || !reportP2Score) {
       alert("Please enter scores for both sides.");
+      return;
+    }
+    try {
+      setReportingMatch(true);
+      const res = await fetch(`/api/matches/${matchId}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p1Score: parseInt(reportP1Score),
+          p2Score: parseInt(report.");
       return;
     }
     try {
@@ -137,8 +151,7 @@ export default function TournamentDetailClient({
     } catch (err: any) {
       alert("Failed to report scores: " + err.message);
     } finally {
-      setReportingMatch(false);
-    }
+      setReportingMatch);
   };
 
   const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +182,10 @@ export default function TournamentDetailClient({
   };
 
   const handleAcceptResult = async (matchId: string) => {
+    if (!currentUser) {
+      alert("You must be logged in to accept match results.");
+      return;
+    }
     try {
       setReportingMatch(true);
       const res = await fetch(`/api/matches/${matchId}/confirm`, {
@@ -193,6 +210,10 @@ export default function TournamentDetailClient({
   };
 
   const handleRaiseDispute = async (matchId: string) => {
+    if (!currentUser) {
+      alert("You must be logged in to raise a dispute.");
+      return;
+    }
     if (!disputeReason.trim()) {
       alert("Please provide a reason for the dispute.");
       return;
