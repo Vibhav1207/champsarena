@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Project Overview
+
+ChampsArena is a competitive gaming tournament platform built with Next.js (App Router), TypeScript, Tailwind CSS, and PostgreSQL via Prisma. It enables users to create and join tournaments, form squads, compete in matches/duels, track ELO rankings, process payments via Stripe/Razorpay, and manage announcements, notifications, and support tickets. The platform includes an admin dashboard for moderation and features real-time updates, dispute resolution, and a leaderboard showcasing top champions.
+
 ## Getting Started
 
 First, run the development server:

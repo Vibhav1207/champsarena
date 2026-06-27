@@ -133,7 +133,7 @@ export default function Tournaments() {
 
           {/* Sidebar Filters */}
           <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="bg-white p-md border-4 border-primary neo-brutalist-shadow-sm sticky top-[120px]">
+            <div className="bg-white p-md border-4 border-primary neo-brutalist-shadow-sm sticky top-[4px] sm:top-[120px]">
               <div className="flex items-center justify-between mb-sm border-b-2 border-primary pb-xs select-none">
                 <h2 className="font-headline-md text-headline-md text-primary uppercase italic">Filters</h2>
                 <button onClick={handleReset} className="text-primary font-label-lg text-label-lg hover:underline underline-offset-4 font-bold">

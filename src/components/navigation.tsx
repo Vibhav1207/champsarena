@@ -28,7 +28,7 @@ export default function Navigation() {
         .then(r => r.json())
         .then(data => setUnreadCount(data.count || 0))
         .catch(() => {});
-      
+
       // Fetch recent 5 notifications
       fetch("/api/notifications")
         .then(r => r.json())
@@ -222,7 +222,6 @@ export default function Navigation() {
                 </div>
               )}
             </div>
-
             {session ? (
               /* Logged-in avatar */
               <Link href="/profile" title={session.name || "Profile"}
@@ -255,7 +254,7 @@ export default function Navigation() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-background border-t-4 border-primary p-md flex flex-col gap-sm z-50">
+        <div className="fixed inset-x-0 top-20 z-[50] flex flex-col items-center p-4 space-y-4 bg-background border-t-4 border-primary max-h-[calc(100vh_-_5rem)] overflow-y-auto">
           <Link href="/games" onClick={() => setMobileMenuOpen(false)} className={getMobileLinkCls("/games", "bg-accent-blue/20")}>
             Games
           </Link>
@@ -281,12 +280,12 @@ export default function Navigation() {
             </Link>
           )}
           {session && (
-            <div className="flex flex-col gap-xs py-sm border-t-2 border-primary mt-xs">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-xs py-sm border-t-2 border-primary w-full">
+              <div className="flex items-center gap-2 w-full">
                 <div className="w-8 h-8 rounded-full bg-accent-yellow border-2 border-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
                   {(session.name || "?")[0].toUpperCase()}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-bold text-primary">{session.name}</p>
                   <p className="text-xs text-primary/70">{session.email}</p>
                 </div>
@@ -300,7 +299,7 @@ export default function Navigation() {
                     console.error("Sign out failed", err);
                   }
                 }}
-                className="text-left text-xs font-black text-accent-red hover:underline flex items-center gap-1 mt-2 pl-1"
+                className="w-full text-left text-xs font-black text-accent-red hover:underline flex items-center gap-1 mt-2 pl-1"
               >
                 <span className="material-symbols-outlined text-[14px]">logout</span>
                 Sign Out

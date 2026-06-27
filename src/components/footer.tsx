@@ -24,7 +24,7 @@ export default function Footer() {
         </div>
 
         {/* Links Columns */}
-        <div className="grid grid-cols-2 gap-md md:gap-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-md md:gap-xl">
           <div className="flex flex-col gap-sm">
             <span className="font-black text-xl text-primary uppercase mb-xs border-b-4 border-accent-red pb-1 select-none">
               Community

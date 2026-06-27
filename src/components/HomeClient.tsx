@@ -71,7 +71,7 @@ export default function HomeClient({
 
       <main className="pt-0 text-primary">
         {/* Hero Section */}
-        <section className="relative w-full min-h-[500px] md:h-[700px] py-xl md:py-0 flex items-center justify-center overflow-hidden border-b-4 border-primary bg-accent-yellow/10">
+        <section className="relative w-full min-h-[400px] md:h-[500px] lg:h-[700px] py-xl md:py-0 flex items-center justify-center overflow-hidden border-b-4 border-primary bg-accent-yellow/10">
           <div className="absolute inset-0 z-0 opacity-50 grayscale contrast-125 select-none pointer-events-none">
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIKxLGbKi9AFU6kDvRhPMdZ_gJBwFV86yr70Mjr49MK56QHhQOlrhO2_x-ozbLR-DOiT5jF7wbElOr20jF4xJJ_DQ2DSALh6jUWg3q__3vUjLdahhrdMY_QfxaittO9lpwpkfWAzwjtS-JWvZf9rtIwIadQe0B6pkiSERH_S1-EDIzPvkIFFVg-uF8aRtUFsgjWk0pa4sdBSZs0bl1CF12eAmRjfoAmNxNaYNtLuvMP7JmW8R2x25zkhTuniFtQrSEkk7ycr74JTo"
@@ -83,11 +83,11 @@ export default function HomeClient({
             />
           </div>
           <div className="bauhaus-grid absolute inset-0"></div>
-          <div className="relative z-20 text-center px-sm max-w-[896px]">
+          <div className="relative z-20 text-center w-full mx-auto max-w-[896px] px-sm">
             <div className="inline-block bg-accent-red text-white font-bold uppercase px-4 py-1 mb-md transform -rotate-1 text-lg sm:text-xl select-none">
               The Ultimate Stage
             </div>
-            <h1 className="font-bold text-4xl sm:text-6xl md:text-7xl lg:text-[88px] text-primary mb-md leading-none uppercase tracking-tighter">
+            <h1 className="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl text-primary mb-md leading-none uppercase tracking-tighter">
               <span className="block">ChampsArena</span>
               <span className="block bg-primary text-white inline-block px-4 py-2 transform rotate-1">League</span>
             </h1>
@@ -112,8 +112,8 @@ export default function HomeClient({
         </section>
 
         {/* Winners Ticker */}
-        <div className="bg-primary py-4 overflow-hidden border-b-4 border-primary select-none">
-          <div className="flex whitespace-nowrap animate-marquee items-center">
+        <div className="bg-primary py-4 overflow-x-hidden border-b-4 border-primary select-none">
+          <div className="flex whitespace-nowrap animate-marquee items-center min-w-0">
             <span className="font-black mx-md text-white uppercase tracking-widest text-xl">RECENT CHAMPIONS //</span>
             {winners.length > 0 ? (
               [...winners, ...winners].map((w, idx) => (

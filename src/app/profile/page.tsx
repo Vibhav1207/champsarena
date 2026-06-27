@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,14 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { logoutTrainer } from "@/app/actions/authActions";
-import { usePopup } from "@/components/PopupProvider";
 import { useBodyScrollLock } from "@/lib/bodyScrollLock";
 import { useAuth } from "@/lib/auth";
+import Modal from "@/components/Modal";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 type TabId = "trainer" | "squad";
 
 export default function Profile() {
-  const { confirm } = usePopup();
   const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("trainer");
   const [profileData, setProfileData] = useState<any>(null);
@@ -52,7 +50,7 @@ export default function Profile() {
   const [searching, setSearching] = useState(false);
   const [joiningSquadId, setJoiningSquadId] = useState<string | null>(null);
   const [joiningSquadName, setJoiningSquadName] = useState<string | null>(null);
-  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showJoinMemo, setShowJoinModal] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
 
@@ -66,6 +64,14 @@ export default function Profile() {
   const [editTwitch, setEditTwitch] = useState("");
   const [editYoutube, setEditYoutube] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [returnUrl, setReturnUrl] = useState<string>('');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const currentUrl = `${pathname}${query ? '?' + query : ''}`;
 
   const fetchProfile = () => {
     fetch("/api/profile")
@@ -114,6 +120,15 @@ export default function Profile() {
       .finally(() => setLoading(false));
   };
 
+  const handleRequireAuth = (callback: () => void) => {
+    if (!isAuthenticated) {
+      setReturnUrl(currentUrl);
+      setShowLoginModal(true);
+      return;
+    }
+    callback();
+  };
+
   const fetchSquad = () => {
     setSquadLoading(true);
     fetch("/api/squads")
@@ -153,11 +168,6 @@ export default function Profile() {
       }
     }
   }, []);
-
-
-  useBodyScrollLock(showEditProfile);
-  useBodyScrollLock(showCreateSquad);
-  useBodyScrollLock(showJoinModal)
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,7 +357,7 @@ export default function Profile() {
       LEAVE: "Are you sure you want to leave this squad?",
     };
 
-    if (!await confirm(confirmationMsg[action] || "Confirm roster modification?")) return;
+    if (!window.confirm(confirmationMsg[action] || "Confirm roster modification?")) return;
 
     try {
       const res = await fetch("/api/squads/roster", {
@@ -369,7 +379,7 @@ export default function Profile() {
 
   const handleDisbandSquad = async () => {
     if (!squadData) return;
-    if (!await confirm("Are you absolutely sure you want to disband and delete your squad? This action is permanent and cannot be undone.")) return;
+    if (!window.confirm("Are you absolutely sure you want to disband and delete your squad? This action is permanent and cannot be undone.")) return;
 
     try {
       const res = await fetch(`/api/squads/${squadData.id}`, {
@@ -397,7 +407,7 @@ export default function Profile() {
   const image = profileData?.image || null;
 
   const totalMatches = wins + losses;
-  const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+  const winRate = totalMatches > 0 ? Math.round((wins / totalContacts) * 100) : 0;
 
   const earnedBadges = profileData?.wonTournaments
     ?.filter((t: any) => t.badgeName)
@@ -495,29 +505,19 @@ export default function Profile() {
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full select-none">
                           <button
-                            onClick={() => {
-                              if (!isAuthenticated) {
-                                // Auth handling is done by useAuth hook via useEffect
-                                return;
-                              }
-                              setShowEditProfile(true);
-                            }}
+                            onClick={() => handleRequireAuth(() => setShowEditProfile(true))}
                             className="flex-grow bg-accent-yellow text-primary border-4 border-primary px-4 py-2 font-black uppercase tracking-widest text-xs hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:translate-x-0 active:translate-y-0 cursor-pointer"
                           >
                             Edit Profile
                           </button>
                           <button
-                            onClick={async () => {
-                              if (!isAuthenticated) {
-                                // Auth handling is done by useAuth hook via useEffect
-                                return;
-                              }
+                            onClick={() => handleRequireAuth(async () => {
                               try {
                                 await logoutTrainer();
                               } catch (err) {
                                 console.error("Sign out failed", err);
                               }
-                            }}
+                            })}
                             className="bg-accent-red text-white border-4 border-primary px-4 py-2 font-black uppercase tracking-widest text-xs hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all active:translate-x-0 active:translate-y-0 cursor-pointer"
                           >
                             Sign Out
@@ -566,6 +566,7 @@ export default function Profile() {
                             </div>
                           </div>
                         </div>
+
                       </div>
 
                     </div>
@@ -845,7 +846,7 @@ export default function Profile() {
                                   const isMember = squadData?.members?.some((m: any) => m.id === user.id);
                                   const isInvited = squadData?.invitations?.some((invite: any) => invite.userId === user.id);
                                   return (
-                                    <div key={user.id} className="flex justify-between items-center bg-white border-2 border-primary px-sm py-1.5 text-xs font-black uppercase">
+                                    <div key={user.id} className="flex justify-between items-center bg-white border-2 border-primary px-sm py-1.5 text-xs font-bold uppercase">
                                       <div className="flex items-center gap-sm">
                                         <div className="w-6 h-6 rounded-full bg-accent-yellow border border-primary overflow-hidden flex items-center justify-center font-bold text-[10px] select-none">
                                           {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : (user.name || "T")[0].toUpperCase()}
@@ -909,7 +910,7 @@ export default function Profile() {
                                   <button onClick={() => handleRespondInvite(invite.id, "DECLINE")} className="bg-white text-accent-red border border-primary px-3 py-1.5 text-[10px] font-black hover:bg-red-50 cursor-pointer">DECLINE</button>
                                 </div>
                               </div>
-                            ))}
+                            )}
                           </div>
                         ) : (
                           <div className="border-4 border-dashed border-primary/45 p-md text-center bg-surface-container-low text-primary select-none flex flex-col items-center justify-center min-h-[160px]">
@@ -930,13 +931,7 @@ export default function Profile() {
                             Create a competitive roster to participate in multiplayer tournaments like Free Fire and Valorant.
                           </p>
                           <button
-                            onClick={() => {
-                              if (!isAuthenticated) {
-                                // Auth handling is done by useAuth hook via useEffect
-                                return;
-                              }
-                              setShowCreateSquad(true);
-                            }}
+                            onClick={() => handleRequireAuth(() => setShowCreateSquad(true))}
                             className="bg-accent-yellow text-primary border-4 border-primary px-lg py-2.5 font-black uppercase text-xs tracking-widest hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer"
                           >
                             Build Squad
@@ -952,235 +947,223 @@ export default function Profile() {
         )}
       </main>
 
-      {/* Edit Profile Modal */}
-      {showEditProfile && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
-          onClick={e => { if (e.target === e.currentTarget) setShowEditProfile(false); }}
-          onKeyDown={e => { if (e.key === 'Escape') setShowEditProfile(false); }}
-          tabIndex="-1"
-        >
-          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
-            <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
-              <h3 className="font-black text-lg uppercase text-primary">Edit Trainer Profile</h3>
-              <button onClick={() => setShowEditProfile(false)} className="material-symbols-outlined text-primary hover:opacity-75 cursor-pointer">close</button>
-            </div>
-
-            {editError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{editError}</div>}
-
-            <form onSubmit={handleUpdateProfile} className="space-y-sm">
-              <div className="space-y-1">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer *</label>
-                <input
-                  type="text"
-                  required
-                  value={editUsername}
-                  onChange={e => setEditUsername(e.target.value)}
-                  placeholder="Username"
-                  className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Biography</label>
-                <textarea
-                  value={editBio}
-                  onChange={e => setEditBio(e.target.value)}
-                  placeholder="Tactical summary or coordinates..."
-                  rows={3}
-                  className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-sm">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-primary uppercase font-black tracking-widest">Country</label>
-                  <input
-                    type="text"
-                    value={editCountry}
-                    onChange={e => setEditCountry(e.target.value)}
-                    placeholder="e.g. United Kingdom"
-                    className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] text-primary uppercase font-black tracking-widest">Discord Username</label>
-                  <input
-                    type="text"
-                    value={editDiscord}
-                    onChange={e => setEditDiscord(e.target.value)}
-                    placeholder="e.g. ash.ketchum"
-                    className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Social links */}
-              <div className="border-t-2 border-primary pt-sm space-y-sm select-none">
-                <span className="font-black text-[10px] tracking-widest block text-primary/60">Social accounts</span>
-                <div className="grid grid-cols-3 gap-xs">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black">Twitter/X</label>
-                    <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} placeholder="Handle" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black">Twitch</label>
-                    <input type="text" value={editTwitch} onChange={e => setEditTwitch(e.target.value)} placeholder="Channel" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black">YouTube</label>
-                    <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} placeholder="Channel" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-sm pt-xs select-none">
-                <button type="button" onClick={() => setShowEditProfile(false)} className="flex-1 bg-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-yellow cursor-pointer">Cancel</button>
-                <button type="submit" className="flex-grow bg-primary text-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-blue cursor-pointer">Save Coordinates</button>
-              </div>
-            </form>
-          </div>
+      {/* Footer (Internal) */}
+      <footer className="bg-white border-t-4 border-primary px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-auto">
+        <p className="text-[10px] font-black uppercase tracking-widest italic text-primary">© 2026 CHAMPSARENA • FORM FOLLOWS FUNCTION</p>
+        <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-primary">
+          <a className="hover:text-accent-blue underline decoration-2 underline-offset-2 transition-colors" href="#">Internal Wiki</a>
+          <a className="hover:text-accent-blue underline decoration-2 underline-offset-2 transition-colors" href="#">Support</a>
+          <a className="hover:text-accent-blue underline decoration-2 underline-offset-2 transition-colors" href="#">Log Files</a>
         </div>
-      )}
+      </footer>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        isOpen={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        title="Edit Trainer Profile"
+      >
+        {editError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{editError}</div>}
+
+        <form onSubmit={handleUpdateProfile} className="space-y-sm">
+          <div className="space-y-1">
+            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Trainer *</label>
+            <input
+              type="text"
+              required
+              value={editUsername}
+              onChange={e => setEditUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Biography</label>
+            <textarea
+              value={editBio}
+              onChange={e => setEditBio(e.target.value)}
+              placeholder="Tactical summary or coordinates..."
+              rows={3}
+              className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-sm">
+            <div className="space-y-1">
+              <label className="text-[10px] text-primary uppercase font-black tracking-widest">Country</label>
+              <input
+                type="text"
+                value={editCountry}
+                onChange={e => setEditCountry(e.target.value)}
+                placeholder="e.g. United Kingdom"
+                className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] text-primary uppercase font-black tracking-widest">Discord Username</label>
+              <input
+                type="text"
+                value={editDiscord}
+                onChange={e => setEditDiscord(e.target.value)}
+                placeholder="e.g. ash.ketchum"
+                className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Social links */}
+          <div className="border-t-2 border-primary pt-sm space-y-sm select-none">
+            <span className="font-black text-[10px] tracking-widest block text-primary/60">Social accounts</span>
+            <div className="grid grid-cols-3 gap-xs">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black">Twitter/X</label>
+                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} placeholder="Handle" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black">Twitch</label>
+                <input type="text" value={editTwitch} onChange={e => setEditTwitch(e.target.value)} placeholder="Channel" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black">YouTube</label>
+                <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} placeholder="Channel" className="w-full bg-white border-2 border-primary p-1.5 text-xs font-bold focus:bg-accent-yellow outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-sm pt-xs select-none">
+            <button type="button" onClick={() => setShowEditProfile(false)} className="flex-1 bg-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-yellow cursor-pointer">Cancel</button>
+            <button type="submit" className="flex-grow bg-primary text-white border-2 border-primary py-2 font-bold uppercase text-xs hover:bg-accent-blue cursor-pointer">Save Coordinates</button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Create Squad Modal */}
-      {showCreateSquad && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
-          onClick={e => { if (e.target === e.currentTarget) setShowCreateSquad(false); }}
-          onKeyDown={e => { if (e.key === 'Escape') setShowCreateSquad(false); }}
-          tabIndex="-1"
-        >
-          <div className="bg-white border-8 border-primary max-w-[512px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
-            <div className="flex justify-between items-center border-b-4 border-primary pb-sm bg-accent-yellow -mx-md -mt-md p-sm select-none">
-              <h3 className="font-black text-lg uppercase text-primary">Establish Squad Roster</h3>
-              <button onClick={() => setShowCreateSquad(false)} className="material-symbols-outlined text-primary hover:opacity-75 cursor-pointer">close</button>
-            </div>
+      <Modal
+        isOpen={showCreateSquad}
+        onClose={() => setShowCreateSquad(false)}
+        title="Establish Squad Roster"
+      >
+        {squadError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{squadError}</div>}
 
-            {squadError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{squadError}</div>}
-
-            <form onSubmit={handleCreateSquadSubmit} className="space-y-sm">
-              <div className="space-y-1">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Squad Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={squadName}
-                  onChange={e => setSquadName(e.target.value)}
-                  placeholder="e.g. Team Phoenix"
-                  className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
-                />
-              </div>
-
-              <div className="space-y-1 select-none">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest block mb-1">Squad Logo</label>
-                {squadLogo ? (
-                  <div className="flex items-center gap-sm border-2 border-primary p-xs bg-surface-container-low">
-                    <div className="w-12 h-12 border-2 border-primary overflow-hidden relative flex-shrink-0">
-                      <img src={squadLogo} alt="Squad Logo Preview" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <span className="text-[9px] text-primary/60 font-black uppercase block">Uploaded</span>
-                      <button
-                        type="button"
-                        onClick={() => setSquadLogo("")}
-                        className="bg-accent-red text-white border border-primary px-1.5 py-0.5 text-[8px] font-black hover:bg-red-700 cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-primary/50 hover:border-primary p-sm text-center bg-surface-container-low cursor-pointer flex-f -col items-center justify-center min-h-[80px] relative transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      disabled={uploadingLogo}
-                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                    />
-                    <span className="material-symbols-outlined text-2xl text-primary/60 mb-0.5">upload_file</span>
-                    <span className="text-[10px] font-black uppercase text-primary">
-                      {uploadingLogo ? "Uploading..." : "Click to upload image"}
-                    </span>
-                    <span className="text-[8px] text-primary/50 font-bold uppercase">PNG, JPG, or GIF</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-primary uppercase font-black tracking-widest">Description</label>
-                <textarea
-                  value={squadDesc}
-                  onChange={e => setSquadDesc(e.target.value)}
-                  placeholder="Describe your squad..."
-                  rows={3}
-                  className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none resize-none"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-sm pt-xs select-none">
-                <button type="button" onClick={() => setShowCreateSquad(false)} className="flex-1 bg-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-yellow cursor-pointer">Cancel</button>
-                <button type="submit" className="flex-grow bg-primary text-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-blue cursor-pointer">Establish Squad</button>
-              </div>
-            </form>
+        <form onSubmit={handleCreateSquadSubmit} className="space-y-sm">
+          <div className="space-y-1">
+            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Squad Name *</label>
+            <input
+              type="text"
+              required
+              value={squadName}
+              onChange={e => setSquadName(e.target.value)}
+              placeholder="e.g. Team Phoenix"
+              className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none"
+            />
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1 select-none">
+            <label className="text-[10px] text-primary uppercase font-black tracking-widest block mb-1">Squad Logo</label>
+            {squadLogo ? (
+              <div className="flex items-center gap-sm border-2 border-primary p-xs bg-surface-container-low">
+                <div className="w-12 h-12 border-2 border-primary overflow-hidden relative flex-shrink-0">
+                  <img src={squadLogo} alt="Squad Logo Preview" className="w-full h-full object-cover" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] text-primary/60 font-black uppercase block">Uploaded</span>
+                  <button
+                    type="button"
+                    onClick={() => setSquadLogo("")}
+                    className="bg-accent-red text-white border border-primary px-1.5 py-0.5 text-[8px] font-black hover:bg-red-700 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-primary/50 hover:border-primary p-sm text-center bg-surface-container-low cursor-pointer flex-col items-center justify-center min-h-[80px] relative transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={uploadingLogo}
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <span className="material-symbols-outlined text-2xl text-primary/60 mb-0.5">upload_file</span>
+                <span className="text-[10px] font-black uppercase text-primary">
+                  {uploadingLogo ? "Uploading..." : "Click to upload image"}
+                </span>
+                <span className="text-[8px] text-primary/50 font-bold uppercase">PNG, JPG, or GIF</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-primary uppercase font-black tracking-widest">Description</label>
+            <textarea
+              value={squadDesc}
+              onChange={e => setSquadDesc(e.target.value)}
+              placeholder="Describe your squad..."
+              rows={3}
+              className="w-full bg-white border-2 border-primary py-2 px-3 text-xs font-bold focus:bg-accent-yellow outline-none resize-none"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-sm pt-xs select-none">
+            <button type="button" onClick={() => setShowCreateSquad(false)} className="flex-1 bg-white border-2 border-primary py-2 font-black uppercase text-xs hover:bg-accent-yellow cursor-pointer">Cancel</button>
+            <button type="submit" className="flex-grow bg-primary text-white border-2 border-primary py-2 font-bold uppercase text-xs hover:bg-accent-blue cursor-pointer">Establish Squad</button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Join Squad Modal */}
-      {showJoinModal && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4 backdrop-blur-sm"
-          onClick={e => { if (e.target === e.currentTarget) setShowJoinModal(false); }}
-          onKeyDown={e => { if (e.key === 'Escape') setShowJoinModal(false); }}
-          tabIndex="-1"
-        >
-          <div className="bg-white border-8 border-primary max-w-[448px] w-full p-2 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto neo-brutalist-shadow space-y-md text-left text-primary uppercase font-bold text-xs">
-            <h3 className="font-headline-md text-primary uppercase text-center font-black">
-              Squad Invitation Link
-            </h3>
-
-            <div className="bg-accent-yellow border-4 border-primary p-md text-center space-y-sm select-none">
-              <span className="material-symbols-outlined text-5xl text-primary">groups</span>
-              <p className="text-sm font-black uppercase text-primary leading-tight">
-                You've been invited to join the squad:
-              </p>
-              <h4 className="text-2xl font-black uppercase text-accent-red leading-none mt-1">
-                {joiningSquadName || "Loading..."}
-              </h4>
-            </div>
-
-            {joinError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{joinError}</div>}
-
-            <p className="text-primary/70 font-bold uppercase text-[10px] select-none leading-relaxed text-center">
-              Joining this squad will add your profile to their roster. You cannot join if you are already in a squad or if the roster is full.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm select-none">
-              <button
-                onClick={handleJoinSquadDirect}
-                className="p-3 bg-primary text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
-              >
-                Join Squad
-              </button>
-              <button
-                onClick={() => {
-                  setShowJoinModal(false);
-                  setJoiningSquadId(null);
-                  setJoiningSquadName(null);
-                  if (typeof window !== "undefined") {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                  }
-                }}
-                className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={showJoinModal}
+        onClose={() => {
+          setShowJoinModal(false);
+          setJoiningSquadId(null);
+          setJoiningSquadName(null);
+          if (typeof window !== "undefined") {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }}
+        title="Squad Invitation Link"
+      >
+        <div className="bg-accent-yellow border-4 border-primary p-md text-center space-y-sm select-none">
+          <span className="material-symbols-outlined text-5xl text-primary">groups</span>
+          <p className="text-sm font-black uppercase text-primary leading-tight">
+            You've been invited to join the squad:
+          </p>
+          <h4 className="text-2xl font-black uppercase text-accent-red leading-none mt-1">
+            {joiningSquadName || "Loading..."}
+          </h4>
         </div>
-      )}
+
+        {joinError && <div className="p-2 bg-red-100 border border-accent-red text-accent-red text-xs font-bold uppercase">{joinError}</div>}
+
+        <p className="text-primary/70 font-bold uppercase text-[10px] select-none leading-relaxed text-center">
+          Joining this squad will add your profile to their roster. You cannot join if you are already in a squad or if the roster is full.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm select-none pt-2">
+          <button
+            onClick={handleJoinSquadDirect}
+            className="p-3 bg-primary text-white border-2 border-primary font-black uppercase text-xs text-center cursor-pointer active:translate-y-0.5"
+          >
+            Join Squad
+          </button>
+          <button
+            onClick={() => {
+              setShowJoinModal(false);
+              setJoiningSquadId(null);
+              setJoiningSquadName(null);
+              if (typeof window !== "undefined") {
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }
+            }}
+            className="p-3 bg-white text-primary border-2 border-primary font-black uppercase text-xs text-center cursor-pointer hover:bg-accent-yellow"
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
 
       {/* Join Success Alert banner */}
       {joinSuccess && (
