@@ -343,7 +343,7 @@ export default function BracketsClient() {
               </div>
             ) : (
               renderRoundColumns(sortedRounds)
-            ))
+            )}
 
             {grandChampion && (
               <div className="mt-lg flex justify-center">

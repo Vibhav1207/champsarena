@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { PendingActionProvider } from "@/context/PendingActionContext";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -28,9 +29,11 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background min-h-full flex flex-col font-space-grotesk selection:bg-accent-yellow selection:text-primary">
-        <PendingActionProvider>
-          {children}
-        </PendingActionProvider>
+        <AuthProvider>
+          <PendingActionProvider>
+            {children}
+          </PendingActionProvider>
+        </AuthProvider>
       </body>
     </html>
   );
