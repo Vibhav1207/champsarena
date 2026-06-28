@@ -7,7 +7,6 @@ import { loginTrainer, registerTrainer, socialLogin, requestPasswordReset } from
 import Navigation from "@/components/navigation";
 import { usePendingAction } from "@/context/PendingActionContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 
 type Tab = "login" | "signup" | "forgot";
 
@@ -489,7 +488,7 @@ export default function AuthPage() {
                                 value={rPass}
                                 onChange={e => setRPass(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"} }
+                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`}
                               />
                             </div>
                             <div className="space-y-1">
@@ -501,7 +500,7 @@ export default function AuthPage() {
                                 value={rPassConfirm}
                                 onChange={e => setRPassConfirm(e.target.value)}
                                 placeholder="••••••••"
-                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`
+                                className={`w-full bg-white border-2 border-primary py-2 px-3 text-sm font-bold focus:bg-accent-yellow outline-none transition-colors ${rPassConfirm && rPass !== rPassConfirm ? "border-accent-red" : "border-primary"}`}
                               />
                             </div>
                           </div>

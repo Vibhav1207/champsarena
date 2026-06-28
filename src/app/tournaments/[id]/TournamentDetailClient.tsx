@@ -141,7 +141,8 @@ export default function TournamentDetailClient({
     } catch (err: any) {
       alert("Failed to report scores: " + err.message);
     } finally {
-      setReportingMatch);
+      setReportingMatch(false);
+    }
   };
 
   const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
