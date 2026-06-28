@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutTrainer } from "@/app/actions/authActions";
@@ -92,8 +92,20 @@ function SidebarContent({
   );
 }
 
-export default function AdminDashboard() {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="w-10 h-10 border-4 border-accent-blue border-t-transparent animate-spin"></div>
+      </div>
+    }>
+      <AdminDashboard />
+    </Suspense>
+  );
+}
+
+function AdminDashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>({ metrics: {}, auditLogs: [], recentTournaments: [] });
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
