@@ -46,6 +46,7 @@ export default function TournamentDetailClient({
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [submittingDispute, setSubmittingDispute] = useState(false);
+  const [showGatewayModal, setShowGatewayModal] = useState(false);
 
   useEffect(() => {
     if (!tournament?.registrationDeadline || tournament.status !== "REGISTRATION_OPEN") {
@@ -456,5 +457,447 @@ export default function TournamentDetailClient({
       {/* Script for Razorpay */}
       <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
 
-      <main className];
-      [, [, broadcast D.C. compute across
+      <main className="min-h-screen bg-background font-space-grotesk text-primary pb-16">
+        <div className="max-w-5xl mx-auto px-sm md:px-lg pt-lg space-y-lg">
+
+          {/* Tournament Header */}
+          <div className="bg-white border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] p-md">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-sm">
+              <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">
+                  {tournament?.game?.replace(/_/g, " ")} · {tournament?.type?.replace(/_/g, " ")}
+                </p>
+                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight leading-tight text-primary">
+                  {tournament?.title}
+                </h1>
+                {registrationCountdown && (
+                  <p className="text-xs font-black uppercase tracking-widest text-accent-red mt-2 animate-pulse">
+                    {registrationCountdown}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col items-start md:items-end gap-2">
+                <span className={`text-[10px] font-black px-3 py-1.5 border-2 border-primary uppercase tracking-wider ${
+                  tournament?.status === "REGISTRATION_OPEN" ? "bg-accent-yellow text-primary" :
+                  tournament?.status === "ONGOING" ? "bg-accent-blue text-white" :
+                  tournament?.status === "COMPLETED" ? "bg-primary text-white" :
+                  "bg-surface-container text-primary"
+                }`}>
+                  {tournament?.status?.replace(/_/g, " ")}
+                </span>
+                {tournament?.prizePool > 0 && (
+                  <span className="text-lg font-black text-accent-blue">
+                    🏆 {formatPrizeMoney(tournament.prizePool)} Prize Pool
+                  </span>
+                )}
+                {tournament?.entryFee > 0 && (
+                  <span className="text-xs font-black text-primary/60 uppercase">
+                    Entry: {formatEntryFee(tournament.entryFee)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Register / Status Button */}
+            <div className="mt-md pt-sm border-t-2 border-primary flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              {tournament?.status === "REGISTRATION_OPEN" && !userRegistration && !squadRegistration && (
+                <button
+                  onClick={handleRegister}
+                  disabled={paying}
+                  className="bg-accent-yellow text-primary border-3 border-primary px-6 py-3 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_#1a1a1a] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                >
+                  {paying ? "Processing…" : tournament?.entryFee > 0 ? `Register — ${formatEntryFee(tournament.entryFee)}` : "Register Free"}
+                </button>
+              )}
+              {(userRegistration || squadRegistration) && (
+                <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-green-700 border-2 border-green-700 px-3 py-1.5">
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  Registered
+                  {(userRegistration?.status || squadRegistration?.status) !== "APPROVED" && (
+                    <span className="text-primary/60"> — Pending Approval</span>
+                  )}
+                </span>
+              )}
+              {tournament?.watchLiveUrl && (
+                <a
+                  href={tournament.watchLiveUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 bg-accent-red text-white border-3 border-primary px-4 py-2 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_#1a1a1a] hover:shadow-[5px_5px_0px_0px_#1a1a1a] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">live_tv</span>
+                  Watch Live
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Active Match Panel */}
+          {activeMatch && activeMatch.status !== "COMPLETED" && activeMatch.status !== "BYE" && (
+            <div className="bg-accent-yellow border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] p-md">
+              <h2 className="font-black text-primary uppercase tracking-tight text-lg mb-sm border-b-2 border-primary pb-2">
+                Your Active Match
+              </h2>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-md">
+                <div className="flex items-center gap-sm text-center">
+                  {comp1Logo && (
+                    <img src={comp1Logo} alt={comp1Name} className="w-10 h-10 border-2 border-primary object-cover" />
+                  )}
+                  <span className={`font-black text-primary uppercase text-sm ${isComp1User ? "underline decoration-2" : ""}`}>
+                    {comp1Name} {isComp1User ? "(You)" : ""}
+                  </span>
+                </div>
+                <span className="font-black text-primary/60 text-xl">VS</span>
+                <div className="flex items-center gap-sm text-center">
+                  <span className={`font-black text-primary uppercase text-sm ${isComp2User ? "underline decoration-2" : ""}`}>
+                    {comp2Name} {isComp2User ? "(You)" : ""}
+                  </span>
+                  {comp2Logo && (
+                    <img src={comp2Logo} alt={comp2Name} className="w-10 h-10 border-2 border-primary object-cover" />
+                  )}
+                </div>
+              </div>
+
+              {activeMatch.status === "REPORTED" && !userSideReported && (
+                <div className="mt-sm p-3 bg-white border-2 border-primary">
+                  <p className="text-xs font-black uppercase text-primary mb-2">
+                    Opponent reported: {reportedScore1} – {reportedScore2}. Do you agree?
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleAcceptResult(activeMatch.id)}
+                      disabled={reportingMatch}
+                      className="flex-1 py-2 bg-green-600 text-white border-2 border-primary font-black text-xs uppercase cursor-pointer disabled:opacity-50"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => setShowDisputeModal(true)}
+                      className="flex-1 py-2 bg-accent-red text-white border-2 border-primary font-black text-xs uppercase cursor-pointer"
+                    >
+                      Dispute
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeMatch.status !== "REPORTED" && (isComp1User || isComp2User) && (
+                <div className="mt-sm space-y-sm">
+                  <p className="text-xs font-black uppercase text-primary/60">Report Your Match Score:</p>
+                  <div className="flex gap-sm items-center">
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[10px] font-black uppercase">{comp1Name}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={reportP1Score}
+                        onChange={e => setReportP1Score(e.target.value)}
+                        className="w-full border-2 border-primary px-3 py-2 text-sm font-bold bg-white outline-none"
+                        placeholder="0"
+                      />
+                    </div>
+                    <span className="font-black text-primary mt-4">–</span>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[10px] font-black uppercase">{comp2Name}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={reportP2Score}
+                        onChange={e => setReportP2Score(e.target.value)}
+                        className="w-full border-2 border-primary px-3 py-2 text-sm font-bold bg-white outline-none"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-primary">Screenshot Proof</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleScreenshotUpload}
+                      disabled={uploadingScreenshot}
+                      className="text-xs text-primary cursor-pointer"
+                    />
+                    {reportScreenshot && (
+                      <a href={reportScreenshot} target="_blank" rel="noreferrer" className="text-xs text-accent-blue underline">
+                        View uploaded proof
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleReportMatch(activeMatch.id)}
+                      disabled={reportingMatch || uploadingScreenshot}
+                      className="flex-1 py-2.5 bg-primary text-white border-2 border-primary font-black text-xs uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                    >
+                      {reportingMatch ? "Submitting…" : "Submit Scores"}
+                    </button>
+                    <button
+                      onClick={() => setShowDisputeModal(true)}
+                      className="py-2.5 px-4 bg-white text-accent-red border-2 border-primary font-black text-xs uppercase cursor-pointer"
+                    >
+                      Dispute
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab Navigation */}
+          <div className="flex border-4 border-primary bg-white">
+            {(["rules", "schedule", "brackets", "standings"] as TabId[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 text-[10px] md:text-xs font-black uppercase tracking-wider transition-colors ${
+                  activeTab === tab
+                    ? "bg-primary text-white"
+                    : "bg-white text-primary hover:bg-accent-yellow"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-white border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] p-md text-left">
+
+            {activeTab === "rules" && (
+              <div className="space-y-md">
+                <div>
+                  <h2 className="text-xl font-black uppercase tracking-tight text-primary mb-sm border-b-2 border-primary pb-2">Tournament Rules</h2>
+                  <p className="text-sm font-bold text-primary/80 whitespace-pre-line leading-relaxed">
+                    {tournament?.rules || "Standard rules apply. Check back for detailed ruleset."}
+                  </p>
+                </div>
+                {tournament?.description && (
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-wider text-primary mb-2 border-b border-primary/20 pb-1">About</h3>
+                    <p className="text-sm font-bold text-primary/80 whitespace-pre-line">{tournament?.description}</p>
+                  </div>
+                )}
+                {prizeDistributionItems.length > 0 && tournament?.prizePool > 0 && (
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-wider text-primary mb-sm border-b border-primary/20 pb-1">Prize Distribution</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {prizeDistributionItems.map((item) => (
+                        <div key={item.rank} className={`p-3 border-2 border-primary flex justify-between items-center ${item.highlight ? "bg-accent-yellow" : "bg-surface-container-low"}`}>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">{item.rank}</p>
+                            <p className="font-black uppercase text-primary text-sm">{item.title}</p>
+                          </div>
+                          <p className="font-black text-accent-blue text-lg">
+                            {formatPrizeMoney(Math.floor(tournament.prizePool * item.pct))}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "schedule" && (
+              <div className="space-y-sm">
+                <h2 className="text-xl font-black uppercase tracking-tight text-primary mb-sm border-b-2 border-primary pb-2">Schedule</h2>
+                <div className="space-y-2 text-sm font-bold">
+                  {tournament?.registrationDeadline && (
+                    <div className="flex justify-between py-2 border-b border-primary/20">
+                      <span className="text-primary/60 uppercase text-xs">Registration Closes</span>
+                      <span className="text-primary">{new Date(tournament.registrationDeadline).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {tournament?.startDate && (
+                    <div className="flex justify-between py-2 border-b border-primary/20">
+                      <span className="text-primary/60 uppercase text-xs">Start Date</span>
+                      <span className="text-primary">{new Date(tournament.startDate).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {tournament?.endDate && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-primary/60 uppercase text-xs">End Date</span>
+                      <span className="text-primary">{new Date(tournament.endDate).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "brackets" && (
+              <div className="space-y-sm">
+                <div className="flex items-center justify-between mb-sm border-b-2 border-primary pb-2">
+                  <h2 className="text-xl font-black uppercase tracking-tight text-primary">Bracket</h2>
+                  <Link
+                    href={`/tournaments/${id}/bracket`}
+                    className="text-xs font-black uppercase tracking-wider underline decoration-2 underline-offset-2 hover:text-accent-blue transition-colors"
+                  >
+                    Full Bracket View →
+                  </Link>
+                </div>
+                {(!tournament?.matches || tournament.matches.length === 0) ? (
+                  <div className="flex flex-col items-center py-12 text-primary/50">
+                    <span className="material-symbols-outlined text-5xl mb-3">account_tree</span>
+                    <p className="text-xs font-bold uppercase">Brackets will be generated when the tournament starts.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <div className="space-y-3 min-w-[300px]">
+                      {Array.from(new Set(tournament.matches.map((m: any) => m.round))).sort().map((round: any) => (
+                        <div key={round} className="border-2 border-primary">
+                          <div className="bg-primary text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest">
+                            Round {round}
+                          </div>
+                          <div className="divide-y divide-primary/20">
+                            {tournament.matches.filter((m: any) => m.round === round).map((m: any) => (
+                              <div key={m.id} className="px-4 py-3 flex items-center justify-between text-xs font-bold">
+                                <div className="flex flex-col gap-1">
+                                  <span className={m.winnerId === m.p1Id || m.winnerSquadId === m.s1Id ? "text-accent-blue font-black" : "text-primary"}>
+                                    {m.p1?.name || m.s1?.name || "TBD"}
+                                  </span>
+                                  <span className={m.winnerId === m.p2Id || m.winnerSquadId === m.s2Id ? "text-accent-blue font-black" : "text-primary"}>
+                                    {m.p2?.name || m.s2?.name || "TBD"}
+                                  </span>
+                                </div>
+                                {m.status === "COMPLETED" && (
+                                  <span className="text-[10px] font-black text-accent-blue">
+                                    {m.p1Score ?? m.s1Score ?? 0} – {m.p2Score ?? m.s2Score ?? 0}
+                                  </span>
+                                )}
+                                {m.status === "BYE" && (
+                                  <span className="text-[10px] font-black text-primary/40 uppercase">BYE</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "standings" && (
+              <div className="space-y-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm mb-sm border-b-2 border-primary pb-2">
+                  <h2 className="text-xl font-black uppercase tracking-tight text-primary">Standings</h2>
+                  <input
+                    type="text"
+                    placeholder="Search player…"
+                    value={searchPlayer}
+                    onChange={e => setSearchPlayer(e.target.value)}
+                    className="border-2 border-primary px-3 py-1.5 text-xs font-bold bg-white outline-none w-full sm:w-48"
+                  />
+                </div>
+                {filteredStandings.length === 0 ? (
+                  <div className="flex flex-col items-center py-12 text-primary/50">
+                    <span className="material-symbols-outlined text-5xl mb-3">leaderboard</span>
+                    <p className="text-xs font-bold uppercase">No standings yet. Standings update as matches complete.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[400px] text-left border-collapse">
+                      <thead>
+                        <tr className="bg-surface-container border-b-2 border-primary">
+                          {["Rank", "Player", "Record", "Points", "OMW%"].map(h => (
+                            <th key={h} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-2 divide-primary">
+                        {filteredStandings.map((player) => (
+                          <tr key={player.name} className="hover:bg-surface-container-low transition-colors">
+                            <td className="px-4 py-3 font-black text-primary text-sm">{player.rank}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                {player.logo && (
+                                  <img src={player.logo} alt={player.name} className="w-6 h-6 border border-primary object-cover" />
+                                )}
+                                <span className="font-bold text-sm text-primary">{player.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 font-bold text-xs text-primary">{player.record}</td>
+                            <td className="px-4 py-3 font-black text-accent-blue">{player.points}</td>
+                            <td className="px-4 py-3 font-bold text-xs text-primary/60">{player.omw}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+
+          {/* Participants List */}
+          <div className="bg-white border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a] p-md">
+            <h2 className="text-lg font-black uppercase tracking-tight text-primary mb-sm border-b-2 border-primary pb-2">
+              Participants ({tournament?.game === "FREE_FIRE" ? (tournament?.squadRegistrations?.length || 0) : (tournament?.registrations?.length || 0)} / {tournament?.maxPlayers})
+            </h2>
+            {tournament?.game === "FREE_FIRE" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {(tournament?.squadRegistrations || []).map((reg: any) => (
+                  <div key={reg.squadId} className="flex items-center gap-2 p-2 border-2 border-primary">
+                    {reg.squad?.logo && (
+                      <img src={reg.squad.logo} alt={reg.squad.name} className="w-8 h-8 object-cover border border-primary" />
+                    )}
+                    <span className="text-xs font-bold uppercase text-primary truncate">{reg.squad?.name}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {(tournament?.registrations || []).map((reg: any) => (
+                  <div key={reg.userId} className="flex items-center gap-2 p-2 border-2 border-primary">
+                    {reg.user?.image && (
+                      <img src={reg.user.image} alt={reg.user.name} className="w-8 h-8 object-cover rounded-full border border-primary" />
+                    )}
+                    <span className="text-xs font-bold uppercase text-primary truncate">{reg.user?.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Dispute Modal */}
+      {showDisputeModal && (
+        <Modal isOpen={showDisputeModal} onClose={() => setShowDisputeModal(false)} title="Raise a Dispute">
+          <div className="space-y-sm">
+            <p className="text-xs font-bold text-primary uppercase">Please describe the reason for your dispute:</p>
+            <textarea
+              rows={4}
+              value={disputeReason}
+              onChange={e => setDisputeReason(e.target.value)}
+              placeholder="e.g. Opponent reported incorrect scores…"
+              className="w-full border-2 border-primary px-3 py-2 text-sm font-bold bg-white outline-none resize-none"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDisputeModal(false)}
+                className="flex-1 py-2.5 border-2 border-primary bg-white text-primary font-black text-xs uppercase cursor-pointer hover:bg-surface-container-high transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => activeMatch && handleRaiseDispute(activeMatch.id)}
+                disabled={submittingDispute}
+                className="flex-1 py-2.5 bg-accent-red text-white border-2 border-primary font-black text-xs uppercase cursor-pointer disabled:opacity-50"
+              >
+                {submittingDispute ? "Submitting…" : "Submit Dispute"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+    </>
+  );
+}

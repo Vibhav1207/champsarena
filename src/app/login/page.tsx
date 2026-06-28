@@ -43,8 +43,6 @@ export default function AuthPage() {
 
   const router = useRouter();
   const { pendingAction, clearPendingAction } = usePendingAction();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callback') || '/';
 
   
   // Handle pending action after login or registration

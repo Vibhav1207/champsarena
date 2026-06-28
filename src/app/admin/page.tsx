@@ -1162,7 +1162,7 @@ function TournamentManagementPanel({
   matchScores: any;
   setMatchScores: any;
   handleSubmitMatch: (matchId: string) => void;
-  submittingMarkId: string | null;
+  submittingMatchId: string | null;
   fetchData: () => Promise<void>;
 }) {
   const [activeRoundTab, setActiveRoundTab] = useState<number | null>(null);
@@ -1616,4 +1616,118 @@ function TournamentManagementPanel({
           </div>
 
           {/* Participants Seed List */}
-          <div className="bg-white p-5 border-4 border-primary shadow-[8px_8px_0px_0px_
+          <div className="bg-white p-5 border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a]">
+            <h3 className="font-black text-primary text-sm uppercase tracking-wider border-b-2 border-primary pb-2 mb-4">
+              Registered Participants ({registrations.length})
+            </h3>
+            {registrations.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-primary/50">
+                <span className="material-symbols-outlined text-4xl mb-2">group</span>
+                <p className="text-xs font-bold uppercase">No participants registered yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto custom-scroll pr-1">
+                {registrations.map((reg: any, idx: number) => (
+                  <div key={reg.userId || reg.squadId || idx} className="flex items-center justify-between text-xs font-bold p-2 border-2 border-primary bg-surface-container-low">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 flex items-center justify-center bg-primary text-white text-[9px] font-black border border-primary flex-shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="uppercase tracking-tight text-primary truncate max-w-[120px]">
+                        {reg.user?.name || reg.squad?.name || "Unknown"}
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-black uppercase text-primary/60">
+                      {reg.user?.elo ? `ELO: ${reg.user.elo}` : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Match Management */}
+        <div className="lg:col-span-8 space-y-lg">
+          <div className="bg-white border-4 border-primary shadow-[8px_8px_0px_0px_#1a1a1a]">
+            <div className="flex items-center justify-between p-5 border-b-4 border-primary bg-surface-container-low">
+              <h3 className="font-black text-primary text-sm uppercase tracking-wider">Match Results</h3>
+              <Link href={`/tournaments/${id}/bracket`} className="text-xs font-black uppercase underline decoration-2 underline-offset-2 hover:text-accent-blue transition-colors">
+                View Bracket →
+              </Link>
+            </div>
+            {loadingManaged ? (
+              <div className="p-8 text-center text-primary font-bold uppercase text-xs italic">Loading matches…</div>
+            ) : matches.length === 0 ? (
+              <div className="flex flex-col items-center py-12 text-primary/50">
+                <span className="material-symbols-outlined text-5xl mb-3">account_tree</span>
+                <p className="text-xs font-bold uppercase">No matches generated yet. Start the tournament to generate brackets.</p>
+              </div>
+            ) : (
+              <div className="divide-y-2 divide-primary">
+                {rounds.map((round: number) => (
+                  <div key={round}>
+                    <button
+                      onClick={() => setActiveRoundTab(activeRoundTab === round ? null : round)}
+                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-surface-container-low transition-colors text-left"
+                    >
+                      <span className="text-xs font-black uppercase tracking-wider text-primary">Round {round}</span>
+                      <span className="material-symbols-outlined text-sm text-primary">{activeRoundTab === round ? "expand_less" : "expand_more"}</span>
+                    </button>
+                    {activeRoundTab === round && (
+                      <div className="divide-y divide-primary/20 border-t-2 border-primary">
+                        {matches.filter((m: any) => m.round === round).map((match: any) => (
+                          <div key={match.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="flex-1 flex items-center justify-between gap-3 text-xs font-bold uppercase">
+                              <span className="text-primary truncate">{match.p1?.name || match.s1?.name || "TBD"}</span>
+                              <span className="text-primary/40 flex-shrink-0">vs</span>
+                              <span className="text-primary truncate text-right">{match.p2?.name || match.s2?.name || "TBD"}</span>
+                            </div>
+                            {match.status === "COMPLETED" ? (
+                              <span className="text-[10px] font-black uppercase px-2 py-1 bg-accent-blue text-white border-2 border-primary flex-shrink-0">
+                                {match.p1Score ?? match.s1Score ?? 0} – {match.p2Score ?? match.s2Score ?? 0}
+                              </span>
+                            ) : match.status === "BYE" ? (
+                              <span className="text-[10px] font-black uppercase px-2 py-1 bg-surface-container text-primary border-2 border-primary flex-shrink-0">BYE</span>
+                            ) : (
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  placeholder="P1"
+                                  value={matchScores[match.id]?.p1Score ?? ""}
+                                  onChange={(e) => setMatchScores((prev: any) => ({ ...prev, [match.id]: { ...prev[match.id], p1Score: e.target.value } }))}
+                                  className="w-14 border-2 border-primary px-2 py-1 text-xs font-bold text-center bg-white outline-none"
+                                />
+                                <span className="text-primary/40 text-xs">–</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  placeholder="P2"
+                                  value={matchScores[match.id]?.p2Score ?? ""}
+                                  onChange={(e) => setMatchScores((prev: any) => ({ ...prev, [match.id]: { ...prev[match.id], p2Score: e.target.value } }))}
+                                  className="w-14 border-2 border-primary px-2 py-1 text-xs font-bold text-center bg-white outline-none"
+                                />
+                                <button
+                                  onClick={() => handleSubmitMatch(match.id)}
+                                  disabled={submittingMatchId === match.id}
+                                  className="px-3 py-1.5 bg-accent-yellow text-primary border-2 border-primary text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {submittingMatchId === match.id ? "..." : "Set"}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
