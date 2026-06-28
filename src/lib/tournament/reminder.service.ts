@@ -97,7 +97,7 @@ export class TournamentReminderService {
         // Send the reminder - rely on precise timing to prevent most duplicates
         // In a production system with higher frequency checks, you might want
         // to add a more robust deduplication mechanism (e.g., database tracking)
-        await this.sendTournamentReminders(tournament, reminder.type);
+        await this.sendTournamentReminders(tournament, reminder.type as 'HOUR' | 'THIRTY' | 'TWENTY' | 'TEN' | 'FIVE');
       }
     }
   }
@@ -141,7 +141,7 @@ export class TournamentReminderService {
     const notifications = recipients.map(recipient => {
       // Personalize the message slightly
       const isTeamCaptain =
-        tournament.squadRegistrations.some(sr =>
+        tournament.squadRegistrations.some((sr: any) =>
           sr.squad.captainId === recipient.id
         );
 
@@ -198,7 +198,7 @@ export class TournamentReminderService {
       const squad = squadReg.squad;
 
       // Add team captain
-      const captain = squad.members.find(m => m.id === squad.captainId);
+      const captain = squad.members.find((m: any) => m.id === squad.captainId);
       if (captain) {
         recipients.push({
           id: captain.id,
@@ -210,7 +210,7 @@ export class TournamentReminderService {
 
       // Add co-captain if exists and approved
       if (squad.coCaptainId) {
-        const coCaptain = squad.members.find(m => m.id === squad.coCaptainId);
+        const coCaptain = squad.members.find((m: any) => m.id === squad.coCaptainId);
         if (coCaptain) {
           recipients.push({
             id: coCaptain.id,
@@ -222,7 +222,7 @@ export class TournamentReminderService {
       }
 
       // Add regular team members (excluding captain and co-captain to avoid duplicates)
-      const regularMembers = squad.members.filter(m =>
+      const regularMembers = squad.members.filter((m: any) =>
         m.id !== squad.captainId && m.id !== squad.coCaptainId
       );
 

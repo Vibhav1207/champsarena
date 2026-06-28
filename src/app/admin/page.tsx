@@ -26,6 +26,72 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
   CANCELLED: { label: "Cancelled", cls: "bg-accent-red text-white" },
 };
 
+function SidebarContent({
+  nav,
+  session,
+  onLogout,
+  loggingOut,
+  onClose,
+}: {
+  nav: { id: string; label: string; icon: string; href: string }[];
+  session: any;
+  onLogout: () => void;
+  loggingOut: boolean;
+  onClose?: () => void;
+}) {
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo / Brand */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b-4 border-primary">
+        <span className="material-symbols-outlined text-primary text-2xl">emoji_events</span>
+        <span className="font-black text-lg uppercase tracking-tight text-primary">ChampsArena</span>
+      </div>
+
+      {/* Nav Links */}
+      <nav className="flex-1 overflow-y-auto py-4 space-y-1 px-3">
+        {nav.map((item) => (
+          <a
+            key={item.id}
+            href={item.href}
+            onClick={onClose}
+            className="flex items-center gap-3 px-4 py-2.5 font-black uppercase text-xs tracking-wider text-primary hover:bg-accent-yellow border-2 border-transparent hover:border-primary transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      {/* Session / Logout */}
+      <div className="border-t-4 border-primary p-4 space-y-3">
+        {session && (
+          <div className="flex items-center gap-3">
+            {session.image ? (
+              <img src={session.image} alt={session.name || "Admin"} className="w-8 h-8 border-2 border-primary object-cover rounded-full" />
+            ) : (
+              <div className="w-8 h-8 bg-accent-yellow border-2 border-primary flex items-center justify-center font-black text-xs text-primary">
+                {(session.name || "A")[0].toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-xs uppercase text-primary truncate">{session.name || "Admin"}</p>
+              <p className="text-[9px] text-primary/50 truncate">{session.email || ""}</p>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={onLogout}
+          disabled={loggingOut}
+          className="w-full flex items-center justify-center gap-2 py-2 bg-accent-red text-white border-2 border-primary font-black uppercase text-xs tracking-wider hover:opacity-80 transition-opacity disabled:opacity-50 cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[16px]">logout</span>
+          {loggingOut ? "Signing out…" : "Sign Out"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>({ metrics: {}, auditLogs: [], recentTournaments: [] });
@@ -424,8 +490,7 @@ export default function AdminDashboard() {
               id={managingTournamentId}
               onBack={() => setManagingTournamentId(null)}
               managedTournament={managedTournament}
-              load
-Managed={loadingManaged}
+              loadingManaged={loadingManaged}
               fetchManaged={fetchManagedTournament}
               handleUpdateStatus={handleUpdateStatus}
               matchScores={matchScores}
@@ -980,7 +1045,7 @@ Managed={loadingManaged}
                 setResolvingDispute(null);
               }
             }}
-            tabIndex="-1"
+            tabIndex={-1}
           >
             <div className="w-full max-w-[512px] bg-white border-8 border-primary shadow-[12px_12px_0px_0px_#1a1a1a] max-h-[85vh] overflow-y-auto custom-scrollbar text-primary">
               <div className="flex items-center justify-between p-5 border-b-4 border-primary bg-accent-red text-white">

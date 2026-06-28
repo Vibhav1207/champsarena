@@ -411,7 +411,7 @@ export default function Profile() {
   const image = profileData?.image || null;
 
   const totalMatches = wins + losses;
-  const winRate = totalMatches > 0 ? Math.round((wins / totalContacts) * 100) : 0;
+  const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
 
   const earnedBadges = profileData?.wonTournaments
     ?.filter((t: any) => t.badgeName)
@@ -1119,7 +1119,7 @@ export default function Profile() {
 
       {/* Join Squad Modal */}
       <Modal
-        isOpen={showJoinModal}
+        isOpen={showJoinMemo}
         onClose={() => {
           setShowJoinModal(false);
           setJoiningSquadId(null);

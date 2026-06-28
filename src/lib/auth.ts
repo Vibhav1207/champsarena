@@ -32,7 +32,8 @@ export function useAuth() {
  * Useful for server actions or async event handlers
  */
 export async function checkAuthAndRedirect() {
-  const { data: session } = await getSession();
+  const result = await getSession();
+  const session = result?.user;
 
   if (!session) {
     if (typeof window !== 'undefined') {
