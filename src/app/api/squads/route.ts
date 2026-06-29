@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         squad: {
           include: {
             members: {
-              select: { id: true, name: true, email: true, username: true, image: true, elo: true },
+              select: { id: true, name: true, email: true, username: true, image: true, elo: true, wins: true, losses: true },
             },
             captain: {
               select: { id: true, name: true, username: true, email: true },
@@ -32,6 +32,13 @@ export async function GET(req: NextRequest) {
             invitations: {
               where: { status: "PENDING" },
               select: { id: true, userId: true },
+            },
+            registrations: {
+              include: {
+                tournament: {
+                  select: { id: true, title: true, startDate: true, game: true, status: true },
+                },
+              },
             },
           },
         },

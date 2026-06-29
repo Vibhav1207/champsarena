@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { TournamentStatus, TournamentType, Role } from "@prisma/client";
+import { TournamentStatus, TournamentType, Role, TournamentMode } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +13,17 @@ export async function GET(req: NextRequest) {
     const tier = searchParams.get("tier"); // Regional, International
     const status = searchParams.get("status"); // UPCOMING, ONGOING, etc.
     const search = searchParams.get("search");
+    const mode = searchParams.get("mode"); // SOLO, SQUAD
 
     // Mapping string parameters to DB enum types
     let typeFilter: TournamentType | undefined;
     if (format === "VGC") typeFilter = TournamentType.SWISS;
     if (format === "TCG") typeFilter = TournamentType.ROUND_ROBIN;
     if (format === "GO") typeFilter = TournamentType.DOUBLE_ELIMINATION;
+
+    let modeFilter: TournamentMode | undefined;
+    if (mode === "SOLO") modeFilter = TournamentMode.SOLO;
+    if (mode === "SQUAD") modeFilter = TournamentMode.SQUAD;
 
     const where: any = {
       visibility: true,
@@ -30,6 +35,10 @@ export async function GET(req: NextRequest) {
 
     if (status) {
       where.status = status as TournamentStatus;
+    }
+
+    if (modeFilter) {
+      where.mode = modeFilter;
     }
 
     if (search) {

@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import Modal from "@/components/Modal";
+import TeamCarousel from "@/components/TeamCarousel";
+import SquadManagement from "@/components/SquadManagement";
+import CreateSquadModal from "@/components/CreateSquadModal";
 
 interface UserProfile {
   id: string;
@@ -54,6 +57,12 @@ export default function ProfileClient() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Squad state
+  const [squadData, setSquadData] = useState<any>(null);
+  const [squadInvitations, setSquadInvitations] = useState<any[]>([]);
+  const [squadLoading, setSquadLoading] = useState(true);
+  const [showCreateSquadModal, setShowCreateSquadModal] = useState(false);
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -80,6 +89,31 @@ export default function ProfileClient() {
       setLoading(false);
     }
   };
+
+  const fetchSquadData = useCallback(async () => {
+    try {
+      const res = await fetch("/api/squads");
+      const data = await res.json();
+      if (data.squad) {
+        setSquadData(data.squad);
+      }
+      if (data.invitations) {
+        setSquadInvitations(data.invitations);
+      }
+    } catch (err) {
+      console.error("Failed to fetch squad data:", err);
+    } finally {
+      setSquadLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSquadData();
+  }, [fetchSquadData]);
+
+  const handleSquadRefresh = useCallback(() => {
+    fetchSquadData();
+  }, [fetchSquadData]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -394,7 +428,11 @@ export default function ProfileClient() {
               )}
               {activeTab === "teams" && (
                 <motion.div key="teams" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-                  <MySquads teams={user.teams || []} squad={user.squad} />
+                  <SquadManagement
+                    squad={squadData}
+                    invitations={squadInvitations}
+                    onRefresh={handleSquadRefresh}
+                  />
                 </motion.div>
               )}
               {activeTab === "settings" && (
@@ -560,81 +598,6 @@ function MatchHistory({ matches }: { matches: Match[] }) {
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function MySquads({ teams, squad }: { teams: any[]; squad: any }) {
-  return (
-    <div className="space-y-lg">
-      {/* Active Free Fire Squad */}
-      <section className="space-y-sm">
-        <h3 className="text-lg font-black uppercase tracking-tight text-primary border-b-2 border-primary pb-xs flex items-center gap-sm">
-          <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
-          Free Fire Squad
-        </h3>
-        {squad ? (
-          <div className="bg-white border-4 border-primary p-md neo-brutalist-shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-accent-yellow/20 rounded-full blur-2xl -translate-x-1/2 translate-y-1/2" />
-            <h4 className="text-xl font-black uppercase text-primary mb-sm relative z-10">{squad.name}</h4>
-            <div className="flex flex-wrap gap-sm relative z-10">
-              {squad.members?.map((member: any) => (
-                <div key={member.id} className="flex items-center gap-xs px-sm py-xs bg-surface-container-high border-2 border-primary font-bold text-xs uppercase">
-                  <span className="material-symbols-outlined text-[14px] text-primary">person</span>
-                  {member.name} {member.id === squad.captainId && <span className="text-accent-yellow">★</span>}
-                </div>
-              ))}
-            </div>
-            <div className="mt-sm text-xs font-bold text-primary/60 uppercase relative z-10">
-              {squad.members?.length || 0} / 5 members
-            </div>
-          </div>
-        ) : (
-          <div className="text-center p-lg border-2 border-dashed border-primary bg-surface-container-high">
-            <span className="material-symbols-outlined text-4xl text-primary/50 mb-sm block">group_add</span>
-            <p className="font-bold text-primary uppercase">No active squad</p>
-            <p className="text-sm font-bold text-primary/60 mt-xs">Create or join a squad for Free Fire tournaments</p>
-          </div>
-        )}
-      </section>
-
-      {/* Pokemon Teams */}
-      <section className="space-y-sm border-t-4 border-primary pt-lg">
-        <h3 className="text-lg font-black uppercase tracking-tight text-primary border-b-2 border-primary pb-xs flex items-center gap-sm">
-          <span className="material-symbols-outlined text-primary">caught_pokeball</span>
-          Pokemon Teams
-        </h3>
-        {teams && teams.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-sm">
-            {teams.map((team: any) => (
-              <div
-                key={team.id}
-                className={`p-sm border-4 ${team.active ? "border-accent-yellow bg-accent-yellow/10" : "border-primary bg-white"} relative`}
-              >
-                {team.active && (
-                  <div className="absolute -top-2 -right-2 bg-accent-yellow text-primary border-2 border-primary px-2 py-0.5 font-black text-[9px] uppercase">
-                    Active
-                  </div>
-                )}
-                <h4 className="font-black text-primary uppercase text-sm mb-xs">{team.name}</h4>
-                <div className="flex flex-wrap gap-xs">
-                  {JSON.parse(team.pokemonJson || "[]").map((poke: any, idx: number) => (
-                    <span key={idx} className="px-xs py-xs border-2 border-primary bg-white font-black text-[9px] uppercase">
-                      {poke.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center p-lg border-2 border-dashed border-primary bg-surface-container-high">
-            <span className="material-symbols-outlined text-4xl text-primary/50 mb-sm block">caught_pokeball</span>
-            <p className="font-bold text-primary uppercase">No teams created</p>
-            <p className="text-sm font-bold text-primary/60 mt-xs">Build your team for Pokemon tournaments</p>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

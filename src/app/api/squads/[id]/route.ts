@@ -74,6 +74,71 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const { name, logo, description } = await req.json();
+
+    // Fetch the squad
+    const squad = await prisma.squad.findUnique({
+      where: { id },
+    });
+
+    if (!squad) {
+      return NextResponse.json({ error: "Squad not found." }, { status: 404 });
+    }
+
+    // Only captain can edit squad info
+    if (squad.captainId !== session.user.id) {
+      return NextResponse.json({ error: "Only the Team Captain can edit squad information." }, { status: 403 });
+    }
+
+    // Validate name if provided
+    if (name && name.trim().length < 3) {
+      return NextResponse.json({ error: "Squad name must be at least 3 characters." }, { status: 400 });
+    }
+
+    // Check name uniqueness if changing
+    if (name && name.trim() !== squad.name) {
+      const existing = await prisma.squad.findUnique({
+        where: { name: name.trim() },
+      });
+      if (existing) {
+        return NextResponse.json({ error: "A squad with this name already exists." }, { status: 400 });
+      }
+    }
+
+    const updatedSquad = await prisma.squad.update({
+      where: { id },
+      data: {
+        name: name?.trim() || undefined,
+        logo: logo?.trim() || null,
+        description: description?.trim() || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        action: "UPDATE_SQUAD",
+        userId: session.user.id,
+        details: `Squad "${squad.name}" updated by Captain`,
+        prevValue: JSON.stringify({ name: squad.name, logo: squad.logo, description: squad.description }),
+        newValue: JSON.stringify({ name: updatedSquad.name, logo: updatedSquad.logo, description: updatedSquad.description }),
+      },
+    });
+
+    return NextResponse.json(updatedSquad);
+  } catch (error: any) {
+    console.error("Failed to update squad:", error);
+    return NextResponse.json({ error: error.message || "Failed to update squad" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
