@@ -63,9 +63,10 @@ interface SquadManagementProps {
   squad: SquadData | null;
   invitations: SquadInvitation[];
   onRefresh: () => void;
+  currentUserId: string;
 }
 
-export default function SquadManagement({ squad, invitations, onRefresh }: SquadManagementProps) {
+export default function SquadManagement({ squad, invitations, onRefresh, currentUserId }: SquadManagementProps) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -81,7 +82,6 @@ export default function SquadManagement({ squad, invitations, onRefresh }: Squad
   const [availableTournaments, setAvailableTournaments] = useState<any[]>([]);
   const [fetchingTournaments, setFetchingTournaments] = useState(false);
 
-  const currentUserId = squad?.captainId; // fallback, ideally from session
   const isCaptain = squad?.captainId === currentUserId;
   const isCoCaptain = squad?.coCaptainId === currentUserId;
 
@@ -328,17 +328,6 @@ export default function SquadManagement({ squad, invitations, onRefresh }: Squad
               <span className="material-symbols-outlined mr-1">person_add</span>
               Create Squad
             </button>
-            {pendingInvites.length > 0 && (
-              <div className="flex-1 sm:w-auto">
-                <button
-                  onClick={() => setShowInviteModal(true)}
-                  className="w-full bg-white text-primary px-lg py-sm border-4 border-primary font-black uppercase hover:bg-accent-yellow transition-all neo-brutalist-shadow neo-brutalist-button-active"
-                >
-                  <span className="material-symbols-outlined mr-1">mail</span>
-                  {pendingInvites.length} Pending Invite{pendingInvites.length > 1 ? "s" : ""}
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -404,9 +393,6 @@ export default function SquadManagement({ squad, invitations, onRefresh }: Squad
       </div>
     );
   }
-
-  const isCurrentUserCaptain = squad.captainId === squad.captain.id; // Will need session check
-  const currentUserId = squad.captain.id; // Fallback, ideally from session
 
   return (
     <div className="space-y-lg">
@@ -497,7 +483,7 @@ export default function SquadManagement({ squad, invitations, onRefresh }: Squad
                 Disband Squad
               </button>
             )}
-            {!isCaptain && !isCoCaptain && (
+            {(!isCaptain && !isCoCaptain) && (
               <button
                 onClick={() => setShowLeaveConfirm(true)}
                 className="px-lg py-sm border-3 border-primary bg-white text-primary font-black uppercase text-sm hover:bg-accent-yellow transition-all cursor-pointer"

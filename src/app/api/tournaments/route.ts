@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { TournamentStatus, TournamentType, Role, TournamentMode } from "@prisma/client";
+import { TournamentStatus, TournamentType, Role } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +21,9 @@ export async function GET(req: NextRequest) {
     if (format === "TCG") typeFilter = TournamentType.ROUND_ROBIN;
     if (format === "GO") typeFilter = TournamentType.DOUBLE_ELIMINATION;
 
-    let modeFilter: TournamentMode | undefined;
-    if (mode === "SOLO") modeFilter = TournamentMode.SOLO;
-    if (mode === "SQUAD") modeFilter = TournamentMode.SQUAD;
+    let modeFilter: string | undefined;
+    if (mode === "SOLO") modeFilter = "SOLO";
+    if (mode === "SQUAD") modeFilter = "SQUAD";
 
     const where: any = {
       visibility: true,

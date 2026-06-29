@@ -432,6 +432,7 @@ export default function ProfileClient() {
                     squad={squadData}
                     invitations={squadInvitations}
                     onRefresh={handleSquadRefresh}
+                    currentUserId={user?.id || ""}
                   />
                 </motion.div>
               )}
