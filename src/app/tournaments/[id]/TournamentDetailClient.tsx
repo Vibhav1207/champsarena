@@ -543,7 +543,18 @@ export default function TournamentDetailClient({
               <div className="flex flex-col sm:flex-row items-center justify-between gap-md">
                 <div className="flex items-center gap-sm text-center">
                   {comp1Logo && (
-                    <img src={comp1Logo} alt={comp1Name} className="w-10 h-10 border-2 border-primary object-cover" />
+                    <Image
+                      src={comp1Logo}
+                      alt={comp1Name}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 border-2 border-primary object-cover"
+                      sizes="40px"
+                      loading="lazy"
+                      quality={85}
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmNTBjZSIvPjwvc3ZnPg=="
+                    />
                   )}
                   <span className={`font-black text-primary uppercase text-sm ${isComp1User ? "underline decoration-2" : ""}`}>
                     {comp1Name} {isComp1User ? "(You)" : ""}
@@ -555,7 +566,18 @@ export default function TournamentDetailClient({
                     {comp2Name} {isComp2User ? "(You)" : ""}
                   </span>
                   {comp2Logo && (
-                    <img src={comp2Logo} alt={comp2Name} className="w-10 h-10 border-2 border-primary object-cover" />
+                    <Image
+                      src={comp2Logo}
+                      alt={comp2Name}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 border-2 border-primary object-cover"
+                      sizes="40px"
+                      loading="lazy"
+                      quality={85}
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmNTBjZSIvPjwvc3ZnPg=="
+                    />
                   )}
                 </div>
               </div>
@@ -842,23 +864,45 @@ export default function TournamentDetailClient({
             {tournament?.game === "FREE_FIRE" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {(tournament?.squadRegistrations || []).map((reg: any) => (
-                  <div key={reg.squadId} className="flex items-center gap-2 p-2 border-2 border-primary">
+                  <Link href={`/squad/${reg.squadId}`} key={reg.squadId} className="flex items-center gap-2 p-2 border-2 border-primary hover:bg-surface-container transition-colors">
                     {reg.squad?.logo && (
-                      <img src={reg.squad.logo} alt={reg.squad.name} className="w-8 h-8 object-cover border border-primary" />
+                      <Image
+                        src={reg.squad.logo}
+                        alt={reg.squad.name}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 object-cover border border-primary"
+                        sizes="32px"
+                        loading="lazy"
+                        quality={85}
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjwvc3ZnPg=="
+                      />
                     )}
                     <span className="text-xs font-bold uppercase text-primary truncate">{reg.squad?.name}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {(tournament?.registrations || []).map((reg: any) => (
-                  <div key={reg.userId} className="flex items-center gap-2 p-2 border-2 border-primary">
+                  <Link href={`/players/${reg.user?.username || reg.userId}`} key={reg.userId} className="flex items-center gap-2 p-2 border-2 border-primary hover:bg-surface-container transition-colors">
                     {reg.user?.image && (
-                      <img src={reg.user.image} alt={reg.user.name} className="w-8 h-8 object-cover rounded-full border border-primary" />
+                      <Image
+                        src={reg.user.image}
+                        alt={reg.user.name}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 object-cover rounded-full border border-primary"
+                        sizes="32px"
+                        loading="lazy"
+                        quality={85}
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZjZjdmYyIvPjwvc3ZnPg=="
+                      />
                     )}
                     <span className="text-xs font-bold uppercase text-primary truncate">{reg.user?.name}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

@@ -5,19 +5,22 @@ import { auth } from "@/auth";
 import { GAMES_DATA } from "@/data/games";
 import TournamentDetailClient from "./TournamentDetailClient";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
 
-  let tournament;
-  try {
-    tournament = await prisma.tournament.findUnique({
-      where: { id },
-    });
-  } catch (err) {
-    console.error("Metadata fetch error:", err);
-  }
+  const tournament = await prisma.tournament.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      game: true,
+      type: true,
+      prizePool: true,
+      currency: true,
+      registrationDeadline: true,
+      startDate: true,
+      banner: true,
+    },
+  });
 
   if (!tournament) {
     return {
@@ -65,6 +68,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+// Enable ISR for tournament detail pages (revalidate every 5 minutes)
+export const revalidate = 300;
+
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -80,75 +86,76 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     redirect(`/login?callback=${encodeURIComponent(callbackUrl)}`);
   }
 
-  // Fetch Tournament details
-  const tournament = await prisma.tournament.findUnique({
-    where: { id },
-    include: {
-      registrations: {
-        where: { status: "APPROVED" },
-        include: {
-          user: {
-            select: { id: true, name: true, elo: true, image: true },
+  // Fetch Tournament details with optimized queries
+  const [tournament, userRegistration, userDetails] = await Promise.all([
+    prisma.tournament.findUnique({
+      where: { id },
+      include: {
+        registrations: {
+          where: { status: "APPROVED" },
+          include: {
+            user: {
+              select: { id: true, name: true, elo: true, image: true },
+            },
           },
         },
-      },
-      squadRegistrations: {
-        where: { status: "APPROVED" },
-        include: {
-          squad: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-              captainId: true,
-              members: {
-                select: { id: true, name: true, username: true },
+        squadRegistrations: {
+          where: { status: "APPROVED" },
+          include: {
+            squad: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+                captainId: true,
+                members: {
+                  select: { id: true, name: true, username: true },
+                },
               },
             },
           },
         },
-      },
-      winner: { select: { id: true, name: true, image: true } },
-      matches: {
-        include: {
-          p1: { select: { id: true, name: true, image: true } },
-          p2: { select: { id: true, name: true, image: true } },
-          winner: { select: { id: true, name: true, image: true } },
-          s1: { select: { id: true, name: true, logo: true } },
-          s2: { select: { id: true, name: true, logo: true } },
-          winnerSquad: { select: { id: true, name: true, logo: true } },
-          attachments: true,
-          dispute: true,
+        winner: { select: { id: true, name: true, image: true } },
+        matches: {
+          include: {
+            p1: { select: { id: true, name: true, image: true } },
+            p2: { select: { id: true, name: true, image: true } },
+            winner: { select: { id: true, name: true, image: true } },
+            s1: { select: { id: true, name: true, logo: true } },
+            s2: { select: { id: true, name: true, logo: true } },
+            winnerSquad: { select: { id: true, name: true, logo: true } },
+            attachments: true,
+            dispute: true,
+          },
         },
       },
-    },
-  });
+    }),
+    session?.user?.id
+      ? prisma.registration.findUnique({
+          where: {
+            userId_tournamentId: {
+              userId: session.user.id,
+              tournamentId: id,
+            },
+          },
+          include: { payments: true },
+        })
+      : Promise.resolve(null),
+    session?.user?.id
+      ? prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { squadId: true },
+        })
+      : Promise.resolve(null),
+  ]);
 
   if (!tournament) {
     notFound();
   }
 
-    let userRegistration = null;
-  let squadRegistration = null;
-
-  if (session?.user?.id) {
-    userRegistration = await prisma.registration.findUnique({
-      where: {
-        userId_tournamentId: {
-          userId: session.user.id,
-          tournamentId: id,
-        },
-      },
-      include: { payments: true },
-    });
-
-    const userDetails = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { squadId: true },
-    });
-
-    if (userDetails?.squadId) {
-      squadRegistration = await prisma.squadRegistration.findUnique({
+  // Fetch squad registration if user is in a squad
+  const squadRegistration = userDetails?.squadId
+    ? await prisma.squadRegistration.findUnique({
         where: {
           squadId_tournamentId: {
             squadId: userDetails.squadId,
@@ -165,9 +172,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
             },
           },
         },
-      });
-    }
-  }
+      })
+    : null;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
   const currencyCode = tournament.currency === "INR" ? "INR" : "USD";
@@ -201,10 +207,81 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     }
   };
 
-  // Serialize objects for client hydration
-  const serializedTournament = JSON.parse(JSON.stringify(tournament));
-  const serializedUserRegistration = JSON.parse(JSON.stringify(userRegistration));
-  const serializedSquadRegistration = JSON.parse(JSON.stringify(squadRegistration));
+  // Serialize objects for client hydration - only include necessary fields
+  const serializedTournament = {
+    id: tournament.id,
+    title: tournament.title,
+    description: tournament.description,
+    banner: tournament.banner,
+    game: tournament.game,
+    type: tournament.type,
+    status: tournament.status,
+    entryFee: tournament.entryFee,
+    prizePool: tournament.prizePool,
+    currency: tournament.currency,
+    maxPlayers: tournament.maxPlayers,
+    startDate: tournament.startDate.toISOString(),
+    endDate: tournament.endDate.toISOString(),
+    registrationDeadline: tournament.registrationDeadline.toISOString(),
+    rules: tournament.rules,
+    visibility: tournament.visibility,
+    mode: tournament.mode,
+    minSquadMembers: tournament.minSquadMembers,
+    maxSquadMembers: tournament.maxSquadMembers,
+    registrations: tournament.registrations.map((r: typeof tournament.registrations[0]) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+      user: {
+        ...r.user,
+        image: r.user.image,
+      },
+    })),
+    squadRegistrations: tournament.squadRegistrations.map((sr: typeof tournament.squadRegistrations[0]) => ({
+      ...sr,
+      createdAt: sr.createdAt.toISOString(),
+      squad: {
+        ...sr.squad,
+        logo: sr.squad.logo,
+        members: sr.squad.members,
+      },
+    })),
+    winner: tournament.winner ? {
+      ...tournament.winner,
+      image: tournament.winner.image,
+    } : null,
+    matches: tournament.matches.map((m: typeof tournament.matches[0]) => ({
+      ...m,
+      createdAt: m.createdAt.toISOString(),
+      scheduledAt: m.scheduledAt?.toISOString(),
+    })),
+  };
+
+  const serializedUserRegistration = userRegistration
+    ? {
+        ...userRegistration,
+        createdAt: userRegistration.createdAt.toISOString(),
+        payments: userRegistration.payments.map((p: typeof userRegistration.payments[0]) => ({
+          ...p,
+          createdAt: p.createdAt.toISOString(),
+        })),
+      }
+    : null;
+
+  const serializedSquadRegistration = squadRegistration
+    ? {
+        ...squadRegistration,
+        createdAt: squadRegistration.createdAt.toISOString(),
+        squad: {
+          ...squadRegistration.squad,
+          logo: squadRegistration.squad.logo,
+        },
+      }
+    : null;
+
+  // Preload banner image if exists
+  const preloadLinks = tournament.banner ? (
+    <link rel="preload" as="image" href={tournament.banner} />
+  ) : null;
 
   return (
     <>
@@ -212,6 +289,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {preloadLinks}
       <TournamentDetailClient
         id={id}
         initialTournament={serializedTournament}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { Role, TicketStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     let tickets;
 
-    if (session.user.role === Role.ADMIN || session.user.role === Role.SUPER_ADMIN || session.user.role === Role.MODERATOR) {
+    if (session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN" || session.user.role === "MODERATOR") {
       // Admins and mods can view all tickets
       tickets = await prisma.supportTicket.findMany({
         include: {
@@ -73,18 +72,18 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         subject,
         message,
-        status: TicketStatus.OPEN,
+        status: "OPEN",
       },
     });
 
     // Create system notification for admins/mods
     const admins = await prisma.user.findMany({
       where: {
-        role: { in: [Role.ADMIN, Role.SUPER_ADMIN] },
+        role: { in: ["ADMIN", "SUPER_ADMIN"] },
       },
     });
 
-    const notifications = admins.map((adm) => ({
+    const notifications = admins.map((adm: { id: string }) => ({
       userId: adm.id,
       message: `New support ticket created by ${session.user?.name || "Trainer"}: "${subject}"`,
       type: "INFO",

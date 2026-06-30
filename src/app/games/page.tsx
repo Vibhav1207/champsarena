@@ -19,6 +19,9 @@ export default function GamesCatalogPage() {
   const gamesList = Object.values(GAMES_DATA);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
+  // Pre-optimized placeholder
+  const GAME_BANNER_PLACEHOLDER = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAFX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwAB//2Q==";
+
   // CollectionPage JSON-LD Schema
   const jsonLd = {
     "@context": "https://schema.org",
@@ -89,6 +92,10 @@ export default function GamesCatalogPage() {
                     className={`object-cover contrast-125 transition-transform duration-300 ${isActive ? "grayscale hover:scale-105" : "grayscale opacity-60"
                       }`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    quality={85}
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL={GAME_BANNER_PLACEHOLDER}
                   />
                   <span className="absolute bottom-sm left-sm bg-primary text-white px-sm py-xs font-black uppercase text-xs">
                     {game.genre}

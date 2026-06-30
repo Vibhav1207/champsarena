@@ -51,11 +51,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     });
 
     // Calculate aggregated stats
-    const totalWins = matches.filter(m => m.winnerSquadId === id).length;
+    const totalWins = matches.filter((m: { winnerSquadId: string | null }) => m.winnerSquadId === id).length;
     const totalLosses = matches.length - totalWins;
     const winRate = matches.length > 0 ? Math.round((totalWins / matches.length) * 100) : 0;
     const averageElo = squad.members.length > 0
-      ? Math.round(squad.members.reduce((acc, m) => acc + m.elo, 0) / squad.members.length)
+      ? Math.round(squad.members.reduce((acc: number, m: { elo: number }) => acc + m.elo, 0) / squad.members.length)
       : 1000;
 
     return NextResponse.json({
@@ -162,7 +162,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Only the squad captain can disband this squad." }, { status: 403 });
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
       // 1. Remove squadId from all users
       await tx.user.updateMany({
         where: { squadId: id },

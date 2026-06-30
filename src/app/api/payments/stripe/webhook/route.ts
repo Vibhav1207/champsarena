@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       const regId = metadata.registrationId;
       const userId = metadata.userId;
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         // Update payment status
         await tx.payment.updateMany({
           where: { providerOrderId: session.id },

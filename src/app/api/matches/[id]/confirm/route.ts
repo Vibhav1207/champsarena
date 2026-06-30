@@ -87,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ success: true, message: "Match result confirmed and brackets updated" });
     } else {
       // REJECT -> Initiate Dispute
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Set match status to DISPUTED
         await tx.match.update({
           where: { id },

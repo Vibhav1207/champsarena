@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -34,6 +34,370 @@ const TIERS = [
   { name: "ELITE FOUR", range: "2501–2800 ELO", color: "bg-accent-red text-white", borderCls: "border-2 border-primary" },
   { name: "CHAMPION", range: "2801+ ELO", color: "bg-accent-yellow", borderCls: "border-4 border-primary" },
 ];
+
+function PlayerAvatar({ name, image, size = 12 }: { name: string | null; image: string | null; size?: number }) {
+  const initial = (name || "T")[0].toUpperCase();
+
+  if (image) {
+    return (
+      <Image
+        src={image}
+        alt={name || "Trainer"}
+        width={size * 4}
+        height={size * 4}
+        className="w-full h-full object-cover"
+        sizes={`${size * 4}px`}
+        loading="lazy"
+        quality={75}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZjZjdmYyIvPjwvc3ZnPg=="
+      />
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex items-center justify-center font-black text-primary select-none" style={{ fontSize: `${size}px` }}>
+      {initial}
+    </div>
+  );
+}
+
+function PodiumPlayer({ player, rank, tierClass, size, delay = 0 }: {
+  player: Player | undefined;
+  rank: "01" | "02" | "03";
+  tierClass: string;
+  size: "sm" | "md" | "lg";
+  delay?: number;
+}) {
+  const sizeConfig = {
+    sm: { w: "w-32 h-32", border: "border-4", badge: "text-2xl py-2 px-4", name: "text-2xl", elo: "text-xl", wins: "text-xs" },
+    md: { w: "w-40 h-40", border: "border-4", badge: "text-4xl py-3 px-8", name: "text-3xl", elo: "text-3xl", wins: "text-sm" },
+    lg: { w: "w-48 h-48 sm:w-56 sm:h-56", border: "border-8", badge: "text-3xl py-2 px-4", name: "text-3xl", elo: "text-3xl", wins: "text-xs" },
+  }[size];
+
+  if (!player) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay }}
+        className={`order-2 md:order-1 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative opacity-40 ${size === "lg" ? "order-2 md:order-1" : "order-1 md:order-2"}`}
+      >
+        <div className="absolute top-0 left-0 bg-primary text-white px-4 py-2 font-black text-2xl">{rank}</div>
+        <div className={`${sizeConfig.w} ${sizeConfig.border} border-primary flex items-center justify-center font-bold text-4xl text-primary bg-primary/10 select-none`}>
+          {rank}
+        </div>
+        <p className="text-primary text-sm font-bold">—</p>
+      </motion.div>
+    );
+  }
+
+  const tier = getTier(player.elo);
+
+  if (rank === "01") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay }}
+        className="order-1 md:order-2 bg-accent-yellow border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative md:scale-110 z-10"
+      >
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-accent-red text-white border-4 border-primary px-6 py-2 font-black text-4xl">
+          {rank}
+        </div>
+        <div className={`${sizeConfig.w} ${sizeConfig.border} border-primary overflow-hidden mb-md bg-white relative`}>
+          <PlayerAvatar name={player.name} image={player.image} size={size === "lg" ? 14 : size === "md" ? 16 : 12} />
+        </div>
+        <h3 className="text-3xl font-black uppercase italic mb-1 text-primary">{player.name}</h3>
+        <span className="bg-primary text-white px-4 py-1 font-bold text-sm uppercase tracking-widest mb-md">
+          World Champion
+        </span>
+        <div className="grid grid-cols-2 w-full border-t-4 border-primary pt-md font-bold">
+          <div className="border-r-2 border-primary">
+            <p className="text-[10px] font-bold uppercase opacity-80">ELO</p>
+            <p className="text-3xl font-black italic">{player.elo.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase opacity-80">Wins</p>
+            <p className="text-3xl font-black italic">{player.wins}</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay }}
+      className={`${size === "lg" ? "order-3" : rank === "02" ? "order-2 md:order-1" : "order-1 md:order-2"} bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${rank === "03" ? "order-3" : ""}`}
+    >
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 bg-primary text-white ${sizeConfig.badge} font-black`}>
+        {rank}
+      </div>
+      <div className={`${sizeConfig.w} ${sizeConfig.border} border-primary overflow-hidden mb-md bg-white relative`}>
+        <PlayerAvatar name={player.name} image={player.image} size={size === "lg" ? 14 : size === "md" ? 16 : 12} />
+      </div>
+      <h3 className={`${sizeConfig.name} font-black uppercase italic mb-1 text-primary`}>{player.name}</h3>
+      <span className={`${tier.cls} mb-md`}>
+        {tier.label}
+      </span>
+      <div className="grid grid-cols-2 w-full border-t-2 border-primary pt-md font-bold">
+          <p className="text-[10px] font-bold uppercase opacity-60">ELO</p>
+          <p className={`${sizeConfig.elo} font-black`}>{player.elo}</p>
+          <div>
+            <p className="text-[10px] font-bold uppercase opacity-60">Wins</p>
+            <p className={`${sizeConfig.elo} font-black`}>{player.wins}</p>
+          </div>
+        </div>
+      </motion.div>
+  );
+}
+
+function LeaderboardTable({ players }: { players: Player[] }) {
+  const winRate = (p: Player) => {
+    const total = p.wins + p.losses;
+    return total > 0 ? Math.round((p.wins / total) * 100) : 0;
+  };
+
+  return (
+    <section className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden mb-xl">
+      {/* Filters / Search / Sort */}
+      <LeaderboardFilters />
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[800px]">
+          <thead>
+            <tr className="bg-primary text-white uppercase text-xs font-black tracking-[0.2em] select-none border-b-2 border-primary">
+              <th className="px-lg py-4 border-r-2 border-white/20">Rank</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">Trainer</th>
+              <th className="px-lg py-4 border-r-2 border-white/20 text-center">Tier</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">ELO Rating</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">W / L Ratio</th>
+              <th className="px-lg py-4 text-right">Tournament Wins</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y-4 divide-primary bg-white">
+            {players.length > 0 ? (
+              players.map((p, i) => {
+                const tier = getTier(p.elo);
+                const rate = winRate(p);
+                const rank = i + 4;
+                const formattedRank = rank < 10 ? `#0${rank}` : `#${rank}`;
+                return (
+                  <tr key={p.id} className="trainer-row hover:bg-surface-container transition-colors border-b-4 border-primary">
+                    <td className="px-lg py-md font-black text-3xl italic text-primary select-none w-24">
+                      {formattedRank}
+                    </td>
+                    <td className="px-lg py-md">
+                      <div className="flex items-center gap-sm">
+                        <div className="w-12 h-12 border-2 border-primary relative bg-accent-yellow shrink-0 overflow-hidden">
+                          <PlayerAvatar name={p.name} image={p.image} size={5} />
+                        </div>
+                        <div>
+                          <p className="font-black text-xl uppercase tracking-tighter text-primary">
+                            {p.name || "Trainer"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md text-center select-none w-36">
+                      <span className={`px-3 py-1 ${tier.cls}`}>
+                        {tier.label}
+                      </span>
+                    </td>
+                    <td className="px-lg py-md font-black text-2xl italic text-primary select-none w-36">
+                      {p.elo.toLocaleString()}
+                    </td>
+                    <td className="px-lg py-md w-48">
+                      <div className="flex flex-col">
+                        <span className="text-xl font-black italic text-primary">{rate}%</span>
+                        <div className="flex mt-1 border-2 border-primary h-2 w-24 bg-white overflow-hidden">
+                          <div
+                            className="bg-accent-blue h-full"
+                            style={{ width: `${rate}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-primary opacity-60 mt-0.5">
+                          {p.wins}W / {p.losses}L
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md text-right font-black text-4xl italic text-accent-red select-none w-48">
+                      {p.wins < 10 ? `0${p.wins}` : p.wins}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-primary font-black uppercase italic">
+                  No trainers match your filters.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Table Pagination */}
+      <div className="p-md bg-white border-t-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md">
+        <p className="font-black uppercase tracking-widest text-xs italic">
+          Showing 01 to {Math.min(10, players.length + 3)} of {players.length} entries
+        </p>
+        <div className="flex items-center gap-2">
+          <button className="w-10 h-10 border-2 border-primary font-black hover:bg-accent-yellow transition-all flex items-center justify-center">
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button className="w-10 h-10 bg-primary text-white font-black italic">1</button>
+          <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">2</button>
+          <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">3</button>
+          <span className="px-2 font-black">...</span>
+          <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">10</button>
+          <button className="w-10 h-10 border-2 border-primary font-black hover:bg-accent-yellow transition-all flex items-center justify-center">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LeaderboardFilters() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Highest ELO");
+
+  return (
+    <div className="p-md border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none bg-white">
+      <div className="relative w-full md:w-80 border-2 border-primary bg-white flex items-center px-sm py-1">
+        <span className="material-symbols-outlined text-primary text-[20px]">search</span>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="SEARCH TRAINERS..."
+          className="w-full ml-xs border-none outline-none focus:ring-0 text-sm font-bold uppercase placeholder:opacity-50"
+        />
+      </div>
+      <div className="flex items-center gap-xs text-primary shrink-0 w-full md:w-auto justify-between md:justify-start">
+        <span className="text-xs font-black uppercase tracking-widest">Sort:</span>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          className="bg-white border-2 border-primary font-black uppercase tracking-widest text-xs px-4 py-2 focus:ring-0 outline-none"
+        >
+          <option>Highest ELO</option>
+          <option>Most Wins</option>
+          <option>Win Rate</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+function SquadStandings({ squads, loading }: { squads: any[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="p-xl text-center">
+        <span className="material-symbols-outlined animate-spin text-5xl text-primary">progress_activity</span>
+        <p className="text-sm font-bold uppercase tracking-wider mt-sm">Calculating squad frequencies...</p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden mb-xl">
+      <div className="p-md border-b-4 border-primary bg-accent-yellow flex justify-between items-center select-none">
+        <h2 className="font-headline-md uppercase text-primary">Squad Leaderboard</h2>
+        <span className="bg-primary text-white px-3 py-1 font-bold text-xs uppercase">Free Fire</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[800px]">
+          <thead>
+            <tr className="bg-primary text-white uppercase text-xs font-black tracking-[0.2em] select-none border-b-2 border-primary">
+              <th className="px-lg py-4 border-r-2 border-white/20">Rank</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">Squad</th>
+              <th className="px-lg py-4 border-r-2 border-white/20 text-center">Members</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">Average ELO</th>
+              <th className="px-lg py-4 border-r-2 border-white/20">W / L Record</th>
+              <th className="px-lg py-4 text-right">Points</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y-4 divide-primary bg-white">
+            {squads.length > 0 ? (
+              squads.map((s, idx) => {
+                const rankNum = idx + 1;
+                const formattedRank = rankNum < 10 ? `#0${rankNum}` : `#${rankNum}`;
+                const rate = s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0;
+                return (
+                  <tr key={s.id} className="hover:bg-surface-container transition-colors border-b-4 border-primary">
+                    <td className="px-lg py-md font-black text-3xl italic text-primary select-none w-24">
+                      {formattedRank}
+                    </td>
+                    <td className="px-lg py-md">
+                      <div className="flex items-center gap-sm">
+                        <div className="w-12 h-12 border-2 border-primary relative bg-accent-blue shrink-0 overflow-hidden">
+                          {s.logo ? (
+                            <Image
+                              src={s.logo}
+                              alt={s.name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                              sizes="48px"
+                              loading="lazy"
+                              quality={85}
+                              placeholder="blur"
+                              blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjwvc3ZnPg=="
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center font-black text-lg text-white bg-primary select-none">
+                              {s.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-black text-xl uppercase tracking-tighter text-primary">
+                            {s.name}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md text-center select-none font-bold text-primary w-36">
+                      {s.membersCount} Players
+                    </td>
+                    <td className="px-lg py-md font-black text-2xl italic text-primary select-none w-36">
+                      {s.elo.toLocaleString()}
+                    </td>
+                    <td className="px-lg py-md w-48">
+                      <div className="flex flex-col">
+                        <span className="text-xl font-black italic text-primary">{rate}% WR</span>
+                        <span className="text-[10px] font-bold text-primary opacity-60 mt-0.5">
+                          {s.wins}W / {s.losses}L
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md text-right font-black text-4xl italic text-accent-red select-none w-48">
+                      {s.points}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-primary/60 font-black uppercase italic">
+                  No squads registered yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
 
 export default function Rankings() {
   const [activeTab, setActiveTab] = useState<"trainers" | "squads">("trainers");
@@ -77,38 +441,32 @@ export default function Rankings() {
   }, [activeTab, squads.length]);
 
   // Client-side filter + sort
-  const filtered = [...allPlayers]
-    .filter(p => {
-      if (searchQuery && !p.name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === "Highest ELO") return b.elo - a.elo;
-      if (sortBy === "Most Wins") return b.wins - a.wins;
-      if (sortBy === "Win Rate") {
-        const rateA = a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : 0;
-        const rateB = b.wins + b.losses > 0 ? b.wins / (b.wins + b.losses) : 0;
-        return rateB - rateA;
-      }
-      return 0;
-    });
+  const filtered = useMemo(() => {
+    return [...allPlayers]
+      .filter(p => {
+        if (searchQuery && !p.name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "Highest ELO") return b.elo - a.elo;
+        if (sortBy === "Most Wins") return b.wins - a.wins;
+        if (sortBy === "Win Rate") {
+          const rateA = a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : 0;
+          const rateB = b.wins + b.losses > 0 ? b.wins / (b.wins + b.losses) : 0;
+          return rateB - rateA;
+        }
+        return 0;
+      });
+  }, [allPlayers, searchQuery, sortBy]);
 
-  const podiumPlayers = filtered.slice(0, 3);
-  const tableRows = filtered.slice(3);
+  const podiumPlayers = useMemo(() => filtered.slice(0, 3), [filtered]);
+  const tableRows = useMemo(() => filtered.slice(3), [filtered]);
 
-  const winRate = (p: Player) => {
-    const total = p.wins + p.losses;
-    return total > 0 ? Math.round((p.wins / total) * 100) : 0;
-  };
-
-  const avatarLetter = (p: Player) => (p.name || "T")[0].toUpperCase();
-
-  const totalWins = allPlayers.reduce((s, p) => s + p.wins, 0);
+  const totalWins = useMemo(() => allPlayers.reduce((s, p) => s + p.wins, 0), [allPlayers]);
 
   return (
     <>
       <Navigation />
-
       <main className="max-w-container-max mx-auto px-md py-xl">
         {/* Header */}
         <header className="mb-xl flex flex-col md:flex-row md:items-start justify-between gap-xl">
@@ -212,371 +570,17 @@ export default function Rankings() {
                 {/* ── Podium ── */}
                 {podiumPlayers.length > 0 && (
                   <section className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl items-end max-w-[896px] mx-auto select-none pt-sm">
-                    {/* 2nd */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
-                      className={`order-2 md:order-1 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${podiumPlayers[1] ? "" : "opacity-40"
-                        }`}
-                    >
-                      <div className="absolute top-0 left-0 bg-primary text-white px-4 py-2 font-black text-2xl">02</div>
-                      <div className="w-32 h-32 border-4 border-primary overflow-hidden mb-md bg-white relative">
-                        {podiumPlayers[1]?.image ? (
-                          <Image
-                            src={podiumPlayers[1].image}
-                            alt={podiumPlayers[1].name || "2nd"}
-                            fill
-                            className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                            sizes="128px"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center font-black text-4xl text-primary bg-accent-blue/10 grayscale hover:grayscale-0 transition-all duration-500 select-none">
-                            {podiumPlayers[1] ? avatarLetter(podiumPlayers[1]) : "2"}
-                          </div>
-                        )}
-                      </div>
-                      {podiumPlayers[1] ? (
-                        <>
-                          <h3 className="text-2xl font-black uppercase italic mb-1 text-primary">{podiumPlayers[1].name}</h3>
-                          <span className="bg-accent-blue text-white px-3 py-1 font-bold text-xs uppercase tracking-widest mb-md">
-                            Champion
-                          </span>
-                          <div className="grid grid-cols-2 w-full border-t-2 border-primary pt-md font-bold">
-                            <div>
-                              <p className="text-[10px] font-bold uppercase opacity-60">ELO</p>
-                              <p className="text-xl font-black">{podiumPlayers[1].elo}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold uppercase opacity-60">Wins</p>
-                              <p className="text-xl font-black">{podiumPlayers[1].wins}</p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-primary text-sm font-bold">—</p>
-                      )}
-                    </motion.div>
-
-                    {/* 1st */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.7 }}
-                      className="order-1 md:order-2 bg-accent-yellow border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative md:scale-110 z-10"
-                    >
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-accent-red text-white border-4 border-primary px-6 py-2 font-black text-4xl">
-                        01
-                      </div>
-                      <div className="w-40 h-40 border-4 border-primary overflow-hidden mb-md bg-white relative">
-                        {podiumPlayers[0]?.image ? (
-                          <Image
-                            src={podiumPlayers[0].image}
-                            alt={podiumPlayers[0].name || "1st"}
-                            fill
-                            priority
-                            className="object-cover"
-                            sizes="160px"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center font-black text-5xl text-primary select-none">
-                            {avatarLetter(podiumPlayers[0])}
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="text-3xl font-black uppercase italic mb-1 text-primary">{podiumPlayers[0].name}</h3>
-                      <span className="bg-primary text-white px-4 py-1 font-bold text-sm uppercase tracking-widest mb-md">
-                        World Champion
-                      </span>
-                      <div className="grid grid-cols-2 w-full border-t-4 border-primary pt-md font-bold">
-                        <div className="border-r-2 border-primary">
-                          <p className="text-[10px] font-bold uppercase opacity-80">ELO</p>
-                          <p className="text-3xl font-black italic">{podiumPlayers[0].elo}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase opacity-80">Wins</p>
-                          <p className="text-3xl font-black italic">{podiumPlayers[0].wins}</p>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* 3rd */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
-                      className={`order-3 bg-white border-4 border-primary neo-brutalist-shadow-hover p-lg flex flex-col items-center text-center relative ${podiumPlayers[2] ? "" : "opacity-40"
-                        }`}
-                    >
-                      <div className="absolute top-0 left-0 bg-primary text-white px-4 py-2 font-black text-2xl">03</div>
-                      <div className="w-32 h-32 border-4 border-primary overflow-hidden mb-md bg-white relative">
-                        {podiumPlayers[2]?.image ? (
-                          <Image
-                            src={podiumPlayers[2].image}
-                            alt={podiumPlayers[2].name || "3rd"}
-                            fill
-                            className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                            sizes="128px"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center font-black text-4xl text-primary bg-accent-red/10 grayscale hover:grayscale-0 transition-all duration-500 select-none">
-                            {podiumPlayers[2] ? avatarLetter(podiumPlayers[2]) : "3"}
-                          </div>
-                        )}
-                      </div>
-                      {podiumPlayers[2] ? (
-                        <>
-                          <h3 className="text-2xl font-black uppercase italic mb-1 text-primary">{podiumPlayers[2].name}</h3>
-                          <span className="bg-accent-blue text-white px-3 py-1 font-bold text-xs uppercase tracking-widest mb-md">
-                            Champion
-                          </span>
-                          <div className="grid grid-cols-2 w-full border-t-2 border-primary pt-md font-bold">
-                            <div>
-                              <p className="text-[10px] font-bold uppercase opacity-60">ELO</p>
-                              <p className="text-xl font-black">{podiumPlayers[2].elo}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold uppercase opacity-60">Wins</p>
-                              <p className="text-xl font-black">{podiumPlayers[2].wins}</p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-primary text-sm font-bold">—</p>
-                      )}
-                    </motion.div>
+                    <PodiumPlayer player={podiumPlayers[1]} rank="02" tierClass="bg-accent-blue" size="lg" delay={0.1} />
+                    <PodiumPlayer player={podiumPlayers[0]} rank="01" tierClass="bg-accent-yellow" size="md" delay={0} />
+                    <PodiumPlayer player={podiumPlayers[2]} rank="03" tierClass="bg-accent-red" size="lg" delay={0.2} />
                   </section>
                 )}
 
                 {/* ── Leaderboard Table Section ── */}
-                <section className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden mb-xl">
-                  {/* Filters / Search / Sort */}
-                  <div className="p-md border-b-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md select-none bg-white">
-                    <div className="relative w-full md:w-80 border-2 border-primary bg-white flex items-center px-sm py-1">
-                      <span className="material-symbols-outlined text-primary text-[20px]">search</span>
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="SEARCH TRAINERS..."
-                        className="w-full ml-xs border-none outline-none focus:ring-0 text-sm font-bold uppercase placeholder:opacity-50"
-                      />
-                    </div>
-                    <div className="flex items-center gap-xs text-primary shrink-0 w-full md:w-auto justify-between md:justify-start">
-                      <span className="text-xs font-black uppercase tracking-widest">Sort:</span>
-                      <select
-                        value={sortBy}
-                        onChange={e => setSortBy(e.target.value)}
-                        className="bg-white border-2 border-primary font-black uppercase tracking-widest text-xs px-4 py-2 focus:ring-0 outline-none"
-                      >
-                        <option>Highest ELO</option>
-                        <option>Most Wins</option>
-                        <option>Win Rate</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                      <thead>
-                        <tr className="bg-primary text-white uppercase text-xs font-black tracking-[0.2em] select-none border-b-2 border-primary">
-                          <th className="px-lg py-4 border-r-2 border-white/20">Rank</th>
-                          <th className="px-lg py-4 border-r-2 border-white/20">Trainer</th>
-                          <th className="px-lg py-4 border-r-2 border-white/20 text-center">Tier</th>
-                          <th className="px-lg py-4 border-r-2 border-white/20">ELO Rating</th>
-                          <th className="px-lg py-4 border-r-2 border-white/20">W / L Ratio</th>
-                          <th className="px-lg py-4 text-right">Tournament Wins</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y-4 divide-primary bg-white">
-                        {tableRows.length > 0 ? (
-                          tableRows.map((p, i) => {
-                            const tier = getTier(p.elo);
-                            const rate = winRate(p);
-                            const rank = i + 4; // Podium is top 3
-                            const formattedRank = rank < 10 ? `#0${rank}` : `#${rank}`;
-                            return (
-                              <tr key={p.id} className="trainer-row hover:bg-surface-container transition-colors cursor-pointer border-b-4 border-primary">
-                                <td className="px-lg py-md font-black text-3xl italic text-primary select-none w-24">
-                                  {formattedRank}
-                                </td>
-                                <td className="px-lg py-md">
-                                  <div className="flex items-center gap-sm">
-                                    <div className="w-12 h-12 border-2 border-primary relative bg-accent-yellow shrink-0 overflow-hidden">
-                                      {p.image ? (
-                                        <img
-                                          src={p.image}
-                                          alt={p.name || "Trainer"}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full flex items-center justify-center font-black text-lg text-primary select-none">
-                                          {avatarLetter(p)}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <p className="font-black text-xl uppercase tracking-tighter text-primary">
-                                        {p.name || "Trainer"}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-lg py-md text-center select-none w-36">
-                                  <span className={`px-3 py-1 ${tier.cls}`}>
-                                    {tier.label}
-                                  </span>
-                                </td>
-                                <td className="px-lg py-md font-black text-2xl italic text-primary select-none w-36">
-                                  {p.elo.toLocaleString()}
-                                </td>
-                                <td className="px-lg py-md w-48">
-                                  <div className="flex flex-col">
-                                    <span className="text-xl font-black italic text-primary">{rate}%</span>
-                                    <div className="flex mt-1 border-2 border-primary h-2 w-24 bg-white overflow-hidden">
-                                      <div
-                                        className="bg-accent-blue h-full"
-                                        style={{ width: `${rate}%` }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-primary opacity-60 mt-0.5">
-                                      {p.wins}W / {p.losses}L
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-lg py-md text-right font-black text-4xl italic text-accent-red select-none w-48">
-                                  {p.wins < 10 ? `0${p.wins}` : p.wins}
-                                </td>
-                              </tr>
-                            );
-                          })
-                        ) : (
-                          <tr>
-                            <td colSpan={6} className="text-center py-12 text-primary font-black uppercase italic">
-                              {searchQuery
-                                ? "No trainers match your filters."
-                                : "Only the top 3 trainers — no additional entries yet."}
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Table Pagination Placeholder matching mock */}
-                  <div className="p-md bg-white border-t-4 border-primary flex flex-col md:flex-row justify-between items-center gap-md">
-                    <p className="font-black uppercase tracking-widest text-xs italic">
-                      Showing 01 to {Math.min(10, tableRows.length + 3)} of {allPlayers.length} entries
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <button className="w-10 h-10 border-2 border-primary font-black hover:bg-accent-yellow transition-all flex items-center justify-center">
-                        <span className="material-symbols-outlined">chevron_left</span>
-                      </button>
-                      <button className="w-10 h-10 bg-primary text-white font-black italic">1</button>
-                      <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">2</button>
-                      <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">3</button>
-                      <span className="px-2 font-black">...</span>
-                      <button className="w-10 h-10 border-2 border-primary font-black italic hover:bg-accent-yellow">10</button>
-                      <button className="w-10 h-10 border-2 border-primary font-black hover:bg-accent-yellow transition-all flex items-center justify-center">
-                        <span className="material-symbols-outlined">chevron_right</span>
-                      </button>
-                    </div>
-                  </div>
-                </section>
+                <LeaderboardTable players={tableRows} />
               </>
             ) : (
-              /* Squad Standings */
-              <section className="border-4 border-primary neo-brutalist-shadow bg-white overflow-hidden mb-xl">
-                {loadingSquads ? (
-                  <div className="p-xl text-center">
-                    <span className="material-symbols-outlined animate-spin text-5xl text-primary">progress_activity</span>
-                    <p className="text-sm font-bold uppercase tracking-wider mt-sm">Calculating squad frequencies...</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="p-md border-b-4 border-primary bg-accent-yellow flex justify-between items-center select-none">
-                      <h2 className="font-headline-md uppercase text-primary">Squad Leaderboard</h2>
-                      <span className="bg-primary text-white px-3 py-1 font-bold text-xs uppercase">Free Fire</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                          <tr className="bg-primary text-white uppercase text-xs font-black tracking-[0.2em] select-none border-b-2 border-primary">
-                            <th className="px-lg py-4 border-r-2 border-white/20">Rank</th>
-                            <th className="px-lg py-4 border-r-2 border-white/20">Squad</th>
-                            <th className="px-lg py-4 border-r-2 border-white/20 text-center">Members</th>
-                            <th className="px-lg py-4 border-r-2 border-white/20">Average ELO</th>
-                            <th className="px-lg py-4 border-r-2 border-white/20">W / L Record</th>
-                            <th className="px-lg py-4 text-right">Points</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y-4 divide-primary bg-white">
-                          {squads.length > 0 ? (
-                            squads.map((s, idx) => {
-                              const rankNum = idx + 1;
-                              const formattedRank = rankNum < 10 ? `#0${rankNum}` : `#${rankNum}`;
-                              const rate = s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0;
-                              return (
-                                <tr key={s.id} className="hover:bg-surface-container transition-colors border-b-4 border-primary">
-                                  <td className="px-lg py-md font-black text-3xl italic text-primary select-none w-24">
-                                    {formattedRank}
-                                  </td>
-                                  <td className="px-lg py-md">
-                                    <div className="flex items-center gap-sm">
-                                      <div className="w-12 h-12 border-2 border-primary relative bg-accent-blue shrink-0 overflow-hidden">
-                                        {s.logo ? (
-                                          <img
-                                            src={s.logo}
-                                            alt={s.name}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center font-black text-lg text-white bg-primary select-none">
-                                            {s.name.charAt(0).toUpperCase()}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <p className="font-black text-xl uppercase tracking-tighter text-primary">
-                                          {s.name}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="px-lg py-md text-center select-none font-bold text-primary w-36">
-                                    {s.membersCount} Players
-                                  </td>
-                                  <td className="px-lg py-md font-black text-2xl italic text-primary select-none w-36">
-                                    {s.elo.toLocaleString()}
-                                  </td>
-                                  <td className="px-lg py-md w-48">
-                                    <div className="flex flex-col">
-                                      <span className="text-xl font-black italic text-primary">{rate}% WR</span>
-                                      <span className="text-[10px] font-bold text-primary opacity-60 mt-0.5">
-                                        {s.wins}W / {s.losses}L
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-lg py-md text-right font-black text-4xl italic text-accent-red select-none w-48">
-                                    {s.points}
-                                  </td>
-                                </tr>
-                              );
-                            })
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="text-center py-12 text-primary/60 font-black uppercase italic">
-                                No squads registered yet.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </section>
+              <SquadStandings squads={squads} loading={loadingSquads} />
             )}
           </>
         )}
@@ -607,4 +611,3 @@ export default function Rankings() {
 }
 
 export const dynamic = "force-dynamic";
-

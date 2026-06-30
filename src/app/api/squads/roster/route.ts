@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest) {
           return NextResponse.json({ error: "As Captain, you cannot leave the squad until you transfer captaincy to another member." }, { status: 400 });
         } else {
           // No other members, delete the squad
-          await prisma.$transaction(async (tx) => {
+          await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
             await tx.user.update({
               where: { id: currentUserId },
               data: { squadId: null },
@@ -63,7 +63,7 @@ export async function PUT(req: NextRequest) {
         }
       } else {
         // Regular member leaves
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
           await tx.user.update({
             where: { id: currentUserId },
             data: { squadId: null },
@@ -126,7 +126,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.user.update({
           where: { id: userId },
           data: { squadId: null },
@@ -167,7 +167,7 @@ export async function PUT(req: NextRequest) {
     }
 
     if (action === "TRANSFER_CAPTAIN") {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.squad.update({
           where: { id: squad.id },
           data: {
@@ -202,7 +202,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "User is already Co-Captain." }, { status: 400 });
       }
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.squad.update({
           where: { id: squad.id },
           data: { coCaptainId: userId },
@@ -233,7 +233,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "User is not Co-Captain." }, { status: 400 });
       }
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.squad.update({
           where: { id: squad.id },
           data: { coCaptainId: null },

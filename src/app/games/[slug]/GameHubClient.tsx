@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import type { GameInfo } from "@/data/games";
 
@@ -273,7 +274,18 @@ export default function GameHubClient({
                         {/* Challenger Avatar */}
                         <div className="w-12 h-12 border-3 border-primary bg-accent-yellow text-primary flex items-center justify-center font-black text-lg shrink-0 select-none overflow-hidden">
                           {duel.creator?.image ? (
-                            <img src={duel.creator.image} alt={duel.creator.name} className="w-full h-full object-cover" />
+                            <Image
+                              src={duel.creator.image}
+                              alt={duel.creator.name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                              sizes="48px"
+                              loading="lazy"
+                              quality={85}
+                              placeholder="blur"
+                              blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmYzcwMCIvPjwvc3ZnPg=="
+                            />
                           ) : (
                             (duel.creator?.name || "?").charAt(0).toUpperCase()
                           )}
@@ -345,7 +357,17 @@ export default function GameHubClient({
                     <span className="font-black text-lg italic text-primary w-6 select-none">#{idx + 1}</span>
                     <div className="w-8 h-8 border border-primary relative bg-accent-blue shrink-0 overflow-hidden select-none">
                       {player.image ? (
-                        <img src={player.image} alt={player.name} className="w-full h-full object-cover" />
+                        <Image
+                          src={player.image}
+                          alt={player.name}
+                          fill
+                          className="object-cover"
+                          sizes="32px"
+                          loading="lazy"
+                          quality={85}
+                          placeholder="blur"
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmNTBjZSIvPjwvc3ZnPg=="
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center font-black text-xs text-white">
                           {(player.name || "P").charAt(0).toUpperCase()}

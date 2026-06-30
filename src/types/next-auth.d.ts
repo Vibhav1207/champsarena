@@ -8,7 +8,10 @@ declare module "next-auth" {
       role: Role;
       elo: number;
       trainerId: string;
-    } & DefaultSession["user"];
+      name: string | null;
+      email: string | null;
+      image: string | null;
+    };
   }
 
   interface User {

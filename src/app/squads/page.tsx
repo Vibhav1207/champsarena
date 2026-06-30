@@ -58,7 +58,7 @@ export default async function SquadsDashboardPage() {
   });
 
   // Calculate stats for each squad
-  const squadsWithStats = squads.map((squad) => {
+  const squadsWithStats = squads.map((squad: typeof squads[0]) => {
     const matches = squad.members.length > 0 ? 0 : 0; // We'll skip match calculation for list view
     return {
       ...squad,

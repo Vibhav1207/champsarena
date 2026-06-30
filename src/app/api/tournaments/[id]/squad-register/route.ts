@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { RegistrationStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +112,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data: {
         squadId: squad.id,
         tournamentId: id,
-        status: RegistrationStatus.PENDING,
+        status: "PENDING",
       },
       include: {
         squad: {
@@ -126,9 +125,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     // Notify all squad members
-    const memberIds = squad.members.map(m => m.id);
+    const memberIds = squad.members.map((m: { id: string }) => m.id);
     await prisma.notification.createMany({
-      data: memberIds.map(memberId => ({
+      data: memberIds.map((memberId: string) => ({
         userId: memberId,
         message: `Your squad "${squad.name}" has been registered for "${tournament.title}"!`,
         type: "INFO",
@@ -231,7 +230,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     });
 
     await prisma.notification.createMany({
-      data: members.map(m => ({
+      data: members.map((m: { id: string }) => ({
         userId: m.id,
         message: `Your squad "${squad.name}" has been unregistered from "${tournament?.title || "the tournament"}"`,
         type: "INFO",

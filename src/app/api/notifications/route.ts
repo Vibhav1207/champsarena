@@ -12,12 +12,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const unreadOnly = searchParams.get("unread") === "true";
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+
+    const where = {
+      userId: session.user.id,
+      ...(unreadOnly && { read: false }),
+    };
+
     const notifications = await prisma.notification.findMany({
-      where: { userId: session.user.id },
+      where,
       orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        message: true,
+        createdAt: true,
+        read: true,
+      },
     });
 
-    return NextResponse.json(notifications);
+    return NextResponse.json(notifications, {
+      headers: {
+        "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+      },
+    });
   } catch (error: any) {
     console.error("Failed to fetch notifications:", error);
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
@@ -36,13 +56,11 @@ export async function PUT(req: NextRequest) {
     const { notificationId, all } = body;
 
     if (all) {
-      // Mark all as read
       await prisma.notification.updateMany({
         where: { userId: session.user.id },
         data: { read: true },
       });
     } else if (notificationId) {
-      // Mark specific notification as read
       await prisma.notification.update({
         where: { id: notificationId, userId: session.user.id },
         data: { read: true },

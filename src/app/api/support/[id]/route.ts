@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { Role, TicketStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+type Role = "USER" | "MODERATOR" | "ADMIN" | "SUPER_ADMIN";
+type TicketStatus = "OPEN" | "ASSIGNED" | "CLOSED";
 
 // POST /api/support/[id] - Post a reply to a support ticket
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // Check if user is the ticket creator or an admin/moderator
     const isOwner = ticket.userId === session.user.id;
-    const isStaff = session.user.role === Role.ADMIN || session.user.role === Role.SUPER_ADMIN || session.user.role === Role.MODERATOR;
+    const isStaff = session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN" || session.user.role === "MODERATOR";
 
     if (!isOwner && !isStaff) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
@@ -47,10 +49,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Automatically reopen / assign / update ticket state
     const updateData: any = {};
     if (isStaff) {
-      updateData.status = TicketStatus.ASSIGNED;
+      updateData.status = "ASSIGNED";
       updateData.assignedId = session.user.id;
     } else {
-      updateData.status = TicketStatus.OPEN;
+      updateData.status = "OPEN";
     }
 
     await prisma.supportTicket.update({
@@ -106,14 +108,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const isOwner = ticket.userId === session.user.id;
-    const isStaff = session.user.role === Role.ADMIN || session.user.role === Role.SUPER_ADMIN || session.user.role === Role.MODERATOR;
+    const isStaff = session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN" || session.user.role === "MODERATOR";
 
     if (!isStaff) {
       // Non-staff can only close their own tickets
       if (isOwner && status === "CLOSED") {
         const updated = await prisma.supportTicket.update({
           where: { id },
-          data: { status: TicketStatus.CLOSED },
+          data: { status: "CLOSED" },
         });
         return NextResponse.json(updated);
       }

@@ -79,17 +79,17 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
     take: 20,
   });
 
-  const totalWins = matches.filter(m => m.winnerSquadId === id).length;
+  const totalWins = matches.filter((m: { winnerSquadId: string | null }) => m.winnerSquadId === id).length;
   const totalLosses = matches.length - totalWins;
   const winRate = matches.length > 0 ? Math.round((totalWins / matches.length) * 100) : 0;
   const averageElo = squad.members.length > 0
-    ? Math.round(squad.members.reduce((acc, m) => acc + m.elo, 0) / squad.members.length)
+    ? Math.round(squad.members.reduce((acc: number, m: { elo: number }) => acc + m.elo, 0) / squad.members.length)
     : 1000;
 
   // Check if current user is captain/co-captain
   const isCaptain = session?.user?.id === squad.captainId;
   const isCoCaptain = session?.user?.id === squad.coCaptainId;
-  const isMember = Boolean(session?.user?.id && squad.members.some(m => m.id === session.user.id));
+  const isMember = Boolean(session?.user?.id && squad.members.some((m: { id: string }) => m.id === session.user.id));
 
   return (
     <SquadPageClient

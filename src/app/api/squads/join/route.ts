@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Add user to squad
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
       await tx.user.update({
         where: { id: userId },
         data: { squadId },

@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { Role } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !session.user || (session.user.role !== Role.ADMIN && session.user.role !== Role.SUPER_ADMIN)) {
+    if (!session || !session.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
     const payments = await prisma.payment.findMany({
       where: { status: "SUCCESS" },
     });
-    const revenue = payments.reduce((acc, pay) => acc + pay.amount, 0);
+    const revenue = payments.reduce((acc: number, pay: { amount: number }) => acc + pay.amount, 0);
 
     const pendingRegistrations = await prisma.registration.count({
       where: { status: "PENDING" },

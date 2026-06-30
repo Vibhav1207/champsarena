@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (dbPayment) {
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
           // Update payment status
           await tx.payment.update({
             where: { id: dbPayment.id },

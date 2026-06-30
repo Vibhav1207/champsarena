@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create squad and add captain as a member
-    const newSquad = await prisma.$transaction(async (tx) => {
+    const newSquad = await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
       const squad = await tx.squad.create({
         data: {
           name: name.trim(),

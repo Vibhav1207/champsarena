@@ -93,12 +93,12 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const approvedMemberIds = new Set(approvedSquadRegs.flatMap(sr => sr.squad.members.map(m => m.id)));
-      const overlapping = squad.members.filter(m => approvedMemberIds.has(m.id));
+      const approvedMemberIds = new Set(approvedSquadRegs.flatMap((sr: any) => sr.squad.members.map((m: { id: string }) => m.id)));
+      const overlapping = squad.members.filter((m: { id: string }) => approvedMemberIds.has(m.id));
 
       if (overlapping.length > 0) {
         return NextResponse.json({
-          error: `Registration failed. One or more roster players (${overlapping.map(m => m.name || m.username).join(", ")}) are already registered in another team.`,
+          error: `Registration failed. One or more roster players (${overlapping.map((m: { name: string | null; username: string | null }) => m.name || m.username).join(", ")}) are already registered in another team.`,
         }, { status: 400 });
       }
     } else {
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 
     // Free tournament: Auto-approve
     if (entryFee <= 0) {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.registration.update({
           where: { id: registration.id },
           data: { status: "APPROVED" },

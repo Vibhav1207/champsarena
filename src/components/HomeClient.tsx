@@ -1,11 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+
+// Lazy load heavy components
+const Navigation = lazy(() => import("@/components/navigation").then((mod) => ({ default: mod.default })));
+const Footer = lazy(() => import("@/components/footer").then((mod) => ({ default: mod.default })));
+
+// DiceBear avatar base URL with optimized params
+const DICEBEAR_BASE = "https://api.dicebear.com/7.x/pixel-art/svg";
 
 interface Announcement {
   id: string;
@@ -59,6 +63,34 @@ interface HomeClientProps {
   winners: string[];
 }
 
+// Skeleton component for lazy-loaded components
+function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse bg-primary/10 ${className}`} />;
+}
+
+function NavigationSkeleton() {
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b-4 border-primary">
+      <div className="flex justify-between items-center px-md py-sm max-w-container-max mx-auto h-20">
+        <Skeleton className="w-20 h-20" />
+        <Skeleton className="w-56 h-8" />
+        <Skeleton className="w-48 h-10" />
+      </div>
+    </header>
+  );
+}
+
+function FooterSkeleton() {
+  return (
+    <footer className="bg-white border-t-8 border-primary mt-auto">
+      <div className="max-w-container-max mx-auto px-md py-lg">
+        <Skeleton className="w-64 h-12 mb-4" />
+        <Skeleton className="w-full h-32" />
+      </div>
+    </footer>
+  );
+}
+
 export default function HomeClient({
   announcement,
   upcomingEvents,
@@ -67,7 +99,9 @@ export default function HomeClient({
 }: HomeClientProps) {
   return (
     <>
-      <Navigation />
+      <Suspense fallback={<NavigationSkeleton />}>
+        <Navigation />
+      </Suspense>
 
       <main className="pt-0 text-primary">
         {/* Hero Section */}
@@ -78,8 +112,12 @@ export default function HomeClient({
               alt="Stadium background"
               fill
               priority
+              fetchPriority="high"
               className="object-cover"
               sizes="100vw"
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwAB//2Q=="
             />
           </div>
           <div className="bauhaus-grid absolute inset-0"></div>
@@ -144,8 +182,13 @@ export default function HomeClient({
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGW7-vBXzV5KsC7LXIfK2ot_cPNs1BvRxQf0sHBj6v53DPscGlH_j8DDNJLsA49-gvQHaA7Sr_3zqaf7h27ApQXPUfQhU38Z5Wgp8B6OIkcIyguC5WUEhA0a5rnCc0XF5yuKBjroVnBtoQwra4ilXJNqFl7no6UIkGdSF_x9iXqkY-P-NZUNF_qeyoU9Jrz7gEgBQ2WqVsf4QIVRkLK4P83cCEEs4dzFuPIqZLyKxMy1n8Ym93FtsPqsTpOWKPWZuHCbegLshT6V8"
                     alt="News cover"
                     fill
+                    priority
+                    fetchPriority="high"
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 40vw"
+                    quality={85}
+                    placeholder="blur"
+                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwAB//2Q=="
                   />
                 </div>
                 <div className="p-md flex flex-col flex-grow justify-between text-left">
@@ -252,11 +295,17 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
-                          <img
-                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[1].id || topPlayers[1].name || 'default'}`}
-                          alt={`${topPlayers[1].name || "Trainer"} avatar`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                          <Image
+                            src={`${DICEBEAR_BASE}?seed=${topPlayers[1].id || topPlayers[1].name || "default"}&backgroundColor=fff8f8,ffcb05,3f50ce,ba1a1a&scale=120&radius=0`}
+                            alt={`${topPlayers[1].name || "Trainer"} avatar`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 160px, 180px"
+                            loading="lazy"
+                            quality={75}
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjwvc3ZnPg=="
+                          />
                         </div>
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-blue text-white px-4 py-2 font-black text-3xl border-4 border-primary">2</div>
                       </div>
@@ -277,11 +326,18 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-56 h-56 sm:w-72 sm:h-72 border-8 border-primary bg-accent-yellow overflow-hidden neo-brutalist-shadow transition-all relative">
-                          <img
-                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[0].id || topPlayers[0].name || 'default'}`}
-                          alt={`${topPlayers[0].name || "Trainer"} avatar`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                          <Image
+                            src={`${DICEBEAR_BASE}?seed=${topPlayers[0].id || topPlayers[0].name || "default"}&backgroundColor=fff8f8,ffcb05,3f50ce,ba1a1a&scale=120&radius=0`}
+                            alt={`${topPlayers[0].name || "Trainer"} avatar`}
+                            fill
+                            priority
+                            fetchPriority="high"
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 200px, 240px"
+                            quality={85}
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmZDcwMCIvPjwvc3ZnPg=="
+                          />
                         </div>
                         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent-yellow text-primary px-8 py-3 font-black text-5xl border-8 border-primary">1</div>
                       </div>
@@ -302,11 +358,17 @@ export default function HomeClient({
                     <>
                       <div className="relative mb-lg select-none">
                         <div className="w-48 h-48 sm:w-56 sm:h-56 border-8 border-primary bg-background overflow-hidden neo-brutalist-shadow grayscale hover:grayscale-0 transition-all relative">
-                          <img
-                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${topPlayers[2].id || topPlayers[2].name || 'default'}`}
-                          alt={`${topPlayers[2].name || "Trainer"} avatar`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                          <Image
+                            src={`${DICEBEAR_BASE}?seed=${topPlayers[2].id || topPlayers[2].name || "default"}&backgroundColor=fff8f8,ffcb05,3f50ce,ba1a1a&scale=120&radius=0`}
+                            alt={`${topPlayers[2].name || "Trainer"} avatar`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 160px, 180px"
+                            loading="lazy"
+                            quality={75}
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjwvc3ZnPg=="
+                          />
                         </div>
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent-red text-white px-4 py-2 font-black text-3xl border-4 border-primary">3</div>
                       </div>
@@ -370,7 +432,9 @@ export default function HomeClient({
         </section>
       </main>
 
-      <Footer />
+      <Suspense fallback={<FooterSkeleton />}>
+        <Footer />
+      </Suspense>
     </>
   );
 }

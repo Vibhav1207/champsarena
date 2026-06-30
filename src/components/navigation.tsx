@@ -1,47 +1,67 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutTrainer } from "@/app/actions/authActions";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
 
-export default function Navigation() {
+interface NavSession {
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+    role: string;
+  } | null;
+  notifications?: {
+    count: number;
+    recent: Array<{
+      id: string;
+      message: string;
+      createdAt: string;
+      read: boolean;
+    }>;
+  };
+}
+
+interface NavigationProps {
+  initialSession?: NavSession | null;
+  initialNotifications?: NavSession['notifications'];
+}
+
+export default function Navigation({ initialSession = null, initialNotifications = undefined }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, update: updateSession } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [session, setSession] = useState<any>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [localSession, setLocalSession] = useState<NavSession | null>(initialSession);
+  const [notifications, setNotifications] = useState<any[]>(initialNotifications?.recent || []);
+  const [unreadCount, setUnreadCount] = useState(initialNotifications?.count || 0);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Sync session with NextAuth
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then(r => r.json())
-      .then(data => { if (data?.user) setSession(data.user); })
-      .catch(() => { });
-  }, []);
-
-  useEffect(() => {
-    if (session) {
-      // Fetch count
-      fetch("/api/notifications/count")
-        .then(r => r.json())
-        .then(data => setUnreadCount(data.count || 0))
-        .catch(() => {});
-
-      // Fetch recent 5 notifications
-      fetch("/api/notifications")
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setNotifications(data.slice(0, 5));
-          }
-        })
-        .catch(() => {});
+    if (session?.user) {
+      setLocalSession({
+        user: {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email!,
+          image: session.user.image,
+          role: (session.user as any).role || "USER",
+        }
+      });
+    } else if (!session && localSession) {
+      setLocalSession(null);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, [session]);
 
-  const markAsRead = async (notificationId: string) => {
+  // Memoized markAsRead
+  const markAsRead = useCallback(async (notificationId: string) => {
     try {
       const res = await fetch("/api/notifications", {
         method: "PUT",
@@ -57,9 +77,10 @@ export default function Navigation() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  // Memoized markAllAsRead
+  const markAllAsRead = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications", {
         method: "PUT",
@@ -73,9 +94,9 @@ export default function Navigation() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
-  const isAdmin = session?.role === "ADMIN" || session?.role === "SUPER_ADMIN";
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
   const isActive = (path: string) => {
     if (path === "/tournaments" && pathname.startsWith("/tournaments")) return true;
@@ -102,9 +123,20 @@ export default function Navigation() {
     <header className="sticky top-0 z-50 bg-white border-b-4 border-primary">
       <div className="flex justify-between items-center px-md py-sm max-w-container-max mx-auto h-20">
 
-        {/* Brand Logo */}
+        {/* Brand Logo - Use Next.js Image for optimization */}
         <Link href="/" className="flex items-center gap-xs hover:opacity-95 transition-all">
-          <img src="/logo.png" alt="ChampsArena Logo" className="w-20 h-20 object-contain flex-shrink-0" />
+          <Image
+            src="/logo.png"
+            alt="ChampsArena Logo"
+            width={64}
+            height={64}
+            className="w-20 h-20 object-contain flex-shrink-0"
+            priority
+            fetchPriority="high"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+          />
           <span className="font-bold text-[22px] md:text-[26px] uppercase tracking-tighter bg-primary text-white px-3 py-1 select-none">
             ChampsArena
           </span>
@@ -222,13 +254,25 @@ export default function Navigation() {
                 </div>
               )}
             </div>
-            {session ? (
-              /* Logged-in avatar */
-              <Link href="/profile" title={session.name || "Profile"}
+
+            {session?.user ? (
+              /* Logged-in avatar using Next.js Image */
+              <Link href="/profile" title={session.user.name || "Profile"}
                 className="w-9 h-9 rounded-full bg-accent-yellow text-primary flex items-center justify-center font-bold text-sm border-2 border-primary overflow-hidden hover:scale-105 transition-transform">
-                {session.image
-                  ? <img src={session.image} alt={session.name || "You"} className="w-full h-full object-cover" />
-                  : (session.name || "?")[0].toUpperCase()}
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt={session.user.name || "You"}
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-cover rounded-full"
+                    sizes="36px"
+                    loading="lazy"
+                    quality={85}
+                  />
+                ) : (
+                  <span className="text-lg font-bold ">{(session.user.name || "?")[0].toUpperCase()}</span>
+                )}
               </Link>
             ) : (
               <Link href="/profile" className="material-symbols-outlined text-primary hover:text-accent-blue hover:scale-115 transition-all font-bold">
@@ -283,11 +327,11 @@ export default function Navigation() {
             <div className="flex flex-col gap-xs py-sm border-t-2 border-primary w-full">
               <div className="flex items-center gap-2 w-full">
                 <div className="w-8 h-8 rounded-full bg-accent-yellow border-2 border-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {(session.name || "?")[0].toUpperCase()}
+                  {(session.user?.name || "?")[0].toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-primary">{session.name}</p>
-                  <p className="text-xs text-primary/70">{session.email}</p>
+                  <p className="text-sm font-bold text-primary">{session.user?.name}</p>
+                  <p className="text-xs text-primary/70">{session.user?.email}</p>
                 </div>
               </div>
               <button

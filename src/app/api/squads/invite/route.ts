@@ -160,7 +160,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "You are already a member of another squad. Exit that squad first." }, { status: 400 });
       }
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         // Accept invitation
         await tx.squadInvitation.update({
           where: { id: invitationId },
@@ -195,7 +195,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Welcome to the team!" });
     } else {
       // DECLINE
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
         await tx.squadInvitation.update({
           where: { id: invitationId },
           data: { status: "DECLINED" },

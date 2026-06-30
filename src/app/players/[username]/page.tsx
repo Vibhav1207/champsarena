@@ -339,7 +339,7 @@ export default async function PlayerProfilePage({ params }: PlayerProfilePagePro
                 {player.registrations.length === 0 ? (
                   <p className="text-sm font-bold uppercase text-primary/50 py-4 text-center">No tournament appearances yet</p>
                 ) : (
-                  player.registrations.map((reg) => (
+                  player.registrations.map((reg: { id: string; tournament: { id: string; title: string } }) => (
                     <div key={reg.id} className="border-2 border-primary p-sm flex items-center justify-between hover:bg-surface-container transition-all">
                       <div>
                         <span className="text-[9px] font-black text-primary/50 uppercase leading-none">Registered Game</span>

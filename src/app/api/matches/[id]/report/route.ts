@@ -110,7 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           include: { members: true },
         });
         if (opponentSquad) {
-          const notifications = opponentSquad.members.map((mem) => ({
+          const notifications = opponentSquad.members.map((mem: { id: string }) => ({
             userId: mem.id,
             message: `Match result reported: Squad "${opponentSquad.name}" has received a match report of ${score1}-${score2} from "${reporterName}". Accept or reject the result.`,
             type: "MATCH" as const,

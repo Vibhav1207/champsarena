@@ -69,6 +69,9 @@ export default async function GameHubPage({ params, searchParams }: GamePageProp
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://champsarena.pro";
 
+  // Pre-optimized placeholder for game hero
+  const GAME_HERO_PLACEHOLDER = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAFX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwAB//2Q==";
+
   // Fetch tournaments of this game
   let tournaments: any[] = [];
   try {
@@ -255,6 +258,9 @@ export default async function GameHubPage({ params, searchParams }: GamePageProp
                 fill
                 priority
                 className="object-cover"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={GAME_HERO_PLACEHOLDER}
               />
             </div>
             <div className="absolute inset-0 bg-accent-yellow/10 mix-blend-multiply"></div>

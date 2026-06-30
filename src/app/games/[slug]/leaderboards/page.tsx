@@ -124,13 +124,13 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
         select: { s1Id: true, s2Id: true, winnerSquadId: true },
       });
 
-      squadsList = squads.map(s => {
-        const squadMatches = matches.filter(m => m.s1Id === s.id || m.s2Id === s.id);
-        const wins = squadMatches.filter(m => m.winnerSquadId === s.id).length;
+      squadsList = squads.map((s: { id: string; name: string; logo: string | null; members: Array<{ elo: number }> }) => {
+        const squadMatches = matches.filter((m: { s1Id: string | null; s2Id: string | null; winnerSquadId: string | null }) => m.s1Id === s.id || m.s2Id === s.id);
+        const wins = squadMatches.filter((m: { winnerSquadId: string | null }) => m.winnerSquadId === s.id).length;
         const losses = squadMatches.length - wins;
 
         const averageElo = s.members.length > 0
-          ? Math.round(s.members.reduce((acc, m) => acc + m.elo, 0) / s.members.length)
+          ? Math.round(s.members.reduce((acc: number, m: { elo: number }) => acc + m.elo, 0) / s.members.length)
           : 1000;
 
         const points = wins * 3;
@@ -279,7 +279,15 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
                             <div className="flex items-center gap-sm">
                               <div className="w-10 h-10 border-2 border-primary relative bg-accent-blue shrink-0 overflow-hidden select-none">
                                 {s.logo ? (
-                                  <img src={s.logo} alt={s.name} className="w-full h-full object-cover" />
+                                  <Image
+                                    src={s.logo}
+                                    alt={s.name}
+                                    fill
+                                    className="object-cover"
+                                    sizes="40px"
+                                    loading="lazy"
+                                    quality={85}
+                                  />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center font-black text-white bg-primary">
                                     {s.name.charAt(0).toUpperCase()}
@@ -343,11 +351,17 @@ export default async function GameLeaderboardsPage({ params }: GameLeaderboardsP
                           <td className="px-lg py-md">
                             <div className="flex items-center gap-sm">
                               <div className="w-10 h-10 border-2 border-primary relative bg-accent-yellow shrink-0 overflow-hidden select-none">
-                                <img
-        src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${p.id || p.username || 'default'}`}
-        alt={`${p.name || "Trainer"} avatar`}
-        className="w-full h-full object-cover"
-      />
+                                <Image
+                                  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${p.id || p.username || 'default'}`}
+                                  alt={`${p.name || "Trainer"} avatar`}
+                                  fill
+                                  className="object-cover"
+                                  sizes="40px"
+                                  loading="lazy"
+                                  quality={85}
+                                  placeholder="blur"
+                                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmZDcwMCIvPjwvc3ZnPg=="
+                                />
                               </div>
                               <Link
                                 href={`/players/${p.username || p.id}`}
